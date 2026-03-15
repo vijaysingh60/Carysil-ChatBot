@@ -209,31 +209,40 @@ export async function POST(request: Request) {
       placeholderJson
     );
 
-    let parsed: {
+    type ConciergeResponse = {
       asking_clarification?: boolean;
       message?: string;
       recommended_ids?: string[];
       reasoning?: string;
-    } | null = null;
+    };
 
+    let parsed: ConciergeResponse | null = null;
     const raw = text.replace(/```json?\s*|\s*```/g, "").trim();
     try {
-      parsed = JSON.parse(raw) as typeof parsed;
+      parsed = JSON.parse(raw) as ConciergeResponse;
     } catch {
       parsed = null;
     }
 
-    if (!parsed?.message) {
-      parsed = {
+    const fallbackMessage = aiUsed ? text : "Here are some options that might suit you.";
+    let result: ConciergeResponse;
+    if (!parsed) {
+      result = {
         asking_clarification: false,
-        message: aiUsed ? text : "Here are some options that might suit you.",
+        message: fallbackMessage,
         recommended_ids: [],
-        reasoning: null,
+        reasoning: undefined,
       };
+    } else if (!parsed.message) {
+      result = {
+        ...parsed,
+        message: fallbackMessage,
+      };
+    } else {
+      result = parsed;
     }
-
-    const recommendedIds = Array.isArray(parsed.recommended_ids)
-      ? parsed.recommended_ids
+    const recommendedIds = Array.isArray(result.recommended_ids)
+      ? result.recommended_ids
       : [];
     const recommendations = recommendedIds
       .map((id) => {
@@ -251,10 +260,10 @@ export async function POST(request: Request) {
       .filter(Boolean);
 
     return NextResponse.json({
-      result: parsed.message || "",
+      result: result.message || "",
       recommendations,
       dealers: [],
-      reasoning: parsed.reasoning ?? null,
+      reasoning: result.reasoning ?? null,
       aiUsed,
       error,
     });
