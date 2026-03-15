@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --carysil-stone: #1a1a1a;
+  --carysil-sand: #fafafa;
+  --carysil-gold: #c5222f;
+  --carysil-charcoal: #2d2d2d;
+  --carysil-red: #c5222f;
+}
+
+body {
+  @apply bg-white text-carysil-stone antialiased;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes thinking-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.animate-thinking-dot {
+  animation: thinking-dot 1.4s ease-in-out infinite;
+}
+.animate-thinking-dot-2 {
+  animation: thinking-dot 1.4s ease-in-out 0.2s infinite;
+}
+.animate-thinking-dot-3 {
+  animation: thinking-dot 1.4s ease-in-out 0.4s infinite;
+}
