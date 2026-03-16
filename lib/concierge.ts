@@ -78,6 +78,15 @@ const INTENT_PLACEHOLDER: string = JSON.stringify(
 const WHAT_WE_HAVE =
   "Here’s what we do have: kitchen & bathroom sinks, faucets, food waste disposers, combos, appliances (hob, chimney, dishwasher), and accessories. What would you like to explore?";
 
+/** Keywords for products we DO carry – single source of truth. Use for intent override and messaging. */
+export const PRODUCT_KEYWORDS_WE_HAVE =
+  /\b(sink|sinks|faucet|faucets|tap|taps|disposer|disposers|food\s*waste|combo|combos|hob|hobs|chimney|chimneys|dishwasher|dishwashers|appliance|appliances|accessory|accessories|waste\s*coupling)\b/i;
+
+/** True if the message mentions at least one product type we carry. */
+export function isProductWeCarry(message: string): boolean {
+  return PRODUCT_KEYWORDS_WE_HAVE.test(message.trim());
+}
+
 /** Product types we don't carry: regex pattern → friendly name for the reply. */
 const OUT_OF_CATALOGUE: { pattern: RegExp; name: string }[] = [
   { pattern: /\b(bath\s*tub|bathtub|bath tubs|bathtubs)\b/i, name: "bath tubs" },
@@ -113,9 +122,9 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
   return Array.from(new Set(inferred));
 }
 
-/** Words that indicate the user has given specifics (size, style, budget, etc.) – if present, we go straight to recommendations. */
+/** Words that indicate the user has given specifics (size, style, budget, or product type) – if present, we go straight to recommendations. */
 const REFINEMENT_TERMS =
-  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bpull[- ]?out\b|\bsize\b|\b60\s*cm\b|\b90\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b)/i;
+  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bpull[- ]?out\b|\bsize\b|\b60\s*cm\b|\b90\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b|\bchimney\b|\bchimneys\b|\bdishwasher\b|\bdishwashers\b|\bhob\b|\bhobs\b|\bwaste\s*coupling\b|\baccessories\b)/i;
 
 /** "Explore full range" / "full range of X" → treat as specified, go straight to results. */
 const FULL_RANGE_PATTERN = /\b(explore\s+full\s+range|full\s+range\s+of|show\s+(?:me\s+)?(?:the\s+)?full\s+range)\b/i;
@@ -126,9 +135,12 @@ function isVagueCategoryQuery(message: string, categories: ProductCategory[]): b
   const trimmed = message.trim();
   const lower = trimmed.toLowerCase();
   if (FULL_RANGE_PATTERN.test(lower)) return false;
-  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
   if (REFINEMENT_TERMS.test(lower)) return false;
-  const bareOnly = /^(sink|sinks|faucet|faucets|tap|taps|disposer|disposers|accessory|accessories|appliance|appliances|hob|hobs)\s*[\.\?]?\s*$/i.test(lower);
+  // User asked for a specific appliance type (chimney, dishwasher, hob) → go straight to recommendations
+  if (categories[0] === "Appliance" && /\b(chimney|chimneys|dishwasher|dishwashers|hob|hobs)\b/.test(lower))
+    return false;
+  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+  const bareOnly = /^(sink|sinks|faucet|faucets|tap|taps|disposer|disposers|accessory|accessories|appliance|appliances|hob|hobs|combo|combos|chimney|chimneys|dishwasher|dishwashers)\s*[\.\?]?\s*$/i.test(lower);
   if (bareOnly) return true;
   return wordCount <= 6;
 }
@@ -147,10 +159,19 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
     parsed.categories = parsed.categories.filter((c) =>
       CATEGORIES.includes(c as ProductCategory)
     ) as ProductCategory[];
+    const lower = userMessage.toLowerCase();
+    const dealerKeywords = /\b(dealer|dealers|find\s+a\s+dealer|where\s+to\s+buy|store|outlet|showroom|nearest\s+dealer)\b/i.test(lower);
+    if (dealerKeywords && !parsed.dealer_intent) {
+      parsed.dealer_intent = true;
+      parsed.categories = [];
+      parsed.asking_clarification = true;
+      parsed.clarification_message =
+        "Which city or state are you in? I'll find Carysil dealers near you.";
+      return parsed;
+    }
     if (parsed.dealer_intent) {
       return parsed;
     }
-    const lower = userMessage.toLowerCase();
     const needsHobClarification =
       /\bhob\b/.test(lower) &&
       !/(60|75|90)\s*cm|\b4\s*burner|\bfour\s*burner|\b5\s*burner|\bfive\s*burner|\binduction\b|\bgas\b/.test(
@@ -166,6 +187,9 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
       if (outOfCatalogue) {
         parsed.asking_clarification = true;
         parsed.clarification_message = outOfCatalogue;
+      } else if (!isVague && parsed.categories.length >= 1) {
+        parsed.asking_clarification = false;
+        parsed.clarification_message = null;
       } else if (isVague && parsed.categories.length === 1) {
         parsed.asking_clarification = true;
         if (parsed.categories.includes("Sink")) {
@@ -178,8 +202,15 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
           parsed.clarification_message =
             "Great, you’re looking for a food waste disposer. How many people are in the household, and do you have any brand/feature preferences?";
         } else if (parsed.categories.includes("Appliance")) {
+          parsed.clarification_message = lower.includes("hob")
+            ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
+            : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.";
+        } else if (parsed.categories.includes("Accessory")) {
           parsed.clarification_message =
-            "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?";
+            "What kind of accessory? For example: waste couplings, mounting accessories, or explore the full range.";
+        } else if (parsed.categories.includes("Combo")) {
+          parsed.clarification_message =
+            "We have sink and faucet combos. Any preferred size, finish, or explore the full range?";
         } else {
           parsed.clarification_message =
             "What type of product are you looking for? (e.g. kitchen sink, faucet, food waste disposer)";
@@ -211,6 +242,20 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
           parsed.clarification_message =
             parsed.clarification_message ||
             "Great, you’re looking for a food waste disposer. How many people are in the household, and do you have any brand/feature preferences?";
+        } else if (parsed.categories.includes("Appliance")) {
+          parsed.clarification_message =
+            parsed.clarification_message ||
+            (lower.includes("hob")
+              ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
+              : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.");
+        } else if (parsed.categories.includes("Accessory")) {
+          parsed.clarification_message =
+            parsed.clarification_message ||
+            "What kind of accessory? For example: waste couplings, mounting accessories, or explore the full range.";
+        } else if (parsed.categories.includes("Combo")) {
+          parsed.clarification_message =
+            parsed.clarification_message ||
+            "We have sink and faucet combos. Any preferred size, finish, or explore the full range?";
         } else {
           parsed.asking_clarification = false;
           parsed.clarification_message = null;
@@ -220,8 +265,14 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
         parsed.clarification_message = null;
       }
     }
-    if (parsed.asking_clarification && parsed.clarification_message) {
-      return parsed;
+    // Never say "we don't have X" when the user asked for a product we carry (e.g. chimney, hob, dishwasher)
+    if (
+      parsed.clarification_message &&
+      /don't have|we don't have|do not have/i.test(parsed.clarification_message) &&
+      isProductWeCarry(userMessage)
+    ) {
+      parsed.asking_clarification = false;
+      parsed.clarification_message = null;
     }
     return parsed;
   } catch {
@@ -274,8 +325,27 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
           return {
             categories: inferred,
             asking_clarification: true,
+            clarification_message: lower.includes("hob")
+              ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
+              : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.",
+            filters: {},
+          };
+        }
+        if (inferred.includes("Accessory")) {
+          return {
+            categories: inferred,
+            asking_clarification: true,
             clarification_message:
-              "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?",
+              "What kind of accessory? For example: waste couplings, mounting accessories, or explore the full range.",
+            filters: {},
+          };
+        }
+        if (inferred.includes("Combo")) {
+          return {
+            categories: inferred,
+            asking_clarification: true,
+            clarification_message:
+              "We have sink and faucet combos. Any preferred size, finish, or explore the full range?",
             filters: {},
           };
         }

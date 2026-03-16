@@ -111,16 +111,28 @@ export function ChatWidget() {
   }
 
   useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const nearBottom = scrollTop + clientHeight >= scrollHeight - 40;
-      setAtBottom(nearBottom);
+    if (!open) return;
+    let cleanup: (() => void) | undefined;
+    const attach = (node: HTMLDivElement | null) => {
+      if (!node) return;
+      const onScroll = () => {
+        const { scrollTop, scrollHeight, clientHeight } = node;
+        setAtBottom(scrollTop + clientHeight >= scrollHeight - 50);
+      };
+      node.addEventListener("scroll", onScroll);
+      onScroll();
+      cleanup = () => node.removeEventListener("scroll", onScroll);
     };
-    el.addEventListener("scroll", handleScroll);
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, []);
+    if (listRef.current) attach(listRef.current);
+    else {
+      const t = setTimeout(() => attach(listRef.current), 150);
+      return () => {
+        clearTimeout(t);
+        cleanup?.();
+      };
+    }
+    return () => cleanup?.();
+  }, [open]);
 
   return (
     <>
@@ -149,8 +161,7 @@ export function ChatWidget() {
       {/* Chat window */}
       {open && (
         <div
-          className="fixed bottom-24 right-6 z-[9998] flex w-[480px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-gray-800/80 bg-[#14161A] shadow-2xl shadow-black/60"
-          style={{ height: "min(760px, calc(100vh - 6rem))" }}
+          className="fixed bottom-24 right-6 z-[9998] flex w-[480px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-gray-800/80 bg-[#14161A] shadow-2xl shadow-black/60 h-[min(760px,calc(100vh-6rem))] max-sm:h-[min(680px,calc(100vh-10rem))]"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-white/5 bg-[#14161A] px-5 py-3.5">
@@ -205,7 +216,7 @@ export function ChatWidget() {
                       {m.dealers.slice(0, 6).map((dealer) => (
                         <div
                           key={dealer.id}
-                          className="rounded-lg border border-white/5 bg-[#14161A] p-3.5 text-left"
+                          className="rounded-lg border border-white/5 bg-[#14161A] text-black p-3.5 text-left"
                         >
                           <p className="font-medium text-gray-100 text-base">{dealer.name}</p>
                           <p className="text-sm text-gray-400 mt-0.5">{dealer.city}, {dealer.state}</p>
@@ -227,7 +238,7 @@ export function ChatWidget() {
                           key={option}
                           type="button"
                           onClick={() => void send(option)}
-                          className="rounded-full border border-white/10 bg-[#14161A] px-4 py-2 text-sm sm:text-base text-gray-100 hover:bg-white/5 hover:border-white/30 transition-colors"
+                          className="rounded-full border border-white/20 bg-[#1e1e22] px-4 py-2 text-sm sm:text-base text-gray-100 hover:bg-[#2a2a2e] hover:border-white/30 transition-colors"
                         >
                           {option}
                         </button>
@@ -242,7 +253,7 @@ export function ChatWidget() {
                           href={rec.url || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex gap-2 rounded-xl border border-white/5 bg-[#14161A] p-2 hover:border-[var(--carysil-red)]/60 transition-colors text-left"
+                          className="flex gap-2 rounded-xl border border-white/5 bg-[#14161A] text-black p-2 hover:border-[var(--carysil-red)]/60 transition-colors text-left"
                         >
                           {rec.image_url && (
                             <img
@@ -287,7 +298,7 @@ export function ChatWidget() {
                     behavior: "smooth",
                   })
                 }
-                className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex h-11 w-11 items-center justify-center rounded-full border-2 border-gray-400 bg-[#1e1e1e] text-white shadow-lg hover:bg-[#2a2a2a] hover:border-gray-300 transition"
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-[#2a2a2e] text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] ring-2 ring-black/20 hover:bg-[#35353a] hover:border-gray-200 transition"
                 aria-label="Scroll to latest messages"
               >
                 <svg

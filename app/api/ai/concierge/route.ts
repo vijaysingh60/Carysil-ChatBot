@@ -127,6 +127,9 @@ You will receive:
 - "message": Plain text, user-facing. Keep it concise and warm.
 - Use only ids that appear in the catalogue you were given.`;
 
+/** Simple greeting – respond with a friendly Carysil welcome, no dealer push. */
+const GREETING_PATTERN = /^(hi|hello|hey|hi there|hello there|good\s+(morning|afternoon|evening)|howdy|greetings?|thanks|thank\s+you|ok|okay)\s*[\.\!]?\s*$/i;
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -138,24 +141,71 @@ export async function POST(request: Request) {
       );
     }
 
+    // Greeting → friendly Carysil welcome and balanced help options (no dealer emphasis)
+    if (GREETING_PATTERN.test(message)) {
+      return NextResponse.json({
+        result: "Hi! I'm AskCary, your Carysil assistant. I can help you with product recommendations (sinks, faucets, disposers, appliances), finding a dealer near you, or installation support. What would you like help with?",
+        recommendations: [],
+        dealers: [],
+        reasoning: null,
+        aiUsed: true,
+        error: undefined,
+        followups: [
+          "I'm looking for a kitchen sink.",
+          "I need a faucet or tap.",
+          "Show me food waste disposers.",
+          "I'm interested in hobs or chimneys.",
+          "Find a dealer near me.",
+          "I need installation help.",
+        ],
+      });
+    }
+
     // Step 1: Detect intent (categories + optional clarification)
     const intent = await detectIntent(message);
+
+    // "Show all dealers" / "All dealers" → return full dealer list (no repeat of suggestions)
+    const wantsAllDealers = /\b(all\s+dealers|show\s+all\s+dealers|list\s+(all\s+)?dealers)\b/i.test(message);
+    if (intent.dealer_intent && wantsAllDealers) {
+      return NextResponse.json({
+        result: "Here are Carysil dealers across India. You can contact them for availability and pricing. Pick a city below to see dealers near you, or contact any from the list.",
+        recommendations: [],
+        dealers: allDealers.slice(0, 30),
+        reasoning: null,
+        aiUsed: true,
+        error: undefined,
+      });
+    }
 
     if (intent.asking_clarification && intent.clarification_message) {
       const lower = message.toLowerCase();
       const followups: string[] = [];
 
-      // Hob guidance – structured follow-up questions
-      if (lower.includes("hob") || intent.categories.includes("Appliance")) {
+      // Dealer intent but no location → only show city / "Show all dealers" options (no product suggestions)
+      if (intent.dealer_intent) {
+        followups.push(
+          "I'm in Mumbai.",
+          "I'm in Delhi.",
+          "I'm in Bangalore.",
+          "I'm in Hyderabad.",
+          "I'm in Chennai.",
+          "Show all dealers."
+        );
+      }
+
+      // Appliance / Hob – structured follow-up questions
+      if (!intent.dealer_intent && intent.categories.includes("Appliance")) {
         followups.push(
           "I'm looking for a 60 cm hob with 4 burners.",
           "I'm looking for a 90 cm hob with 4 burners.",
-          "Show me the full range of hobs."
+          "Show me chimneys.",
+          "Show me dishwashers.",
+          "Explore full range of appliances."
         );
       }
 
       // Sink guidance – ask for size / style / budget
-      if (intent.categories.includes("Sink")) {
+      if (!intent.dealer_intent && intent.categories.includes("Sink")) {
         followups.push(
           "Show me single-bowl kitchen sinks.",
           "Show me double-bowl kitchen sinks.",
@@ -165,7 +215,7 @@ export async function POST(request: Request) {
       }
 
       // Faucet guidance – ask for finish / mounting
-      if (intent.categories.includes("Faucet")) {
+      if (!intent.dealer_intent && intent.categories.includes("Faucet")) {
         followups.push(
           "Show me black kitchen faucets.",
           "Show me pull-out kitchen faucets.",
@@ -175,7 +225,7 @@ export async function POST(request: Request) {
       }
 
       // Disposer guidance – ask for household size
-      if (intent.categories.includes("Disposer")) {
+      if (!intent.dealer_intent && intent.categories.includes("Disposer")) {
         followups.push(
           "Show me food waste disposers for a family of 3–4.",
           "Show me food waste disposers for a family of 5+.",
@@ -184,12 +234,31 @@ export async function POST(request: Request) {
         );
       }
 
-      // When no category yet (generic "what are you looking for?") – offer category options
+      // Accessory guidance
+      if (!intent.dealer_intent && intent.categories.includes("Accessory")) {
+        followups.push(
+          "Show me waste couplings.",
+          "Show me kitchen accessories.",
+          "Explore full range of accessories."
+        );
+      }
+
+      // Combo guidance
+      if (!intent.dealer_intent && intent.categories.includes("Combo")) {
+        followups.push(
+          "Show me sink and faucet combos.",
+          "Explore full range of combos."
+        );
+      }
+
+      // When no category yet (generic "what are you looking for?") – offer category options (only if not dealer flow)
       if (followups.length === 0) {
         followups.push(
           "I'm looking for a kitchen sink.",
           "I need a faucet.",
           "Food waste disposer for my kitchen.",
+          "I'm looking for appliances (hob, chimney, dishwasher).",
+          "I need accessories.",
           "Find a dealer near me."
         );
       }
