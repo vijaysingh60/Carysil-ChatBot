@@ -40,8 +40,15 @@ Your job: read the user's message and decide (A) if they want a DEALER/STORE, or
 
 **PRODUCT intent (when not dealer):**
 - Allowed categories (use exactly these): Sink, Faucet, Combo, Appliance, Disposer, Accessory.
-- Map synonyms: "tap" → Faucet, "sink"/"quartz sink"/"kitchen sink" → Sink, "disposer"/"food waste" → Disposer, "accessories"/"waste coupling" → Accessory, "hob"/"chimney"/"dishwasher" → Appliance.
-- If the user is vague ("help me", "what do you have"), set asking_clarification to true and suggest they pick a category or ask for a dealer.
+- Map synonyms and common phrases to ONE category (use exactly these spellings):
+  - Faucet: "faucet", "faucets", "tap", "taps", "kitchen faucet", "bathroom faucet", "I need a faucet", "what do you have in faucets", "show me faucets".
+  - Sink: "sink", "sinks", "quartz sink", "kitchen sink", "bathroom sink", "I need a sink".
+  - Disposer: "disposer", "disposers", "food waste", "food waste disposer", "garbage disposal".
+  - Accessory: "accessories", "waste coupling", "accessory".
+  - Appliance: "hob", "chimney", "dishwasher", "appliance", "appliances".
+  - Combo: "combo", "sink and faucet combo".
+- IMPORTANT: If the user mentions ANY product type (e.g. "kitchen faucet", "faucet", "sink", "disposer"), set that category in "categories" and set asking_clarification to FALSE. Only ask for clarification when the message has NO product type at all (e.g. "help me", "what do you have" with no product word, "hi").
+- Examples: "I need a kitchen faucet. What do you have?" → categories: ["Faucet"], asking_clarification: false. "Recommend quartz sinks for modern kitchen" → categories: ["Sink"], asking_clarification: false. "Which dealer in Hyderabad?" → dealer_intent: true, location: { city: "Hyderabad" }.
 - If they mention multiple product types, include both in categories.
 - Infer "filters" when clear: material, price_range, style.
 
@@ -67,6 +74,19 @@ const INTENT_PLACEHOLDER: string = JSON.stringify(
   2
 );
 
+/** Infer product categories from message keywords when AI returns none (e.g. "kitchen faucet" → Faucet). */
+function inferCategoriesFromMessage(message: string): ProductCategory[] {
+  const lower = message.toLowerCase();
+  const inferred: ProductCategory[] = [];
+  if (/\b(faucet|faucets|tap|taps|kitchen faucet|bathroom faucet)\b/.test(lower)) inferred.push("Faucet");
+  if (/\b(sink|sinks|quartz sink|kitchen sink|bathroom sink)\b/.test(lower)) inferred.push("Sink");
+  if (/\b(disposer|disposers|food waste|garbage disposal)\b/.test(lower)) inferred.push("Disposer");
+  if (/\b(accessory|accessories|waste coupling)\b/.test(lower)) inferred.push("Accessory");
+  if (/\b(hob|chimney|dishwasher|appliance|appliances)\b/.test(lower)) inferred.push("Appliance");
+  if (/\bcombo\b/.test(lower)) inferred.push("Combo");
+  return Array.from(new Set(inferred));
+}
+
 export async function detectIntent(userMessage: string): Promise<IntentResult> {
   const { text } = await callAI(
     INTENT_SYSTEM,
@@ -81,20 +101,39 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
     parsed.categories = parsed.categories.filter((c) =>
       CATEGORIES.includes(c as ProductCategory)
     ) as ProductCategory[];
-    if (parsed.asking_clarification && parsed.clarification_message) {
-      return parsed;
-    }
     if (parsed.dealer_intent) {
       return parsed;
     }
     if (parsed.categories.length === 0) {
+      const inferred = inferCategoriesFromMessage(userMessage);
+      if (inferred.length > 0) {
+        parsed.categories = inferred;
+        parsed.asking_clarification = false;
+        parsed.clarification_message = null;
+        return parsed;
+      }
       parsed.asking_clarification = true;
       parsed.clarification_message =
         parsed.clarification_message ||
         "What type of product are you looking for? (e.g. kitchen sink, faucet, food waste disposer)";
+    } else {
+      parsed.asking_clarification = false;
+      parsed.clarification_message = null;
+    }
+    if (parsed.asking_clarification && parsed.clarification_message) {
+      return parsed;
     }
     return parsed;
   } catch {
+    const inferred = inferCategoriesFromMessage(userMessage);
+    if (inferred.length > 0) {
+      return {
+        categories: inferred,
+        asking_clarification: false,
+        clarification_message: null,
+        filters: {},
+      };
+    }
     return {
       categories: [],
       asking_clarification: true,
