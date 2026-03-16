@@ -116,18 +116,15 @@ You will receive:
 1. If the catalogue is empty or you have no good matches, say so briefly and suggest they refine (e.g. different budget or material). Set recommended_ids to [].
 2. Otherwise, pick 3–4 products that best match the user's stated or implied needs (budget, material, style, size, use case). Use ONLY the "id" values from the catalogue (exact match). Aim for at least 3 recommendations when the catalogue has enough options.
 3. Prefer variety: different series, sizes, or colours where relevant.
-4. Provide a short, clear "reasoning" (2–4 sentences) explaining WHY you chose these products for this user. This will be shown to build trust (e.g. "We picked these quartz sinks because you asked for a modern look and medium budget; they offer single and double bowl options and fit under ₹15k.").
 
 **Response format – strict JSON only (no markdown, no backticks):**
 {
   "asking_clarification": false,
   "message": "Your friendly reply with a brief intro, then you can mention the products below.",
-  "recommended_ids": ["id1", "id2", "id3", "id4"],
-  "reasoning": "Short explanation of why these products fit the user's need."
+  "recommended_ids": ["id1", "id2", "id3", "id4"]
 }
 
 - "message": Plain text, user-facing. Keep it concise and warm.
-- "reasoning": Internal-style explanation for why these picks; can be shown to the user as "Why we chose these."
 - Use only ids that appear in the catalogue you were given.`;
 
 export async function POST(request: Request) {
@@ -145,6 +142,58 @@ export async function POST(request: Request) {
     const intent = await detectIntent(message);
 
     if (intent.asking_clarification && intent.clarification_message) {
+      const lower = message.toLowerCase();
+      const followups: string[] = [];
+
+      // Hob guidance – structured follow-up questions
+      if (lower.includes("hob") || intent.categories.includes("Appliance")) {
+        followups.push(
+          "I'm looking for a 60 cm hob with 4 burners.",
+          "I'm looking for a 90 cm hob with 4 burners.",
+          "Show me the full range of hobs."
+        );
+      }
+
+      // Sink guidance – ask for size / style / budget
+      if (intent.categories.includes("Sink")) {
+        followups.push(
+          "Show me single-bowl kitchen sinks.",
+          "Show me double-bowl kitchen sinks.",
+          "Show me black quartz kitchen sinks.",
+          "Explore full range of sinks."
+        );
+      }
+
+      // Faucet guidance – ask for finish / mounting
+      if (intent.categories.includes("Faucet")) {
+        followups.push(
+          "Show me black kitchen faucets.",
+          "Show me pull-out kitchen faucets.",
+          "Show me chrome kitchen faucets.",
+          "Explore full range of faucets."
+        );
+      }
+
+      // Disposer guidance – ask for household size
+      if (intent.categories.includes("Disposer")) {
+        followups.push(
+          "Show me food waste disposers for a family of 3–4.",
+          "Show me food waste disposers for a family of 5+.",
+          "What are the benefits of a food waste disposer?",
+          "Explore full range of disposers."
+        );
+      }
+
+      // When no category yet (generic "what are you looking for?") – offer category options
+      if (followups.length === 0) {
+        followups.push(
+          "I'm looking for a kitchen sink.",
+          "I need a faucet.",
+          "Food waste disposer for my kitchen.",
+          "Find a dealer near me."
+        );
+      }
+
       return NextResponse.json({
         result: intent.clarification_message,
         recommendations: [],
@@ -152,6 +201,7 @@ export async function POST(request: Request) {
         reasoning: null,
         aiUsed: true,
         error: undefined,
+        followups,
       });
     }
 
@@ -213,7 +263,6 @@ export async function POST(request: Request) {
       asking_clarification?: boolean;
       message?: string;
       recommended_ids?: string[];
-      reasoning?: string;
     };
 
     let parsed: ConciergeResponse | null = null;
@@ -231,7 +280,6 @@ export async function POST(request: Request) {
         asking_clarification: false,
         message: fallbackMessage,
         recommended_ids: [],
-        reasoning: undefined,
       };
     } else if (!parsed.message) {
       result = {
@@ -263,7 +311,7 @@ export async function POST(request: Request) {
       result: result.message || "",
       recommendations,
       dealers: [],
-      reasoning: result.reasoning ?? null,
+      reasoning: null,
       aiUsed,
       error,
     });

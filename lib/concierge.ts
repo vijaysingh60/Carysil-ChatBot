@@ -113,6 +113,26 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
   return Array.from(new Set(inferred));
 }
 
+/** Words that indicate the user has given specifics (size, style, budget, etc.) – if present, we go straight to recommendations. */
+const REFINEMENT_TERMS =
+  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bpull[- ]?out\b|\bsize\b|\b60\s*cm\b|\b90\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b)/i;
+
+/** "Explore full range" / "full range of X" → treat as specified, go straight to results. */
+const FULL_RANGE_PATTERN = /\b(explore\s+full\s+range|full\s+range\s+of|show\s+(?:me\s+)?(?:the\s+)?full\s+range)\b/i;
+
+/** True if the query is under-specified: one category, short message, no refinement terms → show clarification + selectables. */
+function isVagueCategoryQuery(message: string, categories: ProductCategory[]): boolean {
+  if (categories.length !== 1) return false;
+  const trimmed = message.trim();
+  const lower = trimmed.toLowerCase();
+  if (FULL_RANGE_PATTERN.test(lower)) return false;
+  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+  if (REFINEMENT_TERMS.test(lower)) return false;
+  const bareOnly = /^(sink|sinks|faucet|faucets|tap|taps|disposer|disposers|accessory|accessories|appliance|appliances|hob|hobs)\s*[\.\?]?\s*$/i.test(lower);
+  if (bareOnly) return true;
+  return wordCount <= 6;
+}
+
 export async function detectIntent(userMessage: string): Promise<IntentResult> {
   const { text } = await callAI(
     INTENT_SYSTEM,
@@ -130,23 +150,75 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
     if (parsed.dealer_intent) {
       return parsed;
     }
+    const lower = userMessage.toLowerCase();
+    const needsHobClarification =
+      /\bhob\b/.test(lower) &&
+      !/(60|75|90)\s*cm|\b4\s*burner|\bfour\s*burner|\b5\s*burner|\bfive\s*burner|\binduction\b|\bgas\b/.test(
+        lower
+      );
     if (parsed.categories.length === 0) {
       const inferred = inferCategoriesFromMessage(userMessage);
       if (inferred.length > 0) {
         parsed.categories = inferred;
+      }
+      const outOfCatalogue = getOutOfCatalogueReply(userMessage);
+      const isVague = inferred.length > 0 ? isVagueCategoryQuery(userMessage, parsed.categories) : true;
+      if (outOfCatalogue) {
+        parsed.asking_clarification = true;
+        parsed.clarification_message = outOfCatalogue;
+      } else if (isVague && parsed.categories.length === 1) {
+        parsed.asking_clarification = true;
+        if (parsed.categories.includes("Sink")) {
+          parsed.clarification_message =
+            "Great, you’re looking for a sink. Could you tell me your size preference (single or double bowl, with or without drainboard), colour/finish, and an approximate budget?";
+        } else if (parsed.categories.includes("Faucet")) {
+          parsed.clarification_message =
+            "Great, you’re looking for a faucet. Do you prefer a particular finish (chrome, black, PVD), mounting type (deck or wall), and any budget range?";
+        } else if (parsed.categories.includes("Disposer")) {
+          parsed.clarification_message =
+            "Great, you’re looking for a food waste disposer. How many people are in the household, and do you have any brand/feature preferences?";
+        } else if (parsed.categories.includes("Appliance")) {
+          parsed.clarification_message =
+            "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?";
+        } else {
+          parsed.clarification_message =
+            "What type of product are you looking for? (e.g. kitchen sink, faucet, food waste disposer)";
+        }
+      } else {
+        parsed.asking_clarification = true;
+        parsed.clarification_message =
+          parsed.clarification_message ||
+          "What type of product are you looking for? (e.g. kitchen sink, faucet, food waste disposer)";
+      }
+    } else {
+      const isVague = isVagueCategoryQuery(userMessage, parsed.categories);
+      if (needsHobClarification && parsed.categories.includes("Appliance")) {
+        parsed.asking_clarification = true;
+        parsed.clarification_message =
+          parsed.clarification_message ||
+          "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?";
+      } else if (isVague) {
+        parsed.asking_clarification = true;
+        if (parsed.categories.includes("Sink")) {
+          parsed.clarification_message =
+            parsed.clarification_message ||
+            "Great, you’re looking for a sink. Could you tell me your size preference (single or double bowl, with or without drainboard), colour/finish, and an approximate budget?";
+        } else if (parsed.categories.includes("Faucet")) {
+          parsed.clarification_message =
+            parsed.clarification_message ||
+            "Great, you’re looking for a faucet. Do you prefer a particular finish (chrome, black, PVD), mounting type (deck or wall), and any budget range?";
+        } else if (parsed.categories.includes("Disposer")) {
+          parsed.clarification_message =
+            parsed.clarification_message ||
+            "Great, you’re looking for a food waste disposer. How many people are in the household, and do you have any brand/feature preferences?";
+        } else {
+          parsed.asking_clarification = false;
+          parsed.clarification_message = null;
+        }
+      } else {
         parsed.asking_clarification = false;
         parsed.clarification_message = null;
-        return parsed;
       }
-      parsed.asking_clarification = true;
-      const outOfCatalogue = getOutOfCatalogueReply(userMessage);
-      parsed.clarification_message =
-        outOfCatalogue ||
-        parsed.clarification_message ||
-        "What type of product are you looking for? (e.g. kitchen sink, faucet, food waste disposer)";
-    } else {
-      parsed.asking_clarification = false;
-      parsed.clarification_message = null;
     }
     if (parsed.asking_clarification && parsed.clarification_message) {
       return parsed;
@@ -154,7 +226,60 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
     return parsed;
   } catch {
     const inferred = inferCategoriesFromMessage(userMessage);
+    const lower = userMessage.toLowerCase();
+    const needsHobClarification =
+      /\bhob\b/.test(lower) &&
+      !/(60|75|90)\s*cm|\b4\s*burner|\bfour\s*burner|\b5\s*burner|\bfive\s*burner|\binduction\b|\bgas\b/.test(
+        lower
+      );
+    const isVague = inferred.length === 1 && isVagueCategoryQuery(userMessage, inferred);
     if (inferred.length > 0) {
+      if (needsHobClarification && inferred.includes("Appliance")) {
+        return {
+          categories: inferred,
+          asking_clarification: true,
+          clarification_message:
+            "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?",
+          filters: {},
+        };
+      } else if (isVague) {
+        if (inferred.includes("Sink")) {
+          return {
+            categories: inferred,
+            asking_clarification: true,
+            clarification_message:
+              "Great, you’re looking for a sink. Could you tell me your size preference (single or double bowl, with or without drainboard), colour/finish, and an approximate budget?",
+            filters: {},
+          };
+        }
+        if (inferred.includes("Faucet")) {
+          return {
+            categories: inferred,
+            asking_clarification: true,
+            clarification_message:
+              "Great, you’re looking for a faucet. Do you prefer a particular finish (chrome, black, PVD), mounting type (deck or wall), and any budget range?",
+            filters: {},
+          };
+        }
+        if (inferred.includes("Disposer")) {
+          return {
+            categories: inferred,
+            asking_clarification: true,
+            clarification_message:
+              "Great, you’re looking for a food waste disposer. How many people are in the household, and do you have any brand/feature preferences?",
+            filters: {},
+          };
+        }
+        if (inferred.includes("Appliance")) {
+          return {
+            categories: inferred,
+            asking_clarification: true,
+            clarification_message:
+              "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?",
+            filters: {},
+          };
+        }
+      }
       return {
         categories: inferred,
         asking_clarification: false,
