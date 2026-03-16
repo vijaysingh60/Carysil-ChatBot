@@ -118,13 +118,13 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
   if (/\b(disposer|disposers|food waste|garbage disposal)\b/.test(lower)) inferred.push("Disposer");
   if (/\b(accessory|accessories|waste coupling)\b/.test(lower)) inferred.push("Accessory");
   if (/\b(hob|chimney|dishwasher|appliance|appliances)\b/.test(lower)) inferred.push("Appliance");
-  if (/\bcombo\b/.test(lower)) inferred.push("Combo");
+  if (/\b(combo|combos)\b/.test(lower)) inferred.push("Combo");
   return Array.from(new Set(inferred));
 }
 
 /** Words that indicate the user has given specifics (size, style, budget, or product type) – if present, we go straight to recommendations. */
 const REFINEMENT_TERMS =
-  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bpull[- ]?out\b|\bsize\b|\b60\s*cm\b|\b90\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b|\bchimney\b|\bchimneys\b|\bdishwasher\b|\bdishwashers\b|\bhob\b|\bhobs\b|\bwaste\s*coupling\b|\baccessories\b)/i;
+  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bpull[- ]?out\b|\bsize\b|\b60\s*cm\b|\b90\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b|\bchimney\b|\bchimneys\b|\bdishwasher\b|\bdishwashers\b|\bhob\b|\bhobs\b|\bwaste\s*coupling\b|\baccessories\b|\bcombo\b|\bcombos\b|\bsink\b|\bsinks\b|\bfaucet\b|\bfaucets\b|\bdisposer\b|\bdisposers\b)/i;
 
 /** "Explore full range" / "full range of X" → treat as specified, go straight to results. */
 const FULL_RANGE_PATTERN = /\b(explore\s+full\s+range|full\s+range\s+of|show\s+(?:me\s+)?(?:the\s+)?full\s+range)\b/i;
@@ -139,6 +139,13 @@ function isVagueCategoryQuery(message: string, categories: ProductCategory[]): b
   // User asked for a specific appliance type (chimney, dishwasher, hob) → go straight to recommendations
   if (categories[0] === "Appliance" && /\b(chimney|chimneys|dishwasher|dishwashers|hob|hobs)\b/.test(lower))
     return false;
+  // Clicked a category followup (e.g. "Show me sink and faucet combos") → go to recommendations, never repeat suggestions
+  const cat = categories[0];
+  if (cat === "Combo" && /\b(combo|combos)\b/.test(lower)) return false;
+  if (cat === "Sink" && /\b(sink|sinks)\b/.test(lower)) return false;
+  if (cat === "Faucet" && /\b(faucet|faucets|tap|taps)\b/.test(lower)) return false;
+  if (cat === "Disposer" && /\b(disposer|disposers)\b/.test(lower)) return false;
+  if (cat === "Accessory" && /\b(accessory|accessories)\b/.test(lower)) return false;
   const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
   const bareOnly = /^(sink|sinks|faucet|faucets|tap|taps|disposer|disposers|accessory|accessories|appliance|appliances|hob|hobs|combo|combos|chimney|chimneys|dishwasher|dishwashers)\s*[\.\?]?\s*$/i.test(lower);
   if (bareOnly) return true;
@@ -160,6 +167,20 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
       CATEGORIES.includes(c as ProductCategory)
     ) as ProductCategory[];
     const lower = userMessage.toLowerCase();
+    // "I'm in Bangalore." / "I'm from Mumbai" → dealer intent with location so we return dealers, not same suggestions
+    const cityReplyMatch = userMessage.match(/\b(?:I'm in|I am in|I'm from|I am from)\s+([^.?!]+)/i);
+    if (cityReplyMatch) {
+      const rawCity = cityReplyMatch[1].trim();
+      if (rawCity.length > 0) {
+        const cityDisplay = rawCity.replace(/\b\w/g, (c) => c.toUpperCase());
+        parsed.dealer_intent = true;
+        parsed.location = { city: cityDisplay };
+        parsed.asking_clarification = false;
+        parsed.clarification_message = null;
+        parsed.categories = [];
+        return parsed;
+      }
+    }
     const dealerKeywords = /\b(dealer|dealers|find\s+a\s+dealer|where\s+to\s+buy|store|outlet|showroom|nearest\s+dealer)\b/i.test(lower);
     if (dealerKeywords && !parsed.dealer_intent) {
       parsed.dealer_intent = true;
