@@ -47,7 +47,8 @@ Your job: read the user's message and decide (A) if they want a DEALER/STORE, or
   - Accessory: "accessories", "waste coupling", "accessory".
   - Appliance: "hob", "chimney", "dishwasher", "appliance", "appliances".
   - Combo: "combo", "sink and faucet combo".
-- IMPORTANT: If the user mentions ANY product type (e.g. "kitchen faucet", "faucet", "sink", "disposer"), set that category in "categories" and set asking_clarification to FALSE. Only ask for clarification when the message has NO product type at all (e.g. "help me", "what do you have" with no product word, "hi").
+- IMPORTANT: If the user mentions ANY product type we carry (e.g. "kitchen faucet", "faucet", "sink", "disposer"), set that category in "categories" and set asking_clarification to FALSE. Only ask for clarification when the message has NO product type we carry, or when they ask for something we don't have (e.g. "bath tub", "bathtub", "toilet", "shower enclosure", "bidet")—in that case leave categories [] and set a friendly clarification_message that we don't have that product and list what we do have (sinks, faucets, disposers, combos, appliances, accessories).
+- We do NOT carry: bath tubs, bathtubs, toilets/WC, bidets, shower enclosures/cubicles, jacuzzis, bathroom cabinets/vanity units, water heaters/geysers. For these, ask for clarification with a message like "We don't have [X] at the moment. Here's what we do have: ..."
 - Examples: "I need a kitchen faucet. What do you have?" → categories: ["Faucet"], asking_clarification: false. "Recommend quartz sinks for modern kitchen" → categories: ["Sink"], asking_clarification: false. "Which dealer in Hyderabad?" → dealer_intent: true, location: { city: "Hyderabad" }.
 - If they mention multiple product types, include both in categories.
 - Infer "filters" when clear: material, price_range, style.
@@ -73,6 +74,31 @@ const INTENT_PLACEHOLDER: string = JSON.stringify(
   null,
   2
 );
+
+const WHAT_WE_HAVE =
+  "Here’s what we do have: kitchen & bathroom sinks, faucets, food waste disposers, combos, appliances (hob, chimney, dishwasher), and accessories. What would you like to explore?";
+
+/** Product types we don't carry: regex pattern → friendly name for the reply. */
+const OUT_OF_CATALOGUE: { pattern: RegExp; name: string }[] = [
+  { pattern: /\b(bath\s*tub|bathtub|bath tubs|bathtubs)\b/i, name: "bath tubs" },
+  { pattern: /\b(shower\s*cubicle|shower\s*cabin|walk[- ]?in\s*shower|shower\s*enclosure)\b/i, name: "shower enclosures" },
+  { pattern: /\b(toilet|wc|water\s*closet|commode)\b/i, name: "toilets" },
+  { pattern: /\bbidet\b/i, name: "bidets" },
+  { pattern: /\b(jacuzzi|hot\s*tub|whirlpool)\b/i, name: "jacuzzis / hot tubs" },
+  { pattern: /\b(bathroom\s*cabinet|vanity\s*unit)\b/i, name: "bathroom cabinets / vanity units" },
+  { pattern: /\b(water\s*heater|geyser)\b/i, name: "water heaters / geysers" },
+];
+
+/** If the user is asking for a product we don't carry, return a friendly "we don't have X" message. */
+function getOutOfCatalogueReply(message: string): string | null {
+  const lower = message.toLowerCase().trim();
+  for (const { pattern, name } of OUT_OF_CATALOGUE) {
+    if (pattern.test(lower)) {
+      return `We don’t have ${name} at the moment. ${WHAT_WE_HAVE}`;
+    }
+  }
+  return null;
+}
 
 /** Infer product categories from message keywords when AI returns none (e.g. "kitchen faucet" → Faucet). */
 function inferCategoriesFromMessage(message: string): ProductCategory[] {
@@ -113,7 +139,9 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
         return parsed;
       }
       parsed.asking_clarification = true;
+      const outOfCatalogue = getOutOfCatalogueReply(userMessage);
       parsed.clarification_message =
+        outOfCatalogue ||
         parsed.clarification_message ||
         "What type of product are you looking for? (e.g. kitchen sink, faucet, food waste disposer)";
     } else {
@@ -134,10 +162,12 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
         filters: {},
       };
     }
+    const outOfCatalogue = getOutOfCatalogueReply(userMessage);
     return {
       categories: [],
       asking_clarification: true,
       clarification_message:
+        outOfCatalogue ||
         "What type of product are you looking for? (e.g. kitchen sink, faucet, food waste disposer)",
       filters: {},
     };
