@@ -20,6 +20,7 @@ export type IntentResult = {
     material?: string;
     price_range?: string;
     style?: string;
+    size?: string;
     keywords?: string[];
   };
   /** True when user is asking for dealers, stores, outlets, or where to buy. */
@@ -27,6 +28,14 @@ export type IntentResult = {
   /** When dealer_intent is true: city and/or state if mentioned. */
   location?: { city?: string; state?: string };
 };
+
+function extractSizeFilter(message: string): string | undefined {
+  const m = message.match(/\b(45|50|55|60|70|75|80|85|90|100|110|120)\s*cm\b/i);
+  if (m) return `${m[1]} cm`;
+  const m2 = message.match(/\b(\d{2,3})\s*cm\b/i);
+  if (m2) return `${m2[1]} cm`;
+  return undefined;
+}
 
 const INTENT_SYSTEM = `You are an intent classifier for Carysil (carysil.com), a kitchen and bathroom brand.
 
@@ -52,6 +61,7 @@ Your job: read the user's message and decide (A) if they want a DEALER/STORE, or
 - Examples: "I need a kitchen faucet. What do you have?" → categories: ["Faucet"], asking_clarification: false. "Recommend quartz sinks for modern kitchen" → categories: ["Sink"], asking_clarification: false. "Which dealer in Hyderabad?" → dealer_intent: true, location: { city: "Hyderabad" }.
 - If they mention multiple product types, include both in categories.
 - Infer "filters" when clear: material, price_range, style.
+- Also infer "filters.size" when the user mentions a size like "60 cm", "75cm", "90 cm".
 
 **Response format – strict JSON only:**
 {
@@ -122,9 +132,9 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
   return Array.from(new Set(inferred));
 }
 
-/** Words that indicate the user has given specifics (size, style, budget, or product type) – if present, we go straight to recommendations. */
+/** Words that indicate the user has given specifics (size, style, budget, finish, etc.) – if present, we go straight to recommendations. */
 const REFINEMENT_TERMS =
-  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bpull[- ]?out\b|\bsize\b|\b60\s*cm\b|\b90\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b|\bchimney\b|\bchimneys\b|\bdishwasher\b|\bdishwashers\b|\bhob\b|\bhobs\b|\bwaste\s*coupling\b|\baccessories\b|\bcombo\b|\bcombos\b|\bsink\b|\bsinks\b|\bfaucet\b|\bfaucets\b|\bdisposer\b|\bdisposers\b)/i;
+  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\brange\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bstainless\s*steel\b|\bpull[- ]?out\b|\bsize\b|\b(45|50|55|60|70|75|80|85|90|100|110|120)\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\b5\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b|\bdeck\s*mount\b|\bwall\s*mount\b|\bpvd\b|\bfinish\b|\bcolour\b|\bcolor\b)/i;
 
 /** "Explore full range" / "full range of X" → treat as specified, go straight to results. */
 const FULL_RANGE_PATTERN = /\b(explore\s+full\s+range|full\s+range\s+of|show\s+(?:me\s+)?(?:the\s+)?full\s+range)\b/i;
@@ -136,20 +146,11 @@ function isVagueCategoryQuery(message: string, categories: ProductCategory[]): b
   const lower = trimmed.toLowerCase();
   if (FULL_RANGE_PATTERN.test(lower)) return false;
   if (REFINEMENT_TERMS.test(lower)) return false;
-  // User asked for a specific appliance type (chimney, dishwasher, hob) → go straight to recommendations
-  if (categories[0] === "Appliance" && /\b(chimney|chimneys|dishwasher|dishwashers|hob|hobs)\b/.test(lower))
-    return false;
-  // Clicked a category followup (e.g. "Show me sink and faucet combos") → go to recommendations, never repeat suggestions
-  const cat = categories[0];
-  if (cat === "Combo" && /\b(combo|combos)\b/.test(lower)) return false;
-  if (cat === "Sink" && /\b(sink|sinks)\b/.test(lower)) return false;
-  if (cat === "Faucet" && /\b(faucet|faucets|tap|taps)\b/.test(lower)) return false;
-  if (cat === "Disposer" && /\b(disposer|disposers)\b/.test(lower)) return false;
-  if (cat === "Accessory" && /\b(accessory|accessories)\b/.test(lower)) return false;
   const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
   const bareOnly = /^(sink|sinks|faucet|faucets|tap|taps|disposer|disposers|accessory|accessories|appliance|appliances|hob|hobs|combo|combos|chimney|chimneys|dishwasher|dishwashers)\s*[\.\?]?\s*$/i.test(lower);
   if (bareOnly) return true;
-  return wordCount <= 6;
+  // If user hasn't provided any refinements, treat short messages as vague and ask questions first.
+  return wordCount <= 10;
 }
 
 export async function detectIntent(userMessage: string): Promise<IntentResult> {
@@ -193,6 +194,14 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
     if (parsed.dealer_intent) {
       return parsed;
     }
+
+    // Normalize/derive size filter from user message (works even if the model doesn't set it)
+    const size = extractSizeFilter(userMessage);
+    if (size) {
+      parsed.filters = parsed.filters || {};
+      parsed.filters.size = parsed.filters.size || size;
+    }
+
     const needsHobClarification =
       /\bhob\b/.test(lower) &&
       !/(60|75|90)\s*cm|\b4\s*burner|\bfour\s*burner|\b5\s*burner|\bfive\s*burner|\binduction\b|\bgas\b/.test(

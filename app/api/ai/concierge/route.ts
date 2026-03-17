@@ -61,6 +61,7 @@ type Product = {
   id: string;
   name: string;
   category: string;
+  size?: string | null;
   style: string;
   material: string;
   price_range: string;
@@ -101,6 +102,14 @@ function filterByIntent(
     list = list.filter(
       (p) => p.style?.toLowerCase().includes(s) || s.split(/\s+/).some((w) => p.style?.toLowerCase().includes(w))
     );
+  }
+  if (f?.size) {
+    const sz = String(f.size).toLowerCase().replace(/\s+/g, "");
+    list = list.filter((p) => {
+      if (p.size == null) return false;
+      const ps = String(p.size).toLowerCase().replace(/\s+/g, "");
+      return ps.includes(sz) || sz.includes(ps);
+    });
   }
   return list.length > 0 ? list : allProducts.filter((p) => set.has(p.category));
 }
@@ -181,85 +190,61 @@ export async function POST(request: Request) {
       const lower = message.toLowerCase();
       const followups: string[] = [];
 
-      // Dealer intent but no location → only show city / "Show all dealers" options (no product suggestions)
+      // For unclear questions, do NOT send clickable suggestions.
+      // Instead, send non-clickable guiding questions (rendered as question chips in the UI).
       if (intent.dealer_intent) {
         followups.push(
-          "I'm in Mumbai.",
-          "I'm in Delhi.",
-          "I'm in Bangalore.",
-          "I'm in Hyderabad.",
-          "I'm in Chennai.",
-          "Show all dealers."
+          "Which city or state are you in?",
+          "If you share your pincode/area, I can narrow it down further."
         );
-      }
-
-      // Appliance / Hob – structured follow-up questions
-      if (!intent.dealer_intent && intent.categories.includes("Appliance")) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Sink")) {
         followups.push(
-          "I'm looking for a 60 cm hob with 4 burners.",
-          "I'm looking for a 90 cm hob with 4 burners.",
-          "Show me chimneys.",
-          "Show me dishwashers.",
-          "Explore full range of appliances."
+          "Are you looking for a single-bowl or double-bowl sink?",
+          "Any preferred material (quartz / stainless steel) or finish?",
+          "Any size and budget range?"
         );
-      }
-
-      // Sink guidance – ask for size / style / budget
-      if (!intent.dealer_intent && intent.categories.includes("Sink")) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Faucet")) {
         followups.push(
-          "Show me single-bowl kitchen sinks.",
-          "Show me double-bowl kitchen sinks.",
-          "Show me black quartz kitchen sinks.",
-          "Explore full range of sinks."
+          "Do you prefer deck-mount or wall-mount?",
+          "Any preferred finish (chrome / black / PVD)?",
+          "Do you want a pull-out spray or a standard spout?"
         );
-      }
-
-      // Faucet guidance – ask for finish / mounting
-      if (!intent.dealer_intent && intent.categories.includes("Faucet")) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Disposer")) {
         followups.push(
-          "Show me black kitchen faucets.",
-          "Show me pull-out kitchen faucets.",
-          "Show me chrome kitchen faucets.",
-          "Explore full range of faucets."
+          "How many people are in the household?",
+          "Do you have any noise or power preference?",
+          "Do you want installation guidance too?"
         );
-      }
-
-      // Disposer guidance – ask for household size
-      if (!intent.dealer_intent && intent.categories.includes("Disposer")) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Accessory")) {
         followups.push(
-          "Show me food waste disposers for a family of 3–4.",
-          "Show me food waste disposers for a family of 5+.",
-          "What are the benefits of a food waste disposer?",
-          "Explore full range of disposers."
+          "Which accessory are you looking for (e.g. waste coupling, sink accessories)?",
+          "Is it for a particular sink model/size?",
+          "Do you want to explore the full range?"
         );
-      }
-
-      // Accessory guidance
-      if (!intent.dealer_intent && intent.categories.includes("Accessory")) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Appliance") && /\bhob\b/i.test(lower)) {
         followups.push(
-          "Show me waste couplings.",
-          "Show me kitchen accessories.",
-          "Explore full range of accessories."
+          "Are you looking for a specific size?",
+          "Do you need an induction or gas hob?",
+          "Explore the full range."
         );
-      }
-
-      // Combo guidance
-      if (!intent.dealer_intent && intent.categories.includes("Combo")) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Appliance")) {
         followups.push(
-          "Show me sink and faucet combos.",
-          "Explore full range of combos."
+          "Are you looking for a hob, chimney, or dishwasher?",
+          "Do you have any size preference (e.g. 60 cm / 90 cm)?",
+          "Explore the full range."
         );
-      }
-
-      // When no category yet (generic "what are you looking for?") – offer category options (only if not dealer flow)
-      if (followups.length === 0) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Combo")) {
         followups.push(
-          "I'm looking for a kitchen sink.",
-          "I need a faucet.",
-          "Food waste disposer for my kitchen.",
-          "I'm looking for appliances (hob, chimney, dishwasher).",
-          "I need accessories.",
-          "Find a dealer near me."
+          "Do you want a sink + faucet combo, or something else?",
+          "Any preferred size or finish?",
+          "Explore the full range."
+        );
+      } else {
+        // Generic unclear query (no category) → guiding questions only
+        followups.push(
+          "Are you looking for a sink, faucet, disposer, combo, appliance, or accessories?",
+          "Any preferred size, finish, or budget?",
+          "If you tell me what you’re installing it for (kitchen/bathroom), I can narrow it down."
         );
       }
 
@@ -298,6 +283,7 @@ export async function POST(request: Request) {
       id: p.id,
       name: p.name,
       category: p.category,
+      size: p.size ?? null,
       style: p.style,
       material: p.material,
       price_range: p.price_range,

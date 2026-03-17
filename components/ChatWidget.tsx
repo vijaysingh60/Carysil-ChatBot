@@ -232,16 +232,14 @@ export function ChatWidget() {
                     </div>
                   )}
                   {m.role === "assistant" && m.followups && m.followups.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {m.followups.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => void send(option)}
-                          className="rounded-full border border-white/20 bg-[#1e1e22] px-4 py-2 text-sm sm:text-base text-gray-100 hover:bg-[#2a2a2e] hover:border-white/30 transition-colors"
+                    <div className="mt-3 flex flex-col gap-2">
+                      {m.followups.map((q) => (
+                        <div
+                          key={q}
+                          className="rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-4 py-3 text-sm sm:text-base text-gray-100"
                         >
-                          {option}
-                        </button>
+                          {q}
+                        </div>
                       ))}
                     </div>
                   )}
