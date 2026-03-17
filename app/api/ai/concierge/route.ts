@@ -91,8 +91,15 @@ function filterByIntent(
   if (!intent.categories?.length) {
     return allProducts;
   }
-  const set = new Set(intent.categories as string[]);
-  let list = allProducts.filter((p) => set.has(p.category));
+  // Map high-level intent categories to catalogue categories.
+  // In this project, many hobs are stored under category "Hob" (not "Appliance").
+  const rawCats = intent.categories as string[];
+  const expanded = new Set<string>();
+  for (const c of rawCats) {
+    expanded.add(c);
+    if (c === "Appliance") expanded.add("Hob");
+  }
+  let list = allProducts.filter((p) => expanded.has(p.category));
   const f = intent.filters;
   // Narrow appliances when the user mentions a subtype (hob/burner vs dishwasher vs chimney).
   const keywordList: string[] =
@@ -148,7 +155,7 @@ function filterByIntent(
       list = filtered;
     }
   }
-  return list.length > 0 ? list : allProducts.filter((p) => set.has(p.category));
+  return list.length > 0 ? list : allProducts.filter((p) => expanded.has(p.category));
 }
 
 const RECOMMENDATION_SYSTEM = `You are the Carysil product recommendation assistant for Carysil (carysil.com), a premium kitchen and bathroom brand.
@@ -226,6 +233,15 @@ export async function POST(request: Request) {
     if (intent.asking_clarification && intent.clarification_message) {
       const lower = message.toLowerCase();
       const followups: string[] = [];
+      const keywords: string[] =
+        intent.filters?.keywords == null
+          ? []
+          : Array.isArray(intent.filters.keywords)
+            ? (intent.filters.keywords as unknown[]).map((k) => String(k).toLowerCase())
+            : [String(intent.filters.keywords).toLowerCase()];
+      const wantsHob = keywords.includes("hob") || /\b(hob|burner|burners)\b/i.test(lower);
+      const wantsChimney = keywords.includes("chimney") || /\bchimney\b|\bchimneys\b/i.test(lower);
+      const wantsDishwasher = keywords.includes("dishwasher") || /\bdishwasher\b|\bdishwashers\b/i.test(lower);
 
       // For unclear questions, do NOT send clickable suggestions.
       // Instead, send non-clickable guiding questions (rendered as question chips in the UI).
@@ -258,15 +274,30 @@ export async function POST(request: Request) {
           "Is it for a particular sink model/size?",
           "Do you want to explore the full range?"
         );
-      } else if (!intent.dealer_intent && intent.categories.includes("Appliance") && /\bhob\b/i.test(lower)) {
+      } else if (!intent.dealer_intent && intent.categories.includes("Appliance") && wantsHob) {
         followups.push(
           "Are you looking for a specific size?",
           "Do you need an induction or gas hob?",
+          "How many burners do you want (3 / 4 / 5)?",
+          "Explore the full range."
+        );
+      } else if (!intent.dealer_intent && intent.categories.includes("Appliance") && wantsChimney) {
+        followups.push(
+          "Which size do you need (60 cm / 90 cm)?",
+          "Wall-mounted or island chimney?",
+          "Do you want ducted or ductless (filter) type?",
+          "Explore the full range."
+        );
+      } else if (!intent.dealer_intent && intent.categories.includes("Appliance") && wantsDishwasher) {
+        followups.push(
+          "Built-in or free-standing?",
+          "How many place settings do you need (e.g. 12/14)?",
+          "Any size constraint in your cabinet space?",
           "Explore the full range."
         );
       } else if (!intent.dealer_intent && intent.categories.includes("Appliance")) {
         followups.push(
-          "Are you looking for a hob, chimney, or dishwasher?",
+          "Are you looking for a hob (burners), chimney, or dishwasher?",
           "Do you have any size preference (e.g. 60 cm / 90 cm)?",
           "Explore the full range."
         );

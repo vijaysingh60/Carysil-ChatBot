@@ -66,7 +66,7 @@ Your job: read the user's message and decide (A) if they want a DEALER/STORE, or
   - Sink: "sink", "sinks", "quartz sink", "kitchen sink", "bathroom sink", "I need a sink".
   - Disposer: "disposer", "disposers", "food waste", "food waste disposer", "garbage disposal".
   - Accessory: "accessories", "waste coupling", "accessory".
-  - Appliance: "hob", "chimney", "dishwasher", "appliance", "appliances".
+  - Appliance: "hob", "burner", "burners", "chimney", "dishwasher", "appliance", "appliances".
   - Combo: "combo", "sink and faucet combo".
 - IMPORTANT: If the user mentions ANY product type we carry (e.g. "kitchen faucet", "faucet", "sink", "disposer"), set that category in "categories" and set asking_clarification to FALSE. Only ask for clarification when the message has NO product type we carry, or when they ask for something we don't have (e.g. "bath tub", "bathtub", "toilet", "shower enclosure", "bidet")—in that case leave categories [] and set a friendly clarification_message that we don't have that product and list what we do have (sinks, faucets, disposers, combos, appliances, accessories).
 - We do NOT carry: bath tubs, bathtubs, toilets/WC, bidets, shower enclosures/cubicles, jacuzzis, bathroom cabinets/vanity units, water heaters/geysers. For these, ask for clarification with a message like "We don't have [X] at the moment. Here's what we do have: ..."
@@ -140,7 +140,7 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
   if (/\b(sink|sinks|quartz sink|kitchen sink|bathroom sink)\b/.test(lower)) inferred.push("Sink");
   if (/\b(disposer|disposers|food waste|garbage disposal)\b/.test(lower)) inferred.push("Disposer");
   if (/\b(accessory|accessories|waste coupling)\b/.test(lower)) inferred.push("Accessory");
-  if (/\b(hob|chimney|dishwasher|appliance|appliances)\b/.test(lower)) inferred.push("Appliance");
+  if (/\b(hob|burner|burners|chimney|dishwasher|appliance|appliances)\b/.test(lower)) inferred.push("Appliance");
   if (/\b(combo|combos)\b/.test(lower)) inferred.push("Combo");
   return Array.from(new Set(inferred));
 }
@@ -256,7 +256,8 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
           parsed.clarification_message =
             "Great, you’re looking for a food waste disposer. How many people are in the household, and do you have any brand/feature preferences?";
         } else if (parsed.categories.includes("Appliance")) {
-          parsed.clarification_message = lower.includes("hob")
+          const isHob = /\b(hob|burner|burners)\b/.test(lower);
+          parsed.clarification_message = isHob
             ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
             : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.";
         } else if (parsed.categories.includes("Accessory")) {
@@ -297,9 +298,10 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
             parsed.clarification_message ||
             "Great, you’re looking for a food waste disposer. How many people are in the household, and do you have any brand/feature preferences?";
         } else if (parsed.categories.includes("Appliance")) {
+          const isHob = /\b(hob|burner|burners)\b/.test(lower);
           parsed.clarification_message =
             parsed.clarification_message ||
-            (lower.includes("hob")
+            (isHob
               ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
               : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.");
         } else if (parsed.categories.includes("Accessory")) {
@@ -376,10 +378,11 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
           };
         }
         if (inferred.includes("Appliance")) {
+          const isHob = /\b(hob|burner|burners)\b/.test(lower);
           return {
             categories: inferred,
             asking_clarification: true,
-            clarification_message: lower.includes("hob")
+            clarification_message: isHob
               ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
               : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.",
             filters: {},
