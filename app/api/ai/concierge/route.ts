@@ -75,6 +75,15 @@ type Product = {
 const allProducts = productsData as Product[];
 const productById = new Map(allProducts.map((p) => [p.id, p]));
 
+function normalizeSizeToken(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, "");
+}
+
+function extractCmFromText(s: string): string | null {
+  const m = s.match(/\b(\d{2,3})\s*cm\b/i);
+  return m ? `${m[1]}cm` : null;
+}
+
 /** Filter products by intent: categories and optional material/price_range/style */
 function filterByIntent(
   intent: IntentResult
@@ -85,6 +94,27 @@ function filterByIntent(
   const set = new Set(intent.categories as string[]);
   let list = allProducts.filter((p) => set.has(p.category));
   const f = intent.filters;
+  // Narrow appliances when the user mentions a subtype (hob/burner vs dishwasher vs chimney).
+  const keywordList: string[] =
+    f?.keywords == null
+      ? []
+      : Array.isArray(f.keywords)
+        ? (f.keywords as unknown[]).map((k) => String(k))
+        : [String(f.keywords)];
+  if (keywordList.length > 0 && intent.categories.length === 1 && intent.categories[0] === "Appliance") {
+    const hay = (p: Product) => `${p.name} ${p.description ?? ""}`.toLowerCase();
+    const kws = keywordList.map((k) => String(k).toLowerCase());
+    // If user asked for hob/burner, exclude cooking ranges unless explicitly requested.
+    const wantsHob = kws.includes("hob");
+    const wantsCookingRange = kws.includes("cooking range");
+    list = list.filter((p) => {
+      const h = hay(p);
+      const matchesAny = kws.some((k) => (k === "hob" ? /\bhob\b|\bburner\b|\bburners\b/.test(h) : h.includes(k)));
+      if (!matchesAny) return false;
+      if (wantsHob && !wantsCookingRange && /\b(cooking\s*range|freestanding\s*range|standing\s*range)\b/.test(h)) return false;
+      return true;
+    });
+  }
   if (f?.material) {
     const m = f.material.toLowerCase();
     list = list.filter(
@@ -104,12 +134,19 @@ function filterByIntent(
     );
   }
   if (f?.size) {
-    const sz = String(f.size).toLowerCase().replace(/\s+/g, "");
-    list = list.filter((p) => {
-      if (p.size == null) return false;
-      const ps = String(p.size).toLowerCase().replace(/\s+/g, "");
-      return ps.includes(sz) || sz.includes(ps);
+    const sz = normalizeSizeToken(String(f.size));
+    const listHasAnySize = list.some((p) => p.size != null && String(p.size).trim().length > 0);
+    const filtered = list.filter((p) => {
+      const direct = p.size != null ? normalizeSizeToken(String(p.size)) : "";
+      const derived = extractCmFromText(`${p.name} ${p.description ?? ""}`) || "";
+      const candidate = direct || derived;
+      if (!candidate) return false;
+      return candidate.includes(sz) || sz.includes(candidate);
     });
+    // If size isn't populated on products yet, don't wipe out the whole category.
+    if (filtered.length > 0 || listHasAnySize) {
+      list = filtered;
+    }
   }
   return list.length > 0 ? list : allProducts.filter((p) => set.has(p.category));
 }

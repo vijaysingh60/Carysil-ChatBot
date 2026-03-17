@@ -37,6 +37,18 @@ function extractSizeFilter(message: string): string | undefined {
   return undefined;
 }
 
+function extractApplianceKeywords(message: string): string[] {
+  const lower = message.toLowerCase();
+  const keys: string[] = [];
+  // "burner(s)" in this project refers to a hob
+  if (/\b(hob|burner|burners)\b/.test(lower)) keys.push("hob");
+  if (/\b(dishwasher|dishwashers)\b/.test(lower)) keys.push("dishwasher");
+  if (/\b(chimney|chimneys)\b/.test(lower)) keys.push("chimney");
+  if (/\b(cooking\s*range|standing\s*(?:cooking\s*)?range|freestanding\s*(?:cooking\s*)?range)\b/.test(lower))
+    keys.push("cooking range");
+  return Array.from(new Set(keys));
+}
+
 const INTENT_SYSTEM = `You are an intent classifier for Carysil (carysil.com), a kitchen and bathroom brand.
 
 Your job: read the user's message and decide (A) if they want a DEALER/STORE, or (B) which product CATEGORY they want. Reply with JSON only (no markdown).
@@ -62,6 +74,7 @@ Your job: read the user's message and decide (A) if they want a DEALER/STORE, or
 - If they mention multiple product types, include both in categories.
 - Infer "filters" when clear: material, price_range, style.
 - Also infer "filters.size" when the user mentions a size like "60 cm", "75cm", "90 cm".
+- For appliances: if the user mentions "hob/burner", "chimney", or "dishwasher", add a helpful "filters.keywords" hint with that subtype.
 
 **Response format – strict JSON only:**
 {
@@ -200,6 +213,17 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
     if (size) {
       parsed.filters = parsed.filters || {};
       parsed.filters.size = parsed.filters.size || size;
+    }
+
+    // Appliance subtype hint (hob/burner vs chimney vs dishwasher vs cooking range)
+    if (parsed.categories.includes("Appliance")) {
+      const kws = extractApplianceKeywords(userMessage);
+      if (kws.length > 0) {
+        parsed.filters = parsed.filters || {};
+        parsed.filters.keywords = Array.isArray(parsed.filters.keywords)
+          ? Array.from(new Set([...(parsed.filters.keywords as string[]), ...kws]))
+          : kws;
+      }
     }
 
     const needsHobClarification =
