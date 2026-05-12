@@ -1,5 +1,6 @@
 import { createEmbedding, embeddingToSqlVector } from "@/lib/embeddings";
 import { getDbPool } from "@/lib/db";
+import { hashKey, retrievalCache } from "@/lib/cache";
 
 export type SimilarProduct = {
   id: string;
@@ -102,6 +103,24 @@ export async function searchSimilarProducts(
 ): Promise<SimilarProduct[]> {
   const limit = options?.limit ?? 5;
   const filters = inferHybridFilters(query, options?.filters);
+
+  // 60-second per-process cache. Keyed on the normalized query + the
+  // resolved filter signature + limit so identical retrievals reuse rows.
+  const cacheKey = hashKey(
+    [
+      query.trim().toLowerCase(),
+      limit,
+      filters.material ?? "",
+      filters.style ?? "",
+      (filters.categories ?? []).join(","),
+      (filters.keywords ?? []).join(","),
+      filters.minPrice ?? "",
+      filters.maxPrice ?? "",
+    ].join("|")
+  );
+  const cached = retrievalCache.get(cacheKey) as SimilarProduct[] | undefined;
+  if (cached) return cached;
+
   const queryEmbedding = await createEmbedding(query);
   const vectorParam = embeddingToSqlVector(queryEmbedding);
   const sqlParams: Array<string | number | string[]> = [vectorParam];
@@ -170,5 +189,6 @@ export async function searchSimilarProducts(
     sqlParams
   );
 
+  retrievalCache.set(cacheKey, rows);
   return rows;
 }

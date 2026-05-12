@@ -31,15 +31,28 @@ import {
   setDeferredProductQuery,
 } from "@/services/deferredRecommendationService";
 import { searchSimilarProducts } from "@/lib/vectorSearch";
-import { storeAnalyticsEvent } from "@/services/analyticsService";
+import { storeAnalyticsEvent, storeAnalyticsEventAsync } from "@/services/analyticsService";
 import {
   calculateLeadScore,
   contactInfoForLeadDatabaseUpdate,
   getLeadContactSnapshot,
   mergeContactForRuntime,
 } from "@/services/leadService";
-import { createSession, storeChatEvent } from "@/services/sessionService";
+import { createSession, storeChatEvent, storeChatEventAsync } from "@/services/sessionService";
+import { upsertVisitor } from "@/services/visitorService";
+import { ingestUserTurn } from "@/services/conversationStateService";
+import { buildConciergePrompt } from "@/lib/promptBuilder";
+import { flush as flushEventBus } from "@/lib/eventBus";
+import {
+  logRetrieval,
+  logShown,
+} from "@/services/recommendationAnalyticsService";
+import { recordSignalsFromTurn } from "@/services/leadScoringService";
+import { generateNextQuestion } from "@/lib/followupPlanner";
+import type { FunnelStage } from "@/types/funnel";
+import type { RecommendationFollowupReason } from "@/types/recommendationEvent";
 import type { ChatEventType, ContactInfo } from "@/types/lead";
+import type { ConversationState } from "@/types/conversationState";
 
 type Dealer = {
   id: string;
@@ -689,11 +702,20 @@ export async function POST(request: Request) {
     const body = await request.json();
     const userRawMessage = String(body?.message || "").trim();
     const history = sanitizeHistory(body?.history);
+    const incomingVisitorId =
+      typeof body?.visitorId === "string" && body.visitorId.trim().length > 0
+        ? body.visitorId.trim()
+        : undefined;
     const activeSessionId = await createSession({
       sessionId: typeof body?.sessionId === "string" ? body.sessionId : undefined,
       source: typeof body?.source === "string" ? body.source : "chat_widget",
       deviceType: typeof body?.deviceType === "string" ? body.deviceType : undefined,
+      visitorId: incomingVisitorId,
     });
+    if (incomingVisitorId) {
+      // Best-effort, non-blocking visitor row touch.
+      void upsertVisitor(incomingVisitorId);
+    }
     if (!userRawMessage) {
       return NextResponse.json(
         { error: "Missing message", sessionId: activeSessionId },
@@ -721,13 +743,34 @@ export async function POST(request: Request) {
       })();
     const pipelineMessage = completingDeferred && deferredQuery ? deferredQuery : userRawMessage;
 
-    await storeChatEvent({
+    // High-volume per-turn analytics row — batched via the async event bus.
+    storeChatEventAsync({
       sessionId: activeSessionId,
       role: "user",
       message: userRawMessage,
       eventType: "user_message",
       metadata: { historyCount: history.length, completingDeferred, deferredQuery: Boolean(deferredQuery) },
     });
+
+    // Structured AI memory: extract slots from the latest user turn and merge
+    // into conversation_state. Always best-effort — a failure must never block
+    // the rest of the pipeline. The returned memory is used downstream by the
+    // prompt builder (Part C) and the follow-up planner (Part F).
+    let memory: ConversationState | null = null;
+    let memoryIntentConfidence: number | null = null;
+    let memoryBuyingConfidence: number | null = null;
+    try {
+      const ingest = await ingestUserTurn(activeSessionId, userRawMessage, history);
+      memory = ingest.memory;
+      if (typeof ingest.extraction.intentConfidence === "number") {
+        memoryIntentConfidence = ingest.extraction.intentConfidence;
+      }
+      if (typeof ingest.extraction.buyingConfidence === "number") {
+        memoryBuyingConfidence = ingest.extraction.buyingConfidence;
+      }
+    } catch (memoryError) {
+      console.error("[concierge] memory ingest failed", memoryError);
+    }
 
     if (
       deferredQuery &&
@@ -1364,6 +1407,16 @@ export async function POST(request: Request) {
           image_url: row.image_url ?? undefined,
           url: row.url ?? undefined,
         }));
+        // Recommendation analytics: log every product the retriever returned
+        // even if the model later chooses fewer of them. Powers ignored /
+        // failed-recommendation views and similarity-at-click metrics.
+        if (vectorMatches.length > 0) {
+          logRetrieval(
+            activeSessionId,
+            vectorMatches.map((row) => ({ id: row.id, similarity: row.similarity })),
+            pipelineMessage
+          );
+        }
       }
     } catch (vectorError) {
       console.error("[concierge] vector search failed, using intent filter fallback", vectorError);
@@ -1373,18 +1426,6 @@ export async function POST(request: Request) {
       relevantProducts = filterByIntent(recommendationIntent).slice(0, 8);
     }
     relevantProducts = dedupeProductsById(relevantProducts);
-
-    const catalogueSummary = relevantProducts.map((p) => ({
-      id: p.id,
-      name: p.name,
-      category: p.category,
-      size: p.size ?? null,
-      style: p.style,
-      material: p.material,
-      price_range: p.price_range,
-      price: p.price,
-      description: p.description?.slice(0, 180),
-    }));
 
     const placeholderJson = JSON.stringify(
       {
@@ -1403,14 +1444,30 @@ export async function POST(request: Request) {
         ? recommendationIntent.categories.join(", ")
         : "various";
 
-    const conversationContext = history
-      .slice(-6)
-      .map((entry) => `${entry.role === "user" ? "User" : "AskCary"}: ${entry.content}`)
-      .join("\n");
+    // Compact prompt: structured memory + summary + last 8 turns + top 5
+    // concise products only. The full catalogue and raw history never reach
+    // the model — drops token usage and keeps the LRU cache effective.
+    const conciergePrompt = buildConciergePrompt({
+      systemPrompt: RECOMMENDATION_SYSTEM,
+      memory,
+      summary: memory?.conversationSummary ?? null,
+      recentMessages: history,
+      retrievedProducts: relevantProducts.slice(0, 5).map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        material: p.material,
+        size: p.size ?? null,
+        price: p.price,
+        description: p.description,
+      })),
+      userMessage: pipelineMessage,
+      categoryLabel,
+    });
 
     const { text, aiUsed, error } = await callAI(
-      RECOMMENDATION_SYSTEM,
-      `Recent conversation:\n${conversationContext || "(no prior turns)"}\n\nLatest user message:\n${pipelineMessage}\n\nDetected category/categories of interest: ${categoryLabel}.\n\nRelevant catalogue (recommend only from these ids):\n${JSON.stringify(catalogueSummary, null, 2)}\n\nRespond with JSON only — include a single contextual followup_question.`,
+      conciergePrompt.systemPrompt,
+      conciergePrompt.userContent,
       placeholderJson
     );
 
@@ -1515,8 +1572,44 @@ export async function POST(request: Request) {
 
     const engineLeadQuestion = wantsLead ? engineResult.question : null;
     const primaryCategory = (recommendationIntent.categories?.[0] ?? null) as ProductCategory | null;
+
+    // Resolve the funnel stage early so the planner has access to it.
+    const stage: FollowupResult["stage"] = recommendations.length > 0
+      ? engineResult.stage === "browsing"
+        ? "recommendations_shown"
+        : engineResult.stage
+      : "preferences_collected";
+
+    // LLM-driven planner runs alongside the rules engine. When the feature
+    // flag is on AND the planner picked a high-quality question targeting a
+    // missing slot, prefer it. Lead-capture questions still go through the
+    // existing engine path so the contact gate semantics stay unchanged.
+    let plannerQuestion: string | null = null;
+    let followupReason: RecommendationFollowupReason = "none";
+    try {
+      const planner = await generateNextQuestion({
+        sessionId: activeSessionId,
+        state: memory,
+        summary: memory?.conversationSummary ?? null,
+        recentMessages: history,
+        recommendationsShown: lightRecommendations,
+        leadStage: stage,
+        funnelStage: null as FunnelStage | null,
+        intent: recommendationIntent,
+        salesIntent,
+        hasContact: Boolean(contactForEngine.phone || contactForEngine.email),
+      });
+      if (planner.aiUsed && planner.action === "ask" && planner.question && !wantsLead) {
+        plannerQuestion = planner.question;
+      }
+      followupReason = planner.reason;
+    } catch (plannerError) {
+      console.error("[concierge] follow-up planner failed", plannerError);
+    }
+
     const followupQuestion =
       engineLeadQuestion ||
+      plannerQuestion ||
       aiFollowup ||
       engineResult.question ||
       (recommendations.length > 0
@@ -1550,11 +1643,6 @@ export async function POST(request: Request) {
       contactInfo: contactForEngine,
       recommendationsShown: recommendations.length,
     });
-    let stage: FollowupResult["stage"] = recommendations.length > 0
-      ? engineResult.stage === "browsing"
-        ? "recommendations_shown"
-        : engineResult.stage
-      : "preferences_collected";
 
     await updateLeadRecord({
       sessionId: activeSessionId,
@@ -1565,9 +1653,22 @@ export async function POST(request: Request) {
       recommendationsShown: recommendations.length,
       stage,
       extraScore: Math.max(scoreDelta - calculateLeadScore({ salesIntent, contactInfo: contactForEngine }), 0),
+      intentConfidence: memoryIntentConfidence,
+      buyingConfidence: memoryBuyingConfidence,
     });
 
-    await storeChatEvent({
+    // Behavioral signal capture (Part D). Non-blocking — keeps the per-turn
+    // path fast while feeding the decayed scoring view.
+    void recordSignalsFromTurn({
+      sessionId: activeSessionId,
+      salesIntent,
+      contactInfo: contactForEngine,
+      message: userRawMessage,
+      recommendationsShown: recommendations.length,
+      refinement: Boolean(historyIntent) && !isOpenPreferenceReply,
+    });
+
+    storeChatEventAsync({
       sessionId: activeSessionId,
       role: "assistant",
       message: finalMessage,
@@ -1583,7 +1684,7 @@ export async function POST(request: Request) {
       },
     });
     if (recommendations.length > 0) {
-      await storeChatEvent({
+      storeChatEventAsync({
         sessionId: activeSessionId,
         role: "assistant",
         message: productLeadIn,
@@ -1596,7 +1697,7 @@ export async function POST(request: Request) {
       });
     }
     if (followupQuestion) {
-      await storeChatEvent({
+      storeChatEventAsync({
         sessionId: activeSessionId,
         role: "assistant",
         message: followupQuestion,
@@ -1609,7 +1710,14 @@ export async function POST(request: Request) {
       });
     }
     if (recommendations.length > 0) {
-      await storeChatEvent({
+      // Structured impression log (one row per product). Used by
+      // v_best_converting_products / v_failed_recommendations.
+      logShown(
+        activeSessionId,
+        recommendations.map((rec) => rec.id),
+        { query: pipelineMessage.slice(0, 200) }
+      );
+      storeChatEventAsync({
         sessionId: activeSessionId,
         role: "system",
         message: "Recommendations shown",
@@ -1619,7 +1727,7 @@ export async function POST(request: Request) {
           interestedProducts: deriveInterestedProducts(lightRecommendations),
         },
       });
-      await storeAnalyticsEvent({
+      storeAnalyticsEventAsync({
         sessionId: activeSessionId,
         query: userRawMessage,
         detectedIntent: salesIntent.intent,
@@ -1637,7 +1745,7 @@ export async function POST(request: Request) {
           : engineResult.category === "cross_sell"
             ? "cross_sell_offered"
             : "followup_question_asked";
-      await storeChatEvent({
+      storeChatEventAsync({
         sessionId: activeSessionId,
         role: "system",
         message: followupQuestion,
@@ -1646,9 +1754,11 @@ export async function POST(request: Request) {
           category: engineResult.category,
           rationale: engineResult.rationale,
           stage,
+          followup_reason: followupReason,
+          planner_used: plannerQuestion ? true : false,
         },
       });
-      await storeAnalyticsEvent({
+      storeAnalyticsEventAsync({
         sessionId: activeSessionId,
         query: userRawMessage,
         detectedIntent: salesIntent.intent,
@@ -1661,9 +1771,16 @@ export async function POST(request: Request) {
           followupRationale: engineResult.rationale,
           followupStage: stage,
           question: followupQuestion,
+          followup_reason: followupReason,
+          planner_used: plannerQuestion ? true : false,
         },
       });
     }
+
+    // Trigger an immediate (best-effort) drain of the event bus so the
+    // background batch fires before the serverless host can suspend us. The
+    // bus itself has retries, so a partial flush is still safe.
+    void flushEventBus().catch(() => {});
 
     return NextResponse.json({
       result: finalMessage,

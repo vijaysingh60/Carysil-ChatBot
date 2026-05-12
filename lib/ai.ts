@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { hashKey, llmJsonCache } from "@/lib/cache";
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -101,4 +102,28 @@ export async function callAIJson<T extends Record<string, unknown>>(
       error: errorType,
     };
   }
+}
+
+/**
+ * 5-minute in-memory memoization of identical JSON LLM calls. Used by the
+ * recommendation/follow-up planner where the same compact prompt is rebuilt
+ * within a session. Cache misses fall through to {@link callAIJson}.
+ */
+export async function callAIJsonCached<T extends Record<string, unknown>>(
+  systemPrompt: string,
+  userContent: string,
+  fallback: T,
+  cacheKey?: string
+): Promise<{ data: T; aiUsed: boolean; error?: AIResult["error"]; cached?: boolean }> {
+  const key = hashKey(`${cacheKey ?? ""}|${systemPrompt}|${userContent}`);
+  const hit = llmJsonCache.get(key) as
+    | { data: T; aiUsed: boolean; error?: AIResult["error"] }
+    | undefined;
+  if (hit) return { ...hit, cached: true };
+
+  const result = await callAIJson(systemPrompt, userContent, fallback);
+  if (result.aiUsed && !result.error) {
+    llmJsonCache.set(key, result);
+  }
+  return result;
 }

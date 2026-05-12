@@ -2,6 +2,7 @@ import { sanitizeInferredCityValue } from "@/lib/inferredCitySanitize";
 import { getDbPool } from "@/lib/db";
 import type { ContactInfo, DetectedSalesIntent, LeadUpdate } from "@/types/lead";
 import { ensureLeadSchema } from "@/services/sessionService";
+import { mergeIntoPerson } from "@/services/visitorService";
 
 type ConversationMessage = {
   role: "user" | "assistant";
@@ -339,6 +340,9 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
     update.intent ||
     update.interestedProduct ||
     update.followupStage ||
+    update.funnelStage ||
+    typeof update.intentConfidence === "number" ||
+    typeof update.buyingConfidence === "number" ||
     hasInterestedProducts;
   if (!hasMeaningfulUpdate) return;
   if (!(await ensureLeadSchema())) return;
@@ -349,11 +353,13 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
       `
       INSERT INTO leads (
         session_id, name, phone, email, city, intent, interested_product,
-        interested_products, followup_stage, lead_score, updated_at
+        interested_products, followup_stage, lead_score, updated_at,
+        intent_confidence, buying_confidence, last_engagement_at, funnel_stage
       )
       VALUES (
         $1, $2, $3, $4, $5, $6, $7,
-        $8::jsonb, COALESCE($9, 'browsing'), $10, NOW()
+        $8::jsonb, COALESCE($9, 'browsing'), $10, NOW(),
+        $12, $13, NOW(), COALESCE($14, 'awareness')
       )
       ON CONFLICT (session_id) DO UPDATE SET
         name = COALESCE(EXCLUDED.name, leads.name),
@@ -375,7 +381,11 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
         END,
         followup_stage = COALESCE(EXCLUDED.followup_stage, leads.followup_stage),
         lead_score = LEAST(100, leads.lead_score + EXCLUDED.lead_score),
-        updated_at = NOW()
+        updated_at = NOW(),
+        intent_confidence = COALESCE(EXCLUDED.intent_confidence, leads.intent_confidence),
+        buying_confidence = COALESCE(EXCLUDED.buying_confidence, leads.buying_confidence),
+        last_engagement_at = NOW(),
+        funnel_stage = COALESCE(EXCLUDED.funnel_stage, leads.funnel_stage)
       `,
       [
         sessionId,
@@ -389,8 +399,21 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
         update.followupStage ?? null,
         update.scoreDelta,
         hasInterestedProducts,
+        typeof update.intentConfidence === "number" ? update.intentConfidence : null,
+        typeof update.buyingConfidence === "number" ? update.buyingConfidence : null,
+        update.funnelStage ?? null,
       ]
     );
+
+    // Best-effort person merge: when the write contained phone or email,
+    // create or attach the canonical person row so cross-session analytics
+    // see returning users as one entity.
+    if (update.phone || update.email) {
+      void mergeIntoPerson(sessionId, {
+        phone: update.phone ?? undefined,
+        email: update.email ?? undefined,
+      });
+    }
   } catch (error) {
     console.error("[tracking] updateLead failed", error);
   }

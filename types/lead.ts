@@ -74,6 +74,12 @@ export type LeadUpdate = ContactInfo & {
   interestedProducts?: InterestedProduct[];
   followupStage?: FollowupStage;
   scoreDelta: number;
+  /** 0–1 confidence the user's intent is correctly classified. */
+  intentConfidence?: number | null;
+  /** 0–1 confidence the user intends to buy in the near term. */
+  buyingConfidence?: number | null;
+  /** Optional funnel stage update (ratcheted upward by funnelService). */
+  funnelStage?: string | null;
 };
 
 export type AnalyticsEventInput = {

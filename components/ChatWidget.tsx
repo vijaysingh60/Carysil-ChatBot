@@ -33,6 +33,7 @@ type ChatMessage = {
 };
 
 const SESSION_STORAGE_KEY = "askcary_session_id";
+const VISITOR_STORAGE_KEY = "askcary_visitor_id";
 const CHAT_MESSAGES_PREFIX = "askcary_chat_messages_v1:";
 const MAX_PERSISTED_MESSAGES = 80;
 
@@ -82,6 +83,31 @@ const WELCOME: ChatMessage = {
   meta: undefined,
 };
 
+/**
+ * Fire-and-forget click tracker for recommendation cards. Prefers
+ * `navigator.sendBeacon` so the request still completes after the user
+ * navigates to the product page.
+ */
+function trackRecommendationClick(sessionId: string, productId: string): void {
+  if (typeof window === "undefined" || !sessionId || !productId) return;
+  const payload = JSON.stringify({ sessionId, productId });
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: "application/json" });
+      navigator.sendBeacon("/api/ai/track-click", blob);
+      return;
+    }
+  } catch {
+    // fall through to fetch
+  }
+  void fetch("/api/ai/track-click", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    keepalive: true,
+  }).catch(() => {});
+}
+
 /** ~max-h-48 (12rem); textarea grows until this then scrolls */
 const TEXTAREA_MAX_HEIGHT_PX = 192;
 
@@ -102,6 +128,7 @@ export function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [sessionId, setSessionId] = useState<string>("");
+  const [visitorId, setVisitorId] = useState<string>("");
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [atBottom, setAtBottom] = useState(true);
@@ -188,6 +215,7 @@ export function ChatWidget() {
           message: text,
           history,
           sessionId: sessionId || undefined,
+          visitorId: visitorId || undefined,
           source: "chat_widget",
           deviceType: window.innerWidth < 768 ? "mobile" : "desktop",
         }),
@@ -280,6 +308,14 @@ export function ChatWidget() {
       window.localStorage.setItem(SESSION_STORAGE_KEY, existingSessionId);
     }
     setSessionId(existingSessionId);
+
+    let existingVisitorId = window.localStorage.getItem(VISITOR_STORAGE_KEY);
+    if (!existingVisitorId) {
+      existingVisitorId = crypto.randomUUID();
+      window.localStorage.setItem(VISITOR_STORAGE_KEY, existingVisitorId);
+    }
+    setVisitorId(existingVisitorId);
+
     const restored = loadPersistedMessages(existingSessionId);
     if (restored) {
       setMessages(restored);
@@ -452,6 +488,7 @@ export function ChatWidget() {
                           href={rec.url || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => trackRecommendationClick(sessionId, rec.id)}
                           className="flex gap-2 rounded-xl border border-white/5 bg-[#14161A] text-black p-2 hover:border-[var(--carysil-red)]/60 transition-colors text-left"
                         >
                           {rec.image_url && (

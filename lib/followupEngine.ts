@@ -1,5 +1,6 @@
 import type { IntentResult, ProductCategory } from "@/lib/concierge";
 import { extractContactInfo, updateLead, calculateLeadScore } from "@/services/leadService";
+import { recomputeFunnelStage } from "@/services/funnelService";
 import type {
   ContactInfo,
   DetectedSalesIntent,
@@ -660,6 +661,9 @@ export type LeadUpdateInput = {
   recommendationsShown?: number;
   dealersShown?: number;
   extraScore?: number;
+  intentConfidence?: number | null;
+  buyingConfidence?: number | null;
+  funnelStage?: string | null;
 };
 
 /** Single entry point used everywhere we want to upsert a lead. */
@@ -677,6 +681,14 @@ export async function updateLeadRecord(input: LeadUpdateInput): Promise<void> {
     interestedProducts: input.recommendations ? deriveInterestedProducts(input.recommendations) : undefined,
     followupStage: input.stage,
     scoreDelta: baseDelta + (input.extraScore ?? 0),
+    intentConfidence: input.intentConfidence ?? null,
+    buyingConfidence: input.buyingConfidence ?? null,
+    funnelStage: input.funnelStage ?? null,
   };
   await updateLead(input.sessionId, update);
+  // Monotonic funnel ratchet runs after every lead upsert. Best-effort —
+  // a failed funnel recompute must never propagate into the request path.
+  void recomputeFunnelStage(input.sessionId, `stage:${input.stage ?? "unknown"}`).catch((err) =>
+    console.error("[funnel] auto-recompute failed", err)
+  );
 }
