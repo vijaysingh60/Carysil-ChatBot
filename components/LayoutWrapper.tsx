@@ -28,6 +28,12 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
             >
               Home
             </Link>
+            <Link
+              href="/dashboard"
+              className="hover:text-carysil-red transition-colors"
+            >
+              Dashboard
+            </Link>
             <a
               href="https://www.carysil.com/reach-us"
               target="_blank"
@@ -47,7 +53,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">{children}</main>
+      <main className="mx-auto min-w-0 max-w-6xl px-4 py-8 sm:px-6">{children}</main>
       <footer className="border-t border-gray-200 bg-white mt-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-500">
           <span>© Carysil. AI Concierge prototype.</span>

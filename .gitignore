@@ -32,3 +32,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+#cd "/Users/vijaysinghparihar/Projects/Carysil Ai/chat bot/embedding-service"
+#source .venv/bin/activate
+#python app.py

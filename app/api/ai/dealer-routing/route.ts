@@ -1,38 +1,100 @@
 import { NextResponse } from "next/server";
-import { callAI } from "@/lib/ai";
 import dealersData from "@/data/dealers.json";
 
-const SYSTEM = `You are an AI assistant for Carysil (carysil.com), a premium kitchen and bathroom brand.
-Given a lead (name, city, product interest, phone), select the best dealer from the list based on location and product specialization.
-Respond with: "Lead Assigned To", then the dealer name, phone, and email. Add one short sentence explaining why this dealer was chosen (location and/or product match).`;
+type Dealer = {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  products_supported: string[];
+  contact_email: string;
+  phone: string;
+};
+
+const dealers = dealersData as Dealer[];
+
+function normalize(text: string): string {
+  return text.toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+function matchesLocation(dealer: Dealer, location: string): boolean {
+  const normalizedLocation = normalize(location);
+  if (!normalizedLocation) return false;
+  const aliases: Record<string, string[]> = {
+    bengaluru: ["bangalore"],
+    bangalore: ["bangalore"],
+    bombay: ["mumbai"],
+    ncr: ["gurgaon", "noida", "new delhi", "delhi", "faridabad", "ghaziabad"],
+    "delhi ncr": ["gurgaon", "noida", "new delhi", "delhi", "faridabad", "ghaziabad"],
+  };
+  const searchTerms = aliases[normalizedLocation] || [normalizedLocation];
+  const dealerCity = normalize(dealer.city);
+  const dealerState = normalize(dealer.state);
+  return searchTerms.some(
+    (term) =>
+      dealerCity.includes(term) ||
+      term.includes(dealerCity) ||
+      dealerState.includes(term) ||
+      term.includes(dealerState)
+  );
+}
+
+function supportsProduct(dealer: Dealer, productInterest: string): boolean {
+  const normalizedInterest = normalize(productInterest);
+  if (!normalizedInterest) return false;
+  return dealer.products_supported.some((product) => {
+    const normalizedProduct = normalize(product);
+    return normalizedInterest.includes(normalizedProduct) || normalizedProduct.includes(normalizedInterest);
+  });
+}
+
+function formatAssignedDealer(dealer: Dealer, productInterest: string): string {
+  const productMatch = supportsProduct(dealer, productInterest);
+  const reason = productMatch
+    ? `This dealer serves ${dealer.city}, ${dealer.state} and supports ${productInterest}.`
+    : `This dealer serves ${dealer.city}, ${dealer.state}; please confirm product availability before visiting.`;
+
+  return `## Lead Assigned To
+
+**${dealer.name}**
+Phone: ${dealer.phone}
+Email: ${dealer.contact_email}
+
+${reason}`;
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, city, productInterest, phone } = body as {
-      name?: string;
+    const { city, productInterest } = body as {
       city?: string;
       productInterest?: string;
-      phone?: string;
     };
-    const userInput = `Lead: Name ${name || "—"}, City ${city || "—"}, Product interest: ${productInterest || "—"}, Phone: ${phone || "—"}. Assign best dealer.`;
-    const dataset = JSON.stringify(dealersData, null, 2);
+    const trimmedCity = String(city || "").trim();
+    const trimmedInterest = String(productInterest || "").trim();
 
-    const placeholder = `## Lead Assigned To
+    if (!trimmedCity) {
+      return NextResponse.json({
+        result: "Please enter a city or state so we can assign the right Carysil dealer.",
+        aiUsed: false,
+      });
+    }
 
-**Hyderabad Kitchen Dealer**
-Phone: +91 98765 43210
-Email: hyderabad@carysil-dealers.com
+    const locationMatches = dealers.filter((dealer) => matchesLocation(dealer, trimmedCity));
+    if (locationMatches.length === 0) {
+      return NextResponse.json({
+        result: `No listed Carysil dealer was found for ${trimmedCity}. Please check the city/state spelling or try a nearby major city.`,
+        aiUsed: false,
+      });
+    }
 
-This dealer covers Hyderabad and supports kitchen sinks and faucets. They will contact you shortly.`;
+    const productMatches = locationMatches.filter((dealer) => supportsProduct(dealer, trimmedInterest));
+    const selectedDealer = productMatches[0] || locationMatches[0];
 
-    const { text, aiUsed, error } = await callAI(
-      SYSTEM,
-      `User request:\n${userInput}\n\nAvailable dealers:\n${dataset}\n\nProvide the assigned dealer.`,
-      placeholder
-    );
-
-    return NextResponse.json({ result: text, aiUsed, error });
+    return NextResponse.json({
+      result: formatAssignedDealer(selectedDealer, trimmedInterest),
+      aiUsed: false,
+    });
   } catch (e) {
     console.error(e);
     return NextResponse.json(

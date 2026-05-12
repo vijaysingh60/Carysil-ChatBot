@@ -54,3 +54,51 @@ export async function callAI(
     };
   }
 }
+
+/**
+ * Structured JSON completion (gpt-4o-mini). Falls back to `fallback` when no key, parse error, or API failure.
+ */
+export async function callAIJson<T extends Record<string, unknown>>(
+  systemPrompt: string,
+  userContent: string,
+  fallback: T
+): Promise<{ data: T; aiUsed: boolean; error?: AIResult["error"] }> {
+  if (!openai) {
+    return { data: fallback, aiUsed: false };
+  }
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent },
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 900,
+    });
+    const text = completion.choices[0]?.message?.content?.trim();
+    if (!text) {
+      return { data: fallback, aiUsed: true };
+    }
+    const parsed = JSON.parse(text) as Partial<T>;
+    return { data: { ...fallback, ...parsed } as T, aiUsed: true };
+  } catch (err: unknown) {
+    const is429 =
+      err &&
+      typeof err === "object" &&
+      "status" in err &&
+      (err as { status?: number }).status === 429;
+    const isQuota =
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      (err as { code?: string }).code === "insufficient_quota";
+    const errorType = is429 || isQuota ? "quota_exceeded" : "api_error";
+    console.error("[AI] JSON API call failed:", err);
+    return {
+      data: fallback,
+      aiUsed: false,
+      error: errorType,
+    };
+  }
+}

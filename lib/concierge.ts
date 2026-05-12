@@ -138,7 +138,8 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
   const inferred: ProductCategory[] = [];
   if (/\b(faucet|faucets|tap|taps|kitchen faucet|bathroom faucet)\b/.test(lower)) inferred.push("Faucet");
   if (/\b(sink|sinks|quartz sink|kitchen sink|bathroom sink)\b/.test(lower)) inferred.push("Sink");
-  if (/\b(disposer|disposers|food waste|garbage disposal)\b/.test(lower)) inferred.push("Disposer");
+  if (/\b(disposer|disposers|food\s*waste|waste\s+disposers?|water\s+disposers?|garbage\s*disposal)\b/.test(lower))
+    inferred.push("Disposer");
   if (/\b(accessory|accessories|waste coupling)\b/.test(lower)) inferred.push("Accessory");
   if (/\b(hob|burner|burners|chimney|dishwasher|appliance|appliances)\b/.test(lower)) inferred.push("Appliance");
   if (/\b(combo|combos)\b/.test(lower)) inferred.push("Combo");
@@ -147,7 +148,7 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
 
 /** Words that indicate the user has given specifics (size, style, budget, finish, etc.) – if present, we go straight to recommendations. */
 const REFINEMENT_TERMS =
-  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\brange\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bstainless\s*steel\b|\bpull[- ]?out\b|\bsize\b|\b(45|50|55|60|70|75|80|85|90|100|110|120)\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\b5\s*burner\b|\bfamily\s*of\s*\d|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b|\bdeck\s*mount\b|\bwall\s*mount\b|\bpvd\b|\bfinish\b|\bcolour\b|\bcolor\b)/i;
+  /(\bsingle\b|\bdouble\b|\bbowl\b|\bdrainboard\b|\bbudget\b|\bprice\b|\brange\b|\bchrome\b|\bblack\b|\bmodern\b|\bquartz\b|\bstainless\s*steel\b|\bpull[- ]?out\b|\bstandard\s+spout\b|\bspout\b|\bsize\b|\boptions?\b|\bdifferent\b|\bvariety\b|\bshow\s+me\b|\bshow\s+(?:me\s+)?[\w\s]*\b(disposers?|food\s*waste)\b|\brecommend\b|\bwhat\s+do\s+you\s+have\b|\b(45|50|55|60|70|75|80|85|90|100|110|120)\s*cm\b|\bgas\b|\binduction\b|\b4\s*burner\b|\b5\s*burner\b|\bhobs?\b|\bchimneys?\b|\bdishwashers?\b|\bburners?\b|\bfamily\s*of\s*\d|\b\d+\s*(people|persons|members)\b|\bpeople\s+in\b|\bhouse\s*hold\b|\bhousehold\b|\bmedium\b|\blarge\b|\bsmall\b|\bwhite\b|\brose\s*gold\b|\bmatt\b|\bmatte\b|\bbrushed\b|\bdeck\s*mount\b|\bwall\s*mount\b|\bpvd\b|\bfinish\b|\bcolour\b|\bcolor\b|\b(quiet|silent|low\s*noise|noise|power)\b|\b\d[\d.]*\s*hp\b|\b(half|one|1|3\/4)\s*hp\b|\binstallation\b|\binstall\b|\bno\s+preference\b|\bany(\s+one)?\s+is\s+fine\b)/i;
 
 /** "Explore full range" / "full range of X" → treat as specified, go straight to results. */
 const FULL_RANGE_PATTERN = /\b(explore\s+full\s+range|full\s+range\s+of|show\s+(?:me\s+)?(?:the\s+)?full\s+range)\b/i;
@@ -159,6 +160,33 @@ function isVagueCategoryQuery(message: string, categories: ProductCategory[]): b
   const lower = trimmed.toLowerCase();
   if (FULL_RANGE_PATTERN.test(lower)) return false;
   if (REFINEMENT_TERMS.test(lower)) return false;
+  // Disposer: household / usage answers count as enough signal to show products (avoid clarification loop).
+  if (categories[0] === "Disposer") {
+    if (/\b(just|only)\b.*\bdisposers?\b/i.test(lower)) return false;
+    if (/\bwater\s+disposers?\b/.test(lower)) return false;
+    if (
+      /\b(\d+\s*(people|persons|members)|people\s+in|house\s*hold|household|family|noise|quiet|silent|power|hp|installation|install|under\s*sink|batch\s*feed|continuous)\b/i.test(
+        lower
+      )
+    ) {
+      return false;
+    }
+    if (/\b(show|see|list|want|need|looking\s+for)\b/i.test(lower) && /\b(disposers?|food\s*waste|garbage)\b/i.test(lower)) {
+      return false;
+    }
+  }
+  if (categories[0] === "Appliance") {
+    if (
+      /\b(hob|hobs|chimney|chimneys|dishwasher|dishwashers|burner|burners|gas|induction|cooking\s*range|built[- ]?in|freestanding|\b(60|75|90)\s*cm\b)\b/i.test(
+        lower
+      )
+    ) {
+      return false;
+    }
+    if (/\b(show|see|list|want|need|looking\s+for)\b/i.test(lower) && /\b(hob|hobs|chimney|dishwasher|appliance)\b/i.test(lower)) {
+      return false;
+    }
+  }
   const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
   const bareOnly = /^(sink|sinks|faucet|faucets|tap|taps|disposer|disposers|accessory|accessories|appliance|appliances|hob|hobs|combo|combos|chimney|chimneys|dishwasher|dishwashers)\s*[\.\?]?\s*$/i.test(lower);
   if (bareOnly) return true;
