@@ -131,10 +131,10 @@ export async function flush(name?: string): Promise<void> {
 
 /** Convenience for tests / process shutdown. */
 export function resetEventBus(): void {
-  for (const queue of queues.values()) {
+  queues.forEach((queue) => {
     if (queue.flushTimer) clearTimeout(queue.flushTimer);
     queue.flushTimer = null;
     queue.pending = [];
     queue.inflight = null;
-  }
+  });
 }

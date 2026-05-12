@@ -173,7 +173,7 @@ function questionContainsKnownSlotAnswer(
   return checks.some((check) => check.value && check.keyword.test(lowered));
 }
 
-const VALID_ACTIONS: ReadonlySet<FollowupPlannerAction> = new Set([
+const VALID_ACTIONS: ReadonlySet<FollowupPlannerAction> = new Set<FollowupPlannerAction>([
   "ask",
   "recommend",
   "capture_lead",
@@ -181,7 +181,7 @@ const VALID_ACTIONS: ReadonlySet<FollowupPlannerAction> = new Set([
   "none",
 ]);
 
-const VALID_REASONS: ReadonlySet<RecommendationFollowupReason> = new Set([
+const VALID_REASONS: ReadonlySet<RecommendationFollowupReason> = new Set<RecommendationFollowupReason>([
   "missing_budget",
   "missing_color",
   "missing_material",
