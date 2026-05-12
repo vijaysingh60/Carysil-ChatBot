@@ -1336,29 +1336,35 @@ export async function POST(request: Request) {
     // We only send top relevant products to AI (never full catalogue).
     const recommendationIntent = enrichProductIntent(pipelineMessage, intent);
     let relevantProducts: Product[] = [];
+    const skipVectorEmbedding =
+      process.env.SKIP_VECTOR_EMBEDDING === "true" || process.env.SKIP_VECTOR_EMBEDDING === "1";
     try {
-      const vectorMatches = await searchSimilarProducts(pipelineMessage, {
-        limit: 5,
-        filters: {
-          categories: getSearchCategories(pipelineMessage, recommendationIntent),
-          material: recommendationIntent.filters?.material,
-          style: recommendationIntent.filters?.style,
-          keywords: recommendationIntent.filters?.keywords,
-        },
-      });
-      relevantProducts = vectorMatches.map((row) => ({
-        id: row.id,
-        name: row.name,
-        category: row.category,
-        size: row.size ?? undefined,
-        style: row.style || "",
-        material: row.material || "",
-        price_range: "",
-        description: row.description || "",
-        price: row.price ?? undefined,
-        image_url: row.image_url ?? undefined,
-        url: row.url ?? undefined,
-      }));
+      if (skipVectorEmbedding) {
+        relevantProducts = [];
+      } else {
+        const vectorMatches = await searchSimilarProducts(pipelineMessage, {
+          limit: 5,
+          filters: {
+            categories: getSearchCategories(pipelineMessage, recommendationIntent),
+            material: recommendationIntent.filters?.material,
+            style: recommendationIntent.filters?.style,
+            keywords: recommendationIntent.filters?.keywords,
+          },
+        });
+        relevantProducts = vectorMatches.map((row) => ({
+          id: row.id,
+          name: row.name,
+          category: row.category,
+          size: row.size ?? undefined,
+          style: row.style || "",
+          material: row.material || "",
+          price_range: "",
+          description: row.description || "",
+          price: row.price ?? undefined,
+          image_url: row.image_url ?? undefined,
+          url: row.url ?? undefined,
+        }));
+      }
     } catch (vectorError) {
       console.error("[concierge] vector search failed, using intent filter fallback", vectorError);
       relevantProducts = [];

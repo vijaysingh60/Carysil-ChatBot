@@ -33,6 +33,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local database binaries (SQL migrations stay in db/*.sql and remain tracked)
+*.db
+*.sqlite
+*.sqlite3
+
 
 #cd "/Users/vijaysinghparihar/Projects/Carysil Ai/chat bot/embedding-service"
 #source .venv/bin/activate
