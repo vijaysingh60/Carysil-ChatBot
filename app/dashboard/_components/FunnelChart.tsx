@@ -40,10 +40,17 @@ export function FunnelChart({ data }: { data: FunnelStagePoint[] }) {
           <XAxis type="number" stroke="#9ca3af" fontSize={11} allowDecimals={false} />
           <YAxis type="category" dataKey="stage" stroke="#374151" fontSize={11} width={120} />
           <Tooltip
-            formatter={(value: number, _name: string, item) => {
-              const drop = (item.payload as FunnelStagePoint).dropOffPct;
+            formatter={(value, _name, item) => {
+              const sessions =
+                typeof value === "number"
+                  ? value
+                  : typeof value === "string"
+                    ? Number(value)
+                    : 0;
+              const display = Number.isFinite(sessions) ? sessions : 0;
+              const drop = (item?.payload as FunnelStagePoint | undefined)?.dropOffPct;
               const dropLabel = typeof drop === "number" ? ` (drop ${drop.toFixed(1)}%)` : "";
-              return [`${value}${dropLabel}`, "Sessions"];
+              return [`${display}${dropLabel}`, "Sessions"];
             }}
           />
           <Bar dataKey="sessions" radius={[0, 6, 6, 0]}>
