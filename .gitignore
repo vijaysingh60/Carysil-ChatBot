@@ -24,6 +24,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
 
 # vercel
@@ -38,7 +39,13 @@ next-env.d.ts
 *.sqlite
 *.sqlite3
 
+# embedding-service (Python) — Railway builds its own env from requirements.txt,
+# so the local virtualenv and bytecode cache never need to be pushed.
+embedding-service/.venv/
+__pycache__/
+*.pyc
+*.pyo
 
-#cd "/Users/vijaysinghparihar/Projects/Carysil Ai/chat bot/embedding-service"
-#source .venv/bin/activate
-#python app.py
+# editors
+.vscode/
+.idea/

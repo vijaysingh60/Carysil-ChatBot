@@ -10,6 +10,7 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
+import { LEAD_TIER_RAMP } from "./chartTheme";
 
 export type LeadQualityPoint = {
   day: string;
@@ -32,10 +33,10 @@ export function LeadQualityChart({ data }: { data: LeadQualityPoint[] }) {
           <YAxis stroke="#9ca3af" fontSize={11} allowDecimals={false} />
           <Tooltip />
           <Legend wrapperStyle={{ fontSize: 11 }} />
-          <Bar dataKey="cold" stackId="a" fill="#a3a3a3" />
-          <Bar dataKey="warm" stackId="a" fill="#f59e0b" />
-          <Bar dataKey="hot" stackId="a" fill="#ef4444" />
-          <Bar dataKey="high_intent" stackId="a" fill="#7f1d1d" />
+          <Bar dataKey="cold" stackId="a" fill={LEAD_TIER_RAMP[0]} />
+          <Bar dataKey="warm" stackId="a" fill={LEAD_TIER_RAMP[1]} />
+          <Bar dataKey="hot" stackId="a" fill={LEAD_TIER_RAMP[2]} />
+          <Bar dataKey="high_intent" stackId="a" fill={LEAD_TIER_RAMP[3]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

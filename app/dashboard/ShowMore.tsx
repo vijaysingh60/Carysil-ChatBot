@@ -7,8 +7,9 @@ type ShowMoreProps = {
   initialCount?: number;
 };
 
-const buttonClasses =
-  "mt-4 rounded-full border border-[var(--carysil-red)] px-4 py-2 text-sm font-medium text-[var(--carysil-red)] transition hover:bg-[var(--carysil-red)] hover:text-white";
+export const showMoreButtonClasses =
+  "mt-4 rounded-full border border-carysil-red px-4 py-2 text-sm font-medium text-carysil-red transition hover:bg-carysil-red hover:text-white";
+const buttonClasses = showMoreButtonClasses;
 
 export function ShowMoreList({ children, initialCount = 3 }: ShowMoreProps) {
   const [expanded, setExpanded] = useState(false);

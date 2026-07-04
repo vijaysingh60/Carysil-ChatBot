@@ -6,6 +6,7 @@ export type ChatEventType =
   | "recommendations_shown"
   | "recommendations_deferred"
   | "dealer_results_shown"
+  | "dealer_assigned"
   | "lead_prompted"
   | "lead_captured"
   | "followup_question_asked"
@@ -80,6 +81,8 @@ export type LeadUpdate = ContactInfo & {
   buyingConfidence?: number | null;
   /** Optional funnel stage update (ratcheted upward by funnelService). */
   funnelStage?: string | null;
+  /** Dealer this lead was routed to (dealers.id), when a location match is found. */
+  assignedDealerId?: string | null;
 };
 
 export type AnalyticsEventInput = {

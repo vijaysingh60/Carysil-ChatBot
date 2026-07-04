@@ -106,7 +106,9 @@ export function sanitizeInferredCityValue(raw: string | null | undefined): strin
   if (/\b(i|we)\s+(want|need|am|are)\b/.test(lowerFull)) return null;
   if (/\b(show|give)\s+me\b/.test(lowerFull)) return null;
 
-  for (const w of words) {
+  // Split on hyphens too when checking the blocklist — otherwise a compound
+  // like "deck-mount" collapses to the fused, unblocked token "deckmount".
+  for (const w of t.split(/[\s-]+/)) {
     const key = tokenKey(w);
     if (key.length < 2) continue;
     if (NOT_A_PLACE_TOKEN.has(key)) return null;

@@ -8,6 +8,13 @@ import { FunnelChart, type FunnelStagePoint } from "./_components/FunnelChart";
 import { SimpleBarChart, type SimpleBarPoint } from "./_components/SimpleBarChart";
 import { Heatmap, type HeatmapCell } from "./_components/Heatmap";
 import { RangeSelector } from "./_components/RangeSelector";
+import { SectionCard } from "./_components/SectionCard";
+import { SectionHeader } from "./_components/SectionHeader";
+import { ChartCard } from "./_components/ChartCard";
+import { StatTile } from "./_components/StatTile";
+import { EmptyState } from "./_components/EmptyState";
+import { Badge } from "./_components/Badge";
+import { CHART_GOLD } from "./_components/chartTheme";
 import { FUNNEL_STAGES } from "@/types/funnel";
 
 export const dynamic = "force-dynamic";
@@ -394,12 +401,26 @@ async function getDashboardData(searchRange: string | undefined): Promise<Dashbo
   };
 }
 
-function MetricCard({ label, value }: { label: string; value: number }) {
+function MetricCard({
+  label,
+  value,
+  tier = "primary",
+}: {
+  label: string;
+  value: number;
+  tier?: "primary" | "secondary";
+}) {
   return (
-    <div className="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <p className="text-xs font-medium text-gray-500 sm:text-sm">{label}</p>
-      <p className="mt-1.5 text-2xl font-semibold text-carysil-stone sm:mt-2 sm:text-3xl">{value}</p>
-    </div>
+    <SectionCard padding={tier === "primary" ? "md" : "sm"} className="min-w-0">
+      <p className="truncate text-xs font-medium text-gray-500 sm:text-sm">{label}</p>
+      <p
+        className={`tabular-nums mt-1.5 font-semibold text-carysil-stone sm:mt-2 ${
+          tier === "primary" ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl"
+        }`}
+      >
+        {value}
+      </p>
+    </SectionCard>
   );
 }
 
@@ -407,8 +428,8 @@ function MiniBarList({ title, rows }: { title: string; rows: MetricRow[] }) {
   const max = Math.max(...rows.map((row) => toNumber(row.count)), 1);
 
   return (
-    <section className="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <h2 className="text-base font-semibold text-carysil-stone sm:text-lg">{title}</h2>
+    <SectionCard>
+      <h3 className="text-base font-semibold text-carysil-stone sm:text-lg">{title}</h3>
       <div className="mt-3 space-y-2.5 sm:mt-4 sm:space-y-3">
         {rows.length === 0 ? (
           <p className="text-sm text-gray-500">No data yet.</p>
@@ -419,11 +440,11 @@ function MiniBarList({ title, rows }: { title: string; rows: MetricRow[] }) {
               <div key={row.label || "Unknown"}>
                 <div className="mb-1 flex items-center justify-between gap-2 text-xs sm:gap-3 sm:text-sm">
                   <span className="truncate text-gray-700">{row.label || "Unknown"}</span>
-                  <span className="font-medium text-carysil-stone">{count}</span>
+                  <span className="tabular-nums font-medium text-carysil-stone">{count}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                   <div
-                    className="h-full rounded-full bg-[var(--carysil-red)]"
+                    className="h-full rounded-full bg-carysil-red"
                     style={{ width: `${Math.max((count / max) * 100, 8)}%` }}
                   />
                 </div>
@@ -432,34 +453,15 @@ function MiniBarList({ title, rows }: { title: string; rows: MetricRow[] }) {
           })
         )}
       </div>
-    </section>
+    </SectionCard>
   );
 }
 
-function EmptyState({ children }: { children: React.ReactNode }) {
+/** Standard section wrapper: divider above every zone except the first. */
+function Zone({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-w-0 max-w-full rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-500 break-words">
+    <section className="min-w-0 max-w-full space-y-4 border-t border-gray-200 pt-8 first:border-t-0 first:pt-0">
       {children}
-    </div>
-  );
-}
-
-function ChartCard({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-base font-semibold text-carysil-stone sm:text-lg">{title}</h2>
-        {subtitle ? <p className="text-xs text-gray-500">{subtitle}</p> : null}
-      </div>
-      <div className="mt-3">{children}</div>
     </section>
   );
 }
@@ -514,155 +516,162 @@ export default async function DashboardPage({
         </div>
       </section>
 
-      <section className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-        <MetricCard label="Sessions" value={data.totals.sessions} />
-        <MetricCard label="Leads" value={data.totals.leads} />
-        <MetricCard label="Hot Leads" value={data.totals.hotLeads} />
-        <MetricCard label="Leads Captured" value={data.totals.leadsCaptured} />
-        <MetricCard label="Converted" value={data.totals.convertedLeads} />
-        <MetricCard label="Returning Visitors" value={data.totals.returningVisitors} />
-        <MetricCard label="Follow-ups Asked" value={data.totals.followupsAsked} />
-        <MetricCard label="Dealer Requests" value={data.totals.dealerRequests} />
-        <MetricCard label="Analytics Events" value={data.totals.analyticsEvents} />
-        <MetricCard label="Chat Events" value={data.totals.chatEvents} />
-      </section>
-
-      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
-        <ChartCard title="Lead quality over time" subtitle="cold / warm / hot / high_intent">
-          <LeadQualityChart data={data.leadQualityTimeseries} />
-        </ChartCard>
-        <ChartCard title="Funnel conversion" subtitle="sessions per stage with drop-off">
-          <FunnelChart data={data.funnelDistribution} />
-        </ChartCard>
-      </section>
-
-      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
-        <ChartCard title="Recommendation performance" subtitle="conversions / clicks (top 8)">
-          <SimpleBarChart data={data.bestConvertingProducts} color="#dc2626" emptyText="No recommendation activity yet." />
-        </ChartCard>
-        <ChartCard title="Ignored products" subtitle="retrieved but never shown or clicked">
-          <SimpleBarChart data={data.ignoredProducts} color="#9ca3af" emptyText="No ignored products in range." />
-        </ChartCard>
-      </section>
-
-      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
-        <ChartCard title="Product demand heatmap" subtitle="category × city">
-          <Heatmap rows={data.demandHeatmap.rows} cols={data.demandHeatmap.cols} cells={data.demandHeatmap.cells} />
-        </ChartCard>
-        <ChartCard title="Conversation drop-off" subtitle="user turns per session">
-          <SimpleBarChart data={data.dropOffHistogram} color="#7f1d1d" />
-        </ChartCard>
-      </section>
-
-      <section className="grid min-w-0 gap-6 lg:grid-cols-2">
-        <ChartCard title="AI follow-up effectiveness" subtitle="conversion rate (%) per follow-up reason">
-          <SimpleBarChart data={data.followupEffectiveness} color="#0ea5e9" />
-        </ChartCard>
-        <ChartCard
-          title="Retrieval success"
-          subtitle={`${data.retrievalSuccess.impressions} impressions${data.retrievalSuccess.avgSimilarity !== null ? `, avg similarity @ click ${data.retrievalSuccess.avgSimilarity}` : ""}`}
-        >
-          <div className="flex h-64 flex-col items-center justify-center text-center">
-            <span className="text-5xl font-semibold text-[var(--carysil-red)]">
-              {data.retrievalSuccess.ctrPct}%
-            </span>
-            <span className="mt-2 text-sm text-gray-500">click-through rate</span>
-            {data.retrievalSuccess.avgSimilarity !== null && (
-              <span className="mt-1 text-xs text-gray-400">avg similarity at click: {data.retrievalSuccess.avgSimilarity}</span>
-            )}
-          </div>
-        </ChartCard>
-      </section>
-
-      <section className="grid min-w-0 grid-cols-2 gap-4 lg:grid-cols-4">
-        <MiniBarList title="Top Categories" rows={data.categoryCounts} />
-        <MiniBarList title="Top Intents" rows={data.intentCounts} />
-        <MiniBarList title="Top Cities" rows={data.cityCounts} />
-        <MiniBarList title="Follow-up Stages" rows={data.followupStageCounts} />
-      </section>
-
-      <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-carysil-stone">Leads</h2>
-            <p className="text-sm text-gray-500">Sorted by priority, then lead score.</p>
-          </div>
+      <Zone>
+        <SectionHeader title="Overview" description="Top-line volume and lead quality for the selected range." />
+        <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+          <MetricCard label="Sessions" value={data.totals.sessions} />
+          <MetricCard label="Leads" value={data.totals.leads} />
+          <MetricCard label="Hot Leads" value={data.totals.hotLeads} />
+          <MetricCard label="Leads Captured" value={data.totals.leadsCaptured} />
+          <MetricCard label="Converted" value={data.totals.convertedLeads} />
         </div>
-        <div className="mt-4">
-          <LeadsBlock leads={data.recentLeads} />
+        <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+          <MetricCard tier="secondary" label="Returning Visitors" value={data.totals.returningVisitors} />
+          <MetricCard tier="secondary" label="Follow-ups Asked" value={data.totals.followupsAsked} />
+          <MetricCard tier="secondary" label="Dealer Requests" value={data.totals.dealerRequests} />
+          <MetricCard tier="secondary" label="Analytics Events" value={data.totals.analyticsEvents} />
+          <MetricCard tier="secondary" label="Chat Events" value={data.totals.chatEvents} />
         </div>
-      </section>
+      </Zone>
 
-      <section className="grid min-w-0 max-w-full gap-6 lg:grid-cols-2">
-        <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-          <h2 className="text-lg font-semibold text-carysil-stone">Recent Queries</h2>
-          <div className="mt-4 min-w-0 space-y-3">
-            {data.recentAnalytics.length === 0 ? (
-              <EmptyState>No analytics events yet.</EmptyState>
-            ) : (
-              <ShowMoreList initialCount={3}>
-                {data.recentAnalytics.map((event, index) => (
-                  <div
-                    key={`${event.created_at.toISOString()}-${index}`}
-                    className="min-w-0 max-w-full overflow-hidden rounded-xl bg-gray-50 p-3 sm:p-4"
-                  >
-                    <p className="break-words font-medium text-carysil-stone">{compactText(event.query, "Empty query")}</p>
-                    <div className="mt-2 flex min-w-0 flex-wrap gap-2 text-xs text-gray-600">
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">
-                        Intent: {event.detected_intent || "Unknown"}
-                      </span>
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">
-                        Category: {event.category || "Unknown"}
-                      </span>
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">
-                        Budget: {event.budget_type || "Unknown"}
-                      </span>
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">
-                        City: {event.city || "Unknown"}
-                      </span>
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">
-                        {formatDashboardDate(event.created_at)}
-                      </span>
+      <Zone>
+        <SectionHeader
+          title="Lead Quality & Funnel"
+          description="How leads move through the funnel, and whether AI follow-ups move them forward."
+        />
+        <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+          <ChartCard title="Lead quality over time" subtitle="cold / warm / hot / high_intent">
+            <LeadQualityChart data={data.leadQualityTimeseries} />
+          </ChartCard>
+          <ChartCard title="Funnel conversion" subtitle="sessions per stage with drop-off">
+            <FunnelChart data={data.funnelDistribution} />
+          </ChartCard>
+        </div>
+        <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+          <ChartCard title="Conversation drop-off" subtitle="user turns per session">
+            <SimpleBarChart data={data.dropOffHistogram} />
+          </ChartCard>
+          <ChartCard title="AI follow-up effectiveness" subtitle="conversion rate (%) per follow-up reason">
+            <SimpleBarChart data={data.followupEffectiveness} color={CHART_GOLD} />
+          </ChartCard>
+        </div>
+        <div className="max-w-md min-w-0">
+          <MiniBarList title="Follow-up Stages" rows={data.followupStageCounts} />
+        </div>
+      </Zone>
+
+      <Zone>
+        <SectionHeader
+          title="Recommendations & Product Demand"
+          description="What the recommendation engine surfaces, and what customers actually want."
+        />
+        <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+          <ChartCard title="Recommendation performance" subtitle="conversions / clicks (top 8)">
+            <SimpleBarChart data={data.bestConvertingProducts} emptyText="No recommendation activity yet." />
+          </ChartCard>
+          <ChartCard title="Ignored products" subtitle="retrieved but never shown or clicked">
+            <SimpleBarChart data={data.ignoredProducts} color={CHART_GOLD} emptyText="No ignored products in range." />
+          </ChartCard>
+        </div>
+        <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+          <ChartCard title="Product demand heatmap" subtitle="category × city">
+            <Heatmap rows={data.demandHeatmap.rows} cols={data.demandHeatmap.cols} cells={data.demandHeatmap.cells} />
+          </ChartCard>
+          <ChartCard
+            title="Retrieval success"
+            subtitle={`${data.retrievalSuccess.impressions} impressions`}
+          >
+            <StatTile
+              label="Click-through rate"
+              value={`${data.retrievalSuccess.ctrPct}%`}
+              support={
+                data.retrievalSuccess.avgSimilarity !== null
+                  ? `avg similarity at click: ${data.retrievalSuccess.avgSimilarity}`
+                  : undefined
+              }
+            />
+          </ChartCard>
+        </div>
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
+          <MiniBarList title="Top Categories" rows={data.categoryCounts} />
+          <MiniBarList title="Top Intents" rows={data.intentCounts} />
+          <MiniBarList title="Top Cities" rows={data.cityCounts} />
+        </div>
+      </Zone>
+
+      <Zone>
+        <SectionHeader title="Activity Log" description="Raw leads and conversation activity for manual review." />
+        <SectionCard className="overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-semibold text-carysil-stone">Leads</h3>
+              <p className="text-sm text-gray-500">Sorted by priority, then lead score.</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <LeadsBlock leads={data.recentLeads} />
+          </div>
+        </SectionCard>
+
+        <div className="grid min-w-0 max-w-full gap-6 lg:grid-cols-2">
+          <SectionCard className="overflow-hidden">
+            <h3 className="text-lg font-semibold text-carysil-stone">Recent Queries</h3>
+            <div className="mt-4 min-w-0 space-y-3">
+              {data.recentAnalytics.length === 0 ? (
+                <EmptyState>No analytics events yet.</EmptyState>
+              ) : (
+                <ShowMoreList initialCount={3}>
+                  {data.recentAnalytics.map((event, index) => (
+                    <div
+                      key={`${event.created_at.toISOString()}-${index}`}
+                      className="min-w-0 max-w-full overflow-hidden rounded-lg bg-gray-50 p-3 sm:p-4"
+                    >
+                      <p className="break-words font-medium text-carysil-stone">{compactText(event.query, "Empty query")}</p>
+                      <div className="mt-2 flex min-w-0 flex-wrap gap-1.5 text-xs text-gray-600">
+                        <Badge tone="stone">Intent: {event.detected_intent || "Unknown"}</Badge>
+                        <Badge tone="stone">Category: {event.category || "Unknown"}</Badge>
+                        <Badge tone="stone">Budget: {event.budget_type || "Unknown"}</Badge>
+                        <Badge tone="stone">City: {event.city || "Unknown"}</Badge>
+                        <Badge tone="neutral">{formatDashboardDate(event.created_at)}</Badge>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </ShowMoreList>
-            )}
-          </div>
-        </div>
+                  ))}
+                </ShowMoreList>
+              )}
+            </div>
+          </SectionCard>
 
-        <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-          <h2 className="text-lg font-semibold text-carysil-stone">Recent Chat Events</h2>
-          <div className="mt-4 min-w-0 space-y-3">
-            {data.recentEvents.length === 0 ? (
-              <EmptyState>No chat events yet.</EmptyState>
-            ) : (
-              <ShowMoreList initialCount={3}>
-                {data.recentEvents.map((event, index) => (
-                  <div
-                    key={`${event.session_id}-${event.created_at.toISOString()}-${index}`}
-                    className="min-w-0 max-w-full overflow-hidden rounded-xl bg-gray-50 p-3 sm:p-4"
-                  >
-                    <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-gray-600">
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">{event.role}</span>
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">{event.event_type}</span>
-                      <span className="max-w-full break-words rounded-full bg-white px-2 py-1">
-                        {formatDashboardDate(event.created_at)}
-                      </span>
+          <SectionCard className="overflow-hidden">
+            <h3 className="text-lg font-semibold text-carysil-stone">Recent Chat Events</h3>
+            <div className="mt-4 min-w-0 space-y-3">
+              {data.recentEvents.length === 0 ? (
+                <EmptyState>No chat events yet.</EmptyState>
+              ) : (
+                <ShowMoreList initialCount={3}>
+                  {data.recentEvents.map((event, index) => (
+                    <div
+                      key={`${event.session_id}-${event.created_at.toISOString()}-${index}`}
+                      className="min-w-0 max-w-full overflow-hidden rounded-lg bg-gray-50 p-3 sm:p-4"
+                    >
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs text-gray-600">
+                        <Badge tone="stone">{event.role}</Badge>
+                        <Badge tone="stone">{event.event_type}</Badge>
+                        <Badge tone="neutral">{formatDashboardDate(event.created_at)}</Badge>
+                      </div>
+                      <p className="mt-2 break-words text-sm text-carysil-stone">{compactText(event.message)}</p>
+                      {Object.keys(event.metadata || {}).length > 0 && (
+                        <pre className="mt-2 max-h-24 min-w-0 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md bg-white p-2 font-mono text-[11px] leading-snug text-gray-500 sm:text-xs">
+                          {JSON.stringify(event.metadata, null, 2)}
+                        </pre>
+                      )}
                     </div>
-                    <p className="mt-2 break-words text-sm text-carysil-stone">{compactText(event.message)}</p>
-                    {Object.keys(event.metadata || {}).length > 0 && (
-                      <pre className="mt-2 max-h-24 min-w-0 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-white p-2 font-mono text-[11px] leading-snug text-gray-500 sm:text-xs">
-                        {JSON.stringify(event.metadata, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                ))}
-              </ShowMoreList>
-            )}
-          </div>
+                  ))}
+                </ShowMoreList>
+              )}
+            </div>
+          </SectionCard>
         </div>
-      </section>
+      </Zone>
     </div>
   );
 }

@@ -1,4 +1,8 @@
+import { HEATMAP_RAMP } from "./chartTheme";
+
 export type HeatmapCell = { row: string; col: string; value: number };
+
+const ZERO_FILL = "#f3f4f6"; // gray-100 — faint neutral so grid structure reads at zero
 
 export function Heatmap({
   rows,
@@ -42,12 +46,21 @@ export function Heatmap({
               <td className="sticky left-0 z-10 bg-white p-2 font-medium text-carysil-stone">{row}</td>
               {cols.map((col) => {
                 const value = matrix.get(`${row}|${col}`) ?? 0;
-                const intensity = value === 0 ? 0 : 0.15 + (value / max) * 0.7;
+                const step =
+                  value === 0
+                    ? ZERO_FILL
+                    : HEATMAP_RAMP[Math.min(
+                        HEATMAP_RAMP.length - 1,
+                        Math.floor((value / max) * (HEATMAP_RAMP.length - 1))
+                      )];
+                const isDark = value > 0 && value / max > 0.55;
                 return (
                   <td key={col} className="p-1">
                     <div
-                      className="flex h-9 min-w-[2.5rem] items-center justify-center rounded-md text-[11px] font-medium text-carysil-stone"
-                      style={{ background: `rgba(220,38,38,${intensity.toFixed(2)})` }}
+                      className={`flex h-9 min-w-[2.5rem] items-center justify-center rounded-md text-[11px] font-medium ${
+                        isDark ? "text-white" : "text-carysil-stone"
+                      }`}
+                      style={{ background: step }}
                       title={`${row} / ${col}: ${value}`}
                     >
                       {value > 0 ? value : ""}

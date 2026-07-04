@@ -1,0 +1,52 @@
+[
+  {
+    "id": "carysil-espresso-maker",
+    "name": "Espresso Maker",
+    "category": "Appliance",
+    "size": "38x22x32 cm",
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "High",
+    "description": "Control Button Noise Level Whisper-Quiet Max Pressure 15 Bar Voltage 220 W Special Feature Safety Valve, Portable, Removable Tank, Water Filter, Pressure Meter Product Dimension 38x22x32 cm Product We",
+    "price": "Rs. 17,940.00",
+    "image_url": "https://cdn.shopify.com/s/files/1/0822/8890/2337/files/61HAJ-twGgL._SL1500.jpg?v=1745927763",
+    "url": "https://www.carysilshop.com/products/carysil-espresso-maker",
+    "collection": "espresso-maker",
+    "compare_at_price": "Rs. 29,900.00",
+    "technical_details": {
+      "Control": "Button",
+      "Noise Level": "Whisper-Quiet",
+      "Max Pressure": "15 Bar",
+      "Voltage": "220 W",
+      "Special Feature": "Safety Valve, Portable, Removable Tank, Water Filter, Pressure Meter",
+      "Product Dimension": "38x22x32 cm",
+      "Product Weight": "3.80 kg"
+    },
+    "colours_available": [],
+    "scraped_at": "2026-06-21T15:48:45.434Z"
+  },
+  {
+    "id": "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+    "name": "built-in Automatic Coffee Maker Machine with LCD display",
+    "category": "Appliance",
+    "size": "45x60x45 cm",
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "High",
+    "description": "Voltage 220 V Capacity 1.8 Litres Special Feature LED Touch Button, Milk Frother, Adjustable Brew Strength Product Dimension 45x60x45 cm Weight 23 kg",
+    "price": "Rs. 1,59,990.00",
+    "image_url": "https://cdn.shopify.com/s/files/1/0822/8890/2337/files/lcd-coffee-maker-1.jpg?v=1747047959",
+    "url": "https://www.carysilshop.com/products/carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+    "collection": "espresso-maker",
+    "compare_at_price": "Rs. 1,59,990.00",
+    "technical_details": {
+      "Voltage": "220 V",
+      "Capacity": "1.8 Litres",
+      "Special Feature": "LED Touch Button, Milk Frother, Adjustable Brew Strength",
+      "Product Dimension": "45x60x45 cm",
+      "Weight": "23 kg"
+    },
+    "colours_available": [],
+    "scraped_at": "2026-06-21T15:48:45.435Z"
+  }
+]

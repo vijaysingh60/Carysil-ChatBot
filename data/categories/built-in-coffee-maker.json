@@ -1,0 +1,46 @@
+[
+  {
+    "id": "built-in-coffee-maker-02",
+    "name": "Built-in Coffee-Maker 02",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "The Carysil Built-In Coffee Maker is designed for those who enjoy barista-quality coffee at home with just a touch. With an intuitive touchscreen interface and sleek black glass finish, it fits seamle",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/06/coffe-maker-2-0.webp",
+    "url": "https://carysil.com/product/built-in-coffee-maker-02/",
+    "collection": "built-in-coffee-maker",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:22:41.683Z"
+  },
+  {
+    "id": "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+    "name": "built-in Automatic Coffee Maker Machine with LCD display",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "The Carysil Built-In Coffee Maker combines convenience and performance in one sleek unit. Featuring a 19-bar pressure pump, LCD touchscreen, and adjustable brew settings, it delivers rich, café-style",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/06/cofe.webp",
+    "url": "https://carysil.com/product/carysil-built-in-automatic-coffee-maker-machine-with-lcd-display/",
+    "collection": "built-in-coffee-maker",
+    "technical_details": {
+      "Voltage\t– 220 V": "Voltage\t– 220 V",
+      "Capacity – 1.8 Litres": "Capacity – 1.8 Litres",
+      "Special Feature\t– LED Touch Button, Milk Frother, Adjustable Brew Strength": "Special Feature\t– LED Touch Button, Milk Frother, Adjustable Brew Strength",
+      "Product Dimension\t– 45D x 60W x 45H cm": "Product Dimension\t– 45D x 60W x 45H cm",
+      "Weight\t– 15 Kilograms": "Weight\t– 15 Kilograms"
+    },
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:22:42.661Z"
+  }
+]

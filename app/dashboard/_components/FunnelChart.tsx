@@ -10,23 +10,13 @@ import {
   CartesianGrid,
   Cell,
 } from "recharts";
+import { FUNNEL_RAMP } from "./chartTheme";
 
 export type FunnelStagePoint = {
   stage: string;
   sessions: number;
   dropOffPct?: number;
 };
-
-const STAGE_COLORS = [
-  "#9ca3af",
-  "#fcd34d",
-  "#fbbf24",
-  "#f97316",
-  "#ef4444",
-  "#dc2626",
-  "#b91c1c",
-  "#7f1d1d",
-];
 
 export function FunnelChart({ data }: { data: FunnelStagePoint[] }) {
   if (data.length === 0) {
@@ -55,7 +45,7 @@ export function FunnelChart({ data }: { data: FunnelStagePoint[] }) {
           />
           <Bar dataKey="sessions" radius={[0, 6, 6, 0]}>
             {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={STAGE_COLORS[index % STAGE_COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={FUNNEL_RAMP[index % FUNNEL_RAMP.length]} />
             ))}
           </Bar>
         </BarChart>

@@ -1,6 +1,6 @@
 import type { IntentResult, ProductCategory } from "@/lib/concierge";
-import { extractContactInfo, updateLead, calculateLeadScore } from "@/services/leadService";
-import { recomputeFunnelStage } from "@/services/funnelService";
+import { extractContactInfo, updateLead, calculateLeadScore, getLeadContactSnapshot } from "@/services/leadService";
+import { recomputeFunnelStage, markConverted } from "@/services/funnelService";
 import type {
   ContactInfo,
   DetectedSalesIntent,
@@ -47,7 +47,7 @@ const KITCHEN_SIZE_HINT = /\b(compact|small|medium|large|big|spacious)\s+kitchen
 const COMPACT_KITCHEN = /\b(compact|small)\s+kitchen\b/i;
 const LARGE_KITCHEN = /\b(large|big|spacious)\s+kitchen\b/i;
 
-const STAGE_RANK: Record<FollowupStage, number> = {
+export const STAGE_RANK: Record<FollowupStage, number> = {
   browsing: 0,
   preferences_collected: 1,
   recommendations_shown: 2,
@@ -548,13 +548,22 @@ export function recentlyAskedCityAndPhoneForPartner(history: ConversationMessage
   });
 }
 
+/** Dealer flow asks for city alone (no phone) — e.g. "Which city or state are you in?" */
+export function recentlyAskedForDealerCity(history: ConversationMessage[]): boolean {
+  return history.slice(-8).some((entry) => {
+    if (entry.role !== "assistant") return false;
+    return /which\s+city\s+or\s+state\s+are\s+you\s+in/i.test(entry.content);
+  });
+}
+
 /** Only persist PII from the user's message when we're in an explicit capture or confirmation window. */
 export function shouldPersistContactFieldsFromUserTurn(history: ConversationMessage[]): boolean {
   return (
     recentlyAskedForLeadDetails(history) ||
     recentlyAskedNameAndPhoneCapture(history) ||
     recentlyAssistantAcknowledgedLeadDetails(history) ||
-    recentlyAskedCityAndPhoneForPartner(history)
+    recentlyAskedCityAndPhoneForPartner(history) ||
+    recentlyAskedForDealerCity(history)
   );
 }
 
@@ -664,6 +673,8 @@ export type LeadUpdateInput = {
   intentConfidence?: number | null;
   buyingConfidence?: number | null;
   funnelStage?: string | null;
+  /** Dealer this lead was routed to (dealers.id), when a location match is found. */
+  assignedDealerId?: string | null;
 };
 
 /** Single entry point used everywhere we want to upsert a lead. */
@@ -684,6 +695,7 @@ export async function updateLeadRecord(input: LeadUpdateInput): Promise<void> {
     intentConfidence: input.intentConfidence ?? null,
     buyingConfidence: input.buyingConfidence ?? null,
     funnelStage: input.funnelStage ?? null,
+    assignedDealerId: input.assignedDealerId ?? null,
   };
   await updateLead(input.sessionId, update);
   // Monotonic funnel ratchet runs after every lead upsert. Best-effort —
@@ -691,4 +703,17 @@ export async function updateLeadRecord(input: LeadUpdateInput): Promise<void> {
   void recomputeFunnelStage(input.sessionId, `stage:${input.stage ?? "unknown"}`).catch((err) =>
     console.error("[funnel] auto-recompute failed", err)
   );
+  // Auto-convert: a lead-gen chatbot has no checkout, so "converted" means
+  // handed off to sales — full contact captured plus a dealer/quote ask.
+  // Checks the canonical stored contact (not just this turn's delta, which
+  // may be city-only when PII persistence isn't allowed this turn).
+  if (input.salesIntent.intent === "dealer_inquiry" || input.salesIntent.intent === "quotation_request") {
+    void getLeadContactSnapshot(input.sessionId)
+      .then((snapshot) => {
+        if (snapshot.phone || snapshot.email) {
+          return markConverted(input.sessionId, `auto:${input.salesIntent.intent}`);
+        }
+      })
+      .catch((err) => console.error("[funnel] auto-convert failed", err));
+  }
 }

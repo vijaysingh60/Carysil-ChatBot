@@ -64,7 +64,7 @@ export function InterestedProductsCell({ items, interestedProduct }: Props) {
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="mt-1.5 text-left text-xs font-semibold text-[var(--carysil-red)] hover:underline"
+          className="mt-1.5 text-left text-xs font-semibold text-carysil-red hover:underline"
         >
           Show less
         </button>
@@ -78,7 +78,7 @@ export function InterestedProductsCell({ items, interestedProduct }: Props) {
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        className="mt-1 text-left text-xs font-semibold text-[var(--carysil-red)] hover:underline"
+        className="mt-1 text-left text-xs font-semibold text-carysil-red hover:underline"
       >
         Read more
       </button>

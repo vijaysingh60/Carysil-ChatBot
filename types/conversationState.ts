@@ -11,6 +11,7 @@ export type ConversationStateSlot =
 
 export type ConversationState = {
   sessionId: string;
+  userName: string | null;
   category: string | null;
   productType: string | null;
   budget: string | null;
@@ -20,6 +21,7 @@ export type ConversationState = {
   installationType: string | null;
   city: string | null;
   urgency: string | null;
+  buyingStage: string | null;
   preferences: Record<string, unknown>;
   extractedEntities: Record<string, unknown>;
   conversationSummary: string | null;

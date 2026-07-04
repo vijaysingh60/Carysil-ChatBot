@@ -5,9 +5,11 @@
 :root {
   --carysil-stone: #1a1a1a;
   --carysil-sand: #fafafa;
-  --carysil-gold: #c5222f;
+  --carysil-gold: #ab7400;
   --carysil-charcoal: #2d2d2d;
   --carysil-red: #c5222f;
+  --carysil-success: #0ca30c;
+  --carysil-warning: #fab219;
 }
 
 body {

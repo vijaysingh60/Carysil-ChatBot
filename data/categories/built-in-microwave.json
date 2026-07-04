@@ -1,0 +1,185 @@
+[
+  {
+    "id": "rustic-classic-microwave",
+    "name": "Rustic Classic Microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Product Dimension: W x D x H : 595 x 400 x 388 mm",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2026/05/RO-MW-38-TC-GF.png",
+    "url": "https://carysil.com/product/rustic-classic-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:03.107Z"
+  },
+  {
+    "id": "matrix-combi-microwave",
+    "name": "Matrix Combi Microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Product Dimension: W x D x H : 595 × 568 × 454 mm",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2026/05/MT-MO-45-TF-BG-1.png",
+    "url": "https://carysil.com/product/matrix-combi-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:03.999Z"
+  },
+  {
+    "id": "eclipse-combi-microwave",
+    "name": "Eclipse Combi Microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Product Dimension: W x D x H : 560 × 550 × 450 mm",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2026/05/EC-OM-45-TC-MB-1.png",
+    "url": "https://carysil.com/product/eclipse-combi-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:04.873Z"
+  },
+  {
+    "id": "linear-microwave",
+    "name": "Linear Microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Product Dimension: W x D x H : 595 x 481 x 454 mm",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2026/05/LI-MW-44-KN-BG-1.png",
+    "url": "https://carysil.com/product/linear-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:05.860Z"
+  },
+  {
+    "id": "linear-25-microwave",
+    "name": "Linear 25 Microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Product Dimension: W x D x H : 594 x 388 x 382 mm",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2026/05/LI-MW-25-TC-BG.png",
+    "url": "https://carysil.com/product/linear-25-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:06.779Z"
+  },
+  {
+    "id": "linear-34-microwave",
+    "name": "Linear 34 Microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Product Dimension: W x D x H : 596 x 382 x 456 mm",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2026/05/LI-MW-38-TC-BG.png",
+    "url": "https://carysil.com/product/linear-34-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:07.679Z"
+  },
+  {
+    "id": "linear-combi-oven-microwave",
+    "name": "Linear Combi Oven Microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Product Dimension: W x D x H : 595 x 568 x 454 mm",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2026/05/LI-OM-45-KN-BG.png",
+    "url": "https://carysil.com/product/linear-combi-oven-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:08.562Z"
+  },
+  {
+    "id": "mwo-02-microwaves",
+    "name": "MWO – 02 Microwaves",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "A perfect blend of form and function, the Carysil MWO-02 offers a 28L capacity, grill function, and multiple auto-cook menus for versatile cooking. Its stainless steel cavity ensures even heat distrib",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/06/built-in-microwave-2-1.webp",
+    "url": "https://carysil.com/product/mwo-02-microwaves/",
+    "collection": "built-in-microwave",
+    "technical_details": {
+      "Accessories – Turn table Glass, Grill rack": "Accessories – Turn table Glass, Grill rack",
+      "Capacity – 25 L": "Capacity – 25 L",
+      "Dimensions – 594mm X 470mm X 388 mm": "Dimensions – 594mm X 470mm X 388 mm",
+      "Features – Microwave, Grill, Convection and defrost, Pull handle, with child lock, 10 Auto Cooking Menu, Quick start, Multi-stage cooking.": "Features – Microwave, Grill, Convection and defrost, Pull handle, with child lock, 10 Auto Cooking Menu, Quick start, Multi-stage cooking.",
+      "Finish – Black Glass + Inox Top, Large LED Display with stainless steel, digital touch panel, Rotatory knob control.": "Finish – Black Glass + Inox Top, Large LED Display with stainless steel, digital touch panel, Rotatory knob control."
+    },
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:09.610Z"
+  },
+  {
+    "id": "mwo-01-microwave",
+    "name": "MWO – 01 microwave",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "The Carysil MWO-01 is a versatile built-in microwave designed to handle everyday cooking with ease. With a 25L capacity and 8 auto cooking menus, it simplifies meal prep for busy kitchens. The sleek b",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/06/built-oven-2.webp",
+    "url": "https://carysil.com/product/mwo-01-microwave/",
+    "collection": "built-in-microwave",
+    "technical_details": {
+      "Accessories – Turn table Glass, Grill rack": "Accessories – Turn table Glass, Grill rack",
+      "Capacity – 25 L": "Capacity – 25 L",
+      "Dimensions – 594 mm X 470 mm X 388 mm": "Dimensions – 594 mm X 470 mm X 388 mm",
+      "Features – Microwave with Grill, Convection, and Defrost. Comes with a pull handle, child lock, 10 Auto Cooking Menus, Quick Start, and Multi-stage cooking.": "Features – Microwave with Grill, Convection, and Defrost. Comes with a pull handle, child lock, 10 Auto Cooking Menus, Quick Start, and Multi-stage cooking.",
+      "Finish – Sleek stainless steel body with a black glass finish and a large LED display. It also has a digital touch control panel for easy operation.": "Finish – Sleek stainless steel body with a black glass finish and a large LED display. It also has a digital touch control panel for easy operation."
+    },
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:23:10.588Z"
+  }
+]

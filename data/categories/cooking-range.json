@@ -1,0 +1,52 @@
+[
+  {
+    "id": "carysil-free-standing-cooking-range-fscr-04-62l-electric-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-black",
+    "name": "Free-Standing Cooking Range FSCR-04",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Designed for serious cooking, this freestanding range features a spacious oven with multiple cooking modes and 4 high power Italian SABAF burners. Its robust build, smooth knobs, and sleek finish brin",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/06/DSC_6281-3.webp",
+    "url": "https://carysil.com/product/carysil-free-standing-cooking-range-fscr-04-62l-electric-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-black/",
+    "collection": "cooking-range",
+    "technical_details": {
+      "Oven Operation": "Electric",
+      "Special Feature": "SABAF Burner",
+      "Capacity": "62 L",
+      "Product Dimension": "60 x 63.5 x 85.5 Centimeters",
+      "Weight": "46.3 Kilograms"
+    },
+    "colours_available": [
+      "silver"
+    ],
+    "scraped_at": "2026-06-21T15:23:53.435Z"
+  },
+  {
+    "id": "carysil-free-standing-cooking-range-fscr-01-62l-gas-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-silver",
+    "name": "Free-Standing Cooking Range FSCR-01",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "A sleek 4-burner freestanding cooking range that combines a high-performance gas cooktop with an integrated oven. With sturdy cast iron grills and precise flame control, it’s built for home chefs who",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/06/dsc1.webp",
+    "url": "https://carysil.com/product/carysil-free-standing-cooking-range-fscr-01-62l-gas-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-silver/",
+    "collection": "cooking-range",
+    "technical_details": {
+      "Oven Operation": "Gas",
+      "Special Feature": "SABAF Burner",
+      "Capacity": "62 L",
+      "Product Dimension": "60 x 63.5 x 85.5 Centimeters",
+      "Weight": "38 Kilograms"
+    },
+    "colours_available": [
+      "silver"
+    ],
+    "scraped_at": "2026-06-21T15:23:54.321Z"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "carysil-premium-cotton-apron-black",
+    "name": "Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery",
+    "category": "Accessory",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Low",
+    "description": "Sink accessory.",
+    "price": "Rs. 449.00",
+    "image_url": "https://cdn.shopify.com/s/files/1/0822/8890/2337/files/1_a3f7c464-6dd3-4700-a268-d4069434eefa.jpg?v=1756271506",
+    "url": "https://www.carysilshop.com/products/carysil-premium-cotton-apron-black",
+    "collection": "aprons",
+    "compare_at_price": "Rs. 499.00",
+    "technical_details": {
+      "Color": "Black"
+    },
+    "colours_available": [],
+    "scraped_at": "2026-06-21T15:48:47.376Z"
+  },
+  {
+    "id": "carysil-premium-cotton-apron-red",
+    "name": "Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery",
+    "category": "Accessory",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Low",
+    "description": "Sink accessory.",
+    "price": "Rs. 499.00",
+    "image_url": "https://cdn.shopify.com/s/files/1/0822/8890/2337/files/1_a7526106-22f4-4dfc-a114-9f38a9c1f27f.jpg?v=1756271767",
+    "url": "https://www.carysilshop.com/products/carysil-premium-cotton-apron-red",
+    "collection": "aprons",
+    "compare_at_price": "Rs. 499.00",
+    "technical_details": {
+      "Color": "Red"
+    },
+    "colours_available": [],
+    "scraped_at": "2026-06-21T15:48:47.377Z"
+  }
+]

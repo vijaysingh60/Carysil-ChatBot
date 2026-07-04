@@ -15,9 +15,14 @@ const config: Config = {
         carysil: {
           stone: "#1a1a1a",
           sand: "#fafafa",
-          gold: "#c5222f",
+          // Distinct amber accent (was a duplicate of `red`) — validated as a
+          // categorical pair with `red` via the dataviz skill's palette
+          // validator (CVD ΔE 18.6, well above the 12 target).
+          gold: "#ab7400",
           charcoal: "#2d2d2d",
           red: "#c5222f",
+          success: "#0ca30c",
+          warning: "#fab219",
         },
       },
     },

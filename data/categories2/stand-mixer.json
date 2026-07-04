@@ -1,0 +1,26 @@
+[
+  {
+    "id": "carysil-stand-mixer-black",
+    "name": "Stand Mixer",
+    "category": "Appliance",
+    "size": "18x28x28 cm",
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "High",
+    "description": "Voltage 220 V Capacity 4.5 L Special Feature DC Motor, Die-Cast Dough Hook & Whisk Product Dimension 18x28x28 cm Product Weight 3.50 kg",
+    "price": "Rs. 14,940.00",
+    "image_url": "https://cdn.shopify.com/s/files/1/0822/8890/2337/files/51daHNCuV-L._SL1500.jpg?v=1745929898",
+    "url": "https://www.carysilshop.com/products/carysil-stand-mixer-black",
+    "collection": "stand-mixer",
+    "compare_at_price": "Rs. 24,990.00",
+    "technical_details": {
+      "Voltage": "220 V",
+      "Capacity": "4.5 L",
+      "Special Feature": "DC Motor, Die-Cast Dough Hook & Whisk",
+      "Product Dimension": "18x28x28 cm",
+      "Product Weight": "3.50 kg"
+    },
+    "colours_available": [],
+    "scraped_at": "2026-06-21T15:48:46.301Z"
+  }
+]

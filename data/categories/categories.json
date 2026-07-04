@@ -1,0 +1,202 @@
+[
+  {
+    "slug": "quartz-sinks",
+    "name": "Quartz Sinks",
+    "parent_slug": "kitchen-sinks",
+    "url": "https://carysil.com/product-category/kitchen-sinks/quartz-sinks/",
+    "product_count": 88,
+    "scraped_at": "2026-06-21T15:16:47.513Z",
+    "products_scraped": 88,
+    "status": "done"
+  },
+  {
+    "slug": "stainless-steel-sinks",
+    "name": "Stainless Steel Sinks",
+    "parent_slug": "kitchen-sinks",
+    "url": "https://carysil.com/product-category/kitchen-sinks/stainless-steel-sinks/",
+    "product_count": 102,
+    "scraped_at": "2026-06-21T15:21:08.366Z",
+    "products_scraped": 102,
+    "status": "done"
+  },
+  {
+    "slug": "green-sinks",
+    "name": "Green Sinks",
+    "parent_slug": "kitchen-sinks",
+    "url": "https://carysil.com/product-category/kitchen-sinks/green-sinks/",
+    "product_count": 5,
+    "scraped_at": "2026-06-21T15:21:13.992Z",
+    "products_scraped": 5,
+    "status": "done"
+  },
+  {
+    "slug": "sink-accessories",
+    "name": "Sink Accessories",
+    "parent_slug": "kitchen-sinks",
+    "url": "https://carysil.com/product-category/kitchen-sinks/sink-accessories/",
+    "product_count": 27,
+    "scraped_at": "2026-06-21T15:21:40.868Z",
+    "products_scraped": 27,
+    "status": "done"
+  },
+  {
+    "slug": "faucets",
+    "name": "Faucets",
+    "parent_slug": "kitchen-faucets",
+    "url": "https://carysil.com/product-category/kitchen-faucets/faucets/",
+    "product_count": 54,
+    "scraped_at": "2026-06-21T15:22:32.455Z",
+    "products_scraped": 54,
+    "status": "done"
+  },
+  {
+    "slug": "food-waste-disposer",
+    "name": "Food Waste Disposer",
+    "parent_slug": "kitchen-faucets",
+    "url": "https://carysil.com/product-category/kitchen-faucets/food-waste-disposer/",
+    "product_count": 6,
+    "scraped_at": "2026-06-21T15:22:38.465Z",
+    "products_scraped": 6,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-barbeque",
+    "name": "Built-in Barbeque",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-barbeque/",
+    "product_count": 1,
+    "scraped_at": "2026-06-21T15:22:40.354Z",
+    "products_scraped": 1,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-coffee-maker",
+    "name": "Built-in Coffee Maker",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-coffee-maker/",
+    "product_count": 2,
+    "scraped_at": "2026-06-21T15:22:42.662Z",
+    "products_scraped": 2,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-dishwasher",
+    "name": "Built-in Dishwasher",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-dishwasher/",
+    "product_count": 4,
+    "scraped_at": "2026-06-21T15:22:46.774Z",
+    "products_scraped": 4,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-fryer",
+    "name": "Built-in Fryer",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-fryer/",
+    "product_count": 1,
+    "scraped_at": "2026-06-21T15:22:48.245Z",
+    "products_scraped": 1,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-hob",
+    "name": "Built-in Hob",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-hob/",
+    "product_count": 14,
+    "scraped_at": "2026-06-21T15:23:01.649Z",
+    "products_scraped": 14,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-microwave",
+    "name": "Built-in Microwave",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-microwave/",
+    "product_count": 9,
+    "scraped_at": "2026-06-21T15:23:10.589Z",
+    "products_scraped": 9,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-oven",
+    "name": "Built-in Oven",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-oven/",
+    "product_count": 12,
+    "scraped_at": "2026-06-21T15:23:23.851Z",
+    "products_scraped": 12,
+    "status": "done"
+  },
+  {
+    "slug": "built-in-refrigerator",
+    "name": "Built-in Refrigerator",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/built-in-refrigerator/",
+    "product_count": 4,
+    "scraped_at": "2026-06-21T15:23:27.872Z",
+    "products_scraped": 4,
+    "status": "done"
+  },
+  {
+    "slug": "chimney",
+    "name": "Chimney",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/chimney/",
+    "product_count": 26,
+    "scraped_at": "2026-06-21T15:23:52.019Z",
+    "products_scraped": 26,
+    "status": "done"
+  },
+  {
+    "slug": "cooking-range",
+    "name": "Cooking Range",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/cooking-range/",
+    "product_count": 2,
+    "scraped_at": "2026-06-21T15:23:54.322Z",
+    "products_scraped": 2,
+    "status": "done"
+  },
+  {
+    "slug": "cooktop",
+    "name": "Cooktop",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/cooktop/",
+    "product_count": 9,
+    "scraped_at": "2026-06-21T15:24:03.144Z",
+    "products_scraped": 9,
+    "status": "done"
+  },
+  {
+    "slug": "small-appliances",
+    "name": "Small Appliances",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/small-appliances/",
+    "product_count": 11,
+    "scraped_at": "2026-06-21T15:24:14.159Z",
+    "products_scraped": 11,
+    "status": "done"
+  },
+  {
+    "slug": "wine-chiller",
+    "name": "Wine Chiller",
+    "parent_slug": "kitchen-appliances",
+    "url": "https://carysil.com/product-category/kitchen-appliances/wine-chiller/",
+    "product_count": 13,
+    "scraped_at": "2026-06-21T15:24:31.050Z",
+    "products_scraped": 13,
+    "status": "done"
+  },
+  {
+    "slug": "la-carysil-coffee-machine-and-grinder",
+    "name": "La Carysil Coffee Machine &amp; Grinder",
+    "parent_slug": null,
+    "url": "https://carysil.com/product-category/la-carysil-coffee-machine-and-grinder/",
+    "product_count": 8,
+    "scraped_at": "2026-06-21T15:24:39.572Z",
+    "products_scraped": 8,
+    "status": "done"
+  }
+]

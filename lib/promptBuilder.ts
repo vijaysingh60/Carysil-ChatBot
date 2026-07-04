@@ -49,6 +49,7 @@ function formatMemory(memory: ConversationState | null): string {
     if (typeof value === "string" && value.trim().length === 0) return;
     lines.push(`- ${label}: ${value}`);
   };
+  push("user_name", memory.userName);
   push("category", memory.category);
   push("product_type", memory.productType);
   push("budget", memory.budget);
@@ -117,6 +118,10 @@ export type BuildConciergePromptInput = {
   userMessage: string;
   /** Optional category label for downstream awareness. */
   categoryLabel?: string | null;
+  /** True once the user's name has already been acknowledged this session — must not repeat it. */
+  nameAcknowledged?: boolean;
+  /** This-turn sentiment signal from the conversation analyzer, for tone matching only. */
+  sentiment?: "positive" | "neutral" | "negative" | null;
 };
 
 export function buildConciergePrompt(input: BuildConciergePromptInput): BuiltPrompt {
@@ -124,12 +129,16 @@ export function buildConciergePrompt(input: BuildConciergePromptInput): BuiltPro
   const summaryBlock = input.summary ? input.summary.trim() : "(no summary yet)";
   const recentBlock = formatRecentMessages(input.recentMessages);
   const productsBlock = formatProducts(input.retrievedProducts);
+  const nameAcknowledged = Boolean(input.nameAcknowledged);
+  const sentiment = input.sentiment ?? "neutral";
 
   const userContent =
     `Structured memory:\n${memoryBlock}\n\n` +
     `Conversation summary:\n${summaryBlock}\n\n` +
     `Recent conversation:\n${recentBlock}\n\n` +
     `Detected category: ${input.categoryLabel ?? "various"}\n\n` +
+    `name_acknowledged: ${nameAcknowledged}\n` +
+    `sentiment: ${sentiment}\n\n` +
     `Latest user message:\n${input.userMessage}\n\n` +
     `Relevant catalogue (recommend only from these ids):\n${productsBlock}\n\n` +
     `Respond with strict JSON only.`;
@@ -143,6 +152,8 @@ export function buildConciergePrompt(input: BuildConciergePromptInput): BuiltPro
     input.retrievedProducts.map((product) => product.id).join(","),
     input.userMessage,
     input.categoryLabel,
+    String(nameAcknowledged),
+    sentiment,
   ]);
 
   return {
@@ -160,17 +171,25 @@ export type BuildClarificationPromptInput = {
   userMessage: string;
   backendHint: string;
   suggestedChips: string[];
+  /** True once the user's name has already been acknowledged this session — must not repeat it. */
+  nameAcknowledged?: boolean;
+  /** This-turn sentiment signal from the conversation analyzer, for tone matching only. */
+  sentiment?: "positive" | "neutral" | "negative" | null;
 };
 
 export function buildClarificationPrompt(
   input: BuildClarificationPromptInput
 ): BuiltPrompt {
+  const nameAcknowledged = Boolean(input.nameAcknowledged);
+  const sentiment = input.sentiment ?? "neutral";
   const userContent =
     `Structured memory:\n${formatMemory(input.memory)}\n\n` +
     `Conversation summary:\n${input.summary?.trim() || "(no summary yet)"}\n\n` +
     `Recent conversation:\n${formatRecentMessages(input.recentMessages)}\n\n` +
     `Suggested backend chips (you may reuse subset, never invent contacts):\n${input.suggestedChips.join("\n") || "(none)"}\n\n` +
     `Backend hint: ${input.backendHint}\n\n` +
+    `name_acknowledged: ${nameAcknowledged}\n` +
+    `sentiment: ${sentiment}\n\n` +
     `Latest user message:\n${input.userMessage}\n\n` +
     `Respond with strict JSON only.`;
 
@@ -181,6 +200,8 @@ export function buildClarificationPrompt(
     input.userMessage,
     input.backendHint,
     input.suggestedChips.join(","),
+    String(nameAcknowledged),
+    sentiment,
   ]);
 
   return {

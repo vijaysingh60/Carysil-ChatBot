@@ -44,10 +44,19 @@ function ensureRecHandler(): void {
         JSON.stringify(item.metadata ?? {})
       );
     }
-    await pool.query(
-      `INSERT INTO recommendation_events (session_id, product_id, event_type, retrieval_rank, similarity, clicked, converted, metadata) VALUES ${values.join(", ")}`,
-      params
-    );
+    try {
+      await pool.query(
+        `INSERT INTO recommendation_events (session_id, product_id, event_type, retrieval_rank, similarity, clicked, converted, metadata) VALUES ${values.join(", ")}`,
+        params
+      );
+    } catch (err: unknown) {
+      // FK violation (23503): product_id not yet in `products` table — skip, don't crash.
+      if ((err as { code?: string }).code === "23503") {
+        console.warn("[rec-analytics] skipped insert — product_id FK violation (products table not seeded)");
+      } else {
+        throw err;
+      }
+    }
   });
   handlerRegistered = true;
 }
@@ -122,25 +131,29 @@ export function logConversion(
   });
 }
 
+/**
+ * Logs a 'refined' row per product the refinement was made against. product_id
+ * has a hard FK to `products`, so — unlike the other event types — this can't
+ * use a synthetic session-level id; it needs real product ids in play this
+ * turn (e.g. the newly retrieved set for the refined query).
+ */
 export function logRefinement(
   sessionId: string,
+  productIds: string[],
   query: string,
   previousQuery?: string | null
 ): void {
-  // Refinements are session-scoped, not product-scoped; we still use a synthetic
-  // product id of `_session` so analytics views can aggregate by session.
-  logEventAsync(
-    {
-      sessionId,
-      productId: "_session",
-      eventType: "refined",
-      metadata: {
-        query: query.slice(0, 200),
-        previousQuery: previousQuery ? previousQuery.slice(0, 200) : null,
-      },
-    },
-    `${sessionId}|_session|refined|${query.slice(0, 80)}`
-  );
+  const metadata = {
+    query: query.slice(0, 200),
+    previousQuery: previousQuery ? previousQuery.slice(0, 200) : null,
+  };
+  productIds.forEach((productId) => {
+    if (!productId) return;
+    logEventAsync(
+      { sessionId, productId, eventType: "refined", metadata },
+      `${sessionId}|${productId}|refined|${query.slice(0, 80)}`
+    );
+  });
 }
 
 /** Mark every retrieved-but-not-shown product as 'ignored' for a session. */

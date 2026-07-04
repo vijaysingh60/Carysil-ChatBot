@@ -111,6 +111,9 @@ CREATE INDEX IF NOT EXISTS lead_signals_session_created_idx
 CREATE INDEX IF NOT EXISTS lead_signals_type_idx
   ON lead_signals (signal_type);
 
+-- Idempotent backfill for lead_signals tables created before decayed_weight existed.
+ALTER TABLE lead_signals ADD COLUMN IF NOT EXISTS decayed_weight NUMERIC(6,2) NOT NULL DEFAULT 0;
+
 -- ----------------------------------------------------------------------------
 -- 5. Funnel intelligence
 -- ----------------------------------------------------------------------------

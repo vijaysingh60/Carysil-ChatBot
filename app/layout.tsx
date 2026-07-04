@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
-import { ChatWidget } from "@/components/ChatWidget";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
@@ -23,7 +22,6 @@ export default function RootLayout({
     <html lang="en" className={outfit.variable}>
       <body className="min-h-screen font-sans bg-white">
         <LayoutWrapper>{children}</LayoutWrapper>
-        <ChatWidget />
       </body>
     </html>
   );

@@ -1,29 +1,6 @@
 import { callAIJson } from "@/lib/ai";
+import { getPrompt } from "@/lib/prompts";
 import type { IntentResult } from "@/lib/concierge";
-
-const CLARIFICATION_PLANNER_SYSTEM = `You are the dialogue planner for AskCary, Carysil's premium kitchen and bath shopping assistant (carysil.com).
-
-You do NOT recommend specific product SKUs. You decide how to speak to the shopper and which quick-reply chips to show next.
-
-You will receive JSON from the app including:
-- mode: "pre_catalogue" (we need a bit more product detail before search) or "intent_clarification" (the user's query was ambiguous)
-- the latest user message and recent conversation
-- structured intent (categories, dealer vs product, filters)
-- sales_intent summary
-- backend_opening_hint: a safe template line from rules (you may rephrase warmly but keep the same intent)
-- backend_suggested_chips: topic anchors from rules — reuse their substance; you may shorten or rephrase for flow (do not invent unrelated categories)
-
-Rules:
-1. Write assistant_message as 1–3 short sentences: acknowledge what they said, stay on topic, sound human and premium — not a form.
-2. End with at most ONE clear question, OR invite them to use the chips — do not stack many questions in one message.
-3. NEVER ask for phone number, email, or address in this turn (lead capture is handled separately by the app).
-4. If user_volunteered_phone is true: thank them briefly for sharing their number — NEVER say you cannot store it, refuse it, or cite privacy as a reason to ignore it. The backend records contact details; keep guiding them on product preferences in the same warm tone.
-5. Do NOT use the word "dealer" or "dealers" in assistant_message or suggestion_chips unless dealer_intent is true in the provided intent (it confuses location routing). Prefer "product range", "sinks", "faucets", etc.
-6. suggestion_chips: 3–6 items, each under 72 characters, actionable, specific to Carysil categories (sinks, faucets, disposers, appliances, accessories, combos). Omit dealer/city chips unless dealer_intent is true.
-7. If dealer_intent is true, chips should help locate them (city, state, India-wide) — not product specs.
-8. Respond with JSON only, keys: assistant_message (string), suggestion_chips (array of strings).
-
-If unsure, stay close to backend_opening_hint and backend_suggested_chips.`;
 
 export type ClarificationPlannerInput = {
   mode: "pre_catalogue" | "intent_clarification";
@@ -37,6 +14,12 @@ export type ClarificationPlannerInput = {
   backendSuggestedChips: string[];
   /** True when message contains a plausible Indian mobile; model must not refuse to accept it. */
   userVolunteeredPhone?: boolean;
+  /** Known first name from conversation memory, if any. */
+  userName?: string | null;
+  /** True once the name has already been acknowledged this session — must not repeat it. */
+  nameAcknowledged?: boolean;
+  /** This-turn sentiment signal from the conversation analyzer, for tone matching only. */
+  sentiment?: "positive" | "neutral" | "negative" | null;
 };
 
 type PlanJson = {
@@ -113,10 +96,13 @@ export async function planClarificationWithGPT(
     sales_intent: input.salesIntent,
     backend_opening_hint: input.backendOpeningHint,
     backend_suggested_chips: input.backendSuggestedChips,
+    user_name: input.userName ?? null,
+    name_acknowledged: Boolean(input.nameAcknowledged),
+    sentiment: input.sentiment ?? "neutral",
   };
 
   const { data, aiUsed } = await callAIJson<PlanJson>(
-    CLARIFICATION_PLANNER_SYSTEM,
+    getPrompt("clarification_planner"),
     `Plan the next assistant turn from this context:\n${JSON.stringify(payload, null, 2)}`,
     fallback
   );
@@ -134,4 +120,73 @@ export async function planClarificationWithGPT(
     followups,
     gptUsed: aiUsed,
   };
+}
+
+export type SmallTalkPlannerInput = {
+  userMessage: string;
+  historyLines: string;
+  greeting: boolean;
+  farewell: boolean;
+  gratitude: boolean;
+  smallTalk: boolean;
+  userName?: string | null;
+  nameAcknowledged?: boolean;
+  sentiment?: "positive" | "neutral" | "negative" | null;
+};
+
+type SmallTalkJson = {
+  message: string;
+  suggestion_chips: string[];
+};
+
+const SMALL_TALK_CHIPS_FALLBACK = [
+  "I'm looking for a kitchen sink.",
+  "I need a faucet or tap.",
+  "Show me food waste disposers.",
+  "I'm interested in hobs or chimneys.",
+  "Find a dealer near me.",
+];
+
+/**
+ * Lightweight reply for pure small talk (greeting/farewell/gratitude/chit-chat
+ * with no product or dealer intent). Skips catalogue retrieval entirely —
+ * this is the cheap fast path, not the full recommendation pipeline.
+ */
+export async function planSmallTalkResponse(
+  input: SmallTalkPlannerInput
+): Promise<{ message: string; followups: string[]; gptUsed: boolean }> {
+  const nameAcknowledged = Boolean(input.nameAcknowledged);
+  const openingFallback = input.userName && !nameAcknowledged
+    ? `Nice to meet you, ${input.userName}! What can I help you find today?`
+    : input.farewell
+      ? "Take care! Come back anytime you need help with Carysil products."
+      : "Hi! What can I help you find today — sinks, faucets, disposers, or appliances?";
+
+  const fallback: SmallTalkJson = {
+    message: openingFallback,
+    suggestion_chips: input.farewell ? [] : SMALL_TALK_CHIPS_FALLBACK,
+  };
+
+  const payload = {
+    user_message: input.userMessage,
+    recent_conversation: input.historyLines || "(no prior turns)",
+    greeting: input.greeting,
+    farewell: input.farewell,
+    gratitude: input.gratitude,
+    small_talk: input.smallTalk,
+    user_name: input.userName ?? null,
+    name_acknowledged: nameAcknowledged,
+    sentiment: input.sentiment ?? "neutral",
+  };
+
+  const { data, aiUsed } = await callAIJson<SmallTalkJson>(
+    getPrompt("small_talk_response"),
+    `Reply to this small-talk turn:\n${JSON.stringify(payload, null, 2)}`,
+    fallback
+  );
+
+  const message = sanitizeMessage(data.message, openingFallback);
+  const followups = input.farewell ? [] : sanitizeChips(data.suggestion_chips, SMALL_TALK_CHIPS_FALLBACK);
+
+  return { message, followups, gptUsed: aiUsed };
 }

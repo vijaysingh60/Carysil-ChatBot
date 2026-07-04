@@ -1,0 +1,78 @@
+[
+  {
+    "id": "built-in-dishwasher-dw-04",
+    "name": "Built In Dishwasher DW – 04",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Engineered for built-in integration, the DW-04 brings modern minimalism to the kitchen. It offers a 12-place setting, 6 wash programs, and a digital control interface. With a sleek black glass finish,",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/07/dishwasher-4-2.webp",
+    "url": "https://carysil.com/product/built-in-dishwasher-dw-04/",
+    "collection": "built-in-dishwasher",
+    "technical_details": {},
+    "colours_available": [
+      "Black"
+    ],
+    "scraped_at": "2026-06-21T15:22:44.085Z"
+  },
+  {
+    "id": "free-standing-dishwasher-dw-03",
+    "name": "Free Standing Dishwasher DW – 03",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "The DW-03 is a straightforward, efficient dishwasher ideal for smaller kitchens or first-time buyers. With a 12-place setting, 6 wash programs, and button control interface, it offers essential functi",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/07/dishwasher-3-1.webp",
+    "url": "https://carysil.com/product/free-standing-dishwasher-dw-03/",
+    "collection": "built-in-dishwasher",
+    "technical_details": {},
+    "colours_available": [
+      "Metallico"
+    ],
+    "scraped_at": "2026-06-21T15:22:45.028Z"
+  },
+  {
+    "id": "built-in-dishwasher-dw-02",
+    "name": "Built In Dishwasher DW – 02",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "Compact yet capable, the DW-02 offers a 12-place setting with 6 wash programs in a metallic body finish. Its front knob control and durable build make it a user-friendly choice for mid-sized household",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/07/dishwasher-2-1.webp",
+    "url": "https://carysil.com/product/built-in-dishwasher-dw-02/",
+    "collection": "built-in-dishwasher",
+    "technical_details": {},
+    "colours_available": [
+      "Metallico"
+    ],
+    "scraped_at": "2026-06-21T15:22:45.887Z"
+  },
+  {
+    "id": "built-in-dishwasher-dw-01",
+    "name": "Built In Dishwasher DW – 01",
+    "category": "Appliance",
+    "size": null,
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "Medium",
+    "description": "With a 14-place setting and 7 wash programs, the DW-01 is designed for families and frequent hosts. It features intuitive touch control, a stainless steel finish, and a sleek digital display. Its A++",
+    "price": null,
+    "image_url": "https://carysil.com/wp-content/uploads/2025/07/diswasher-1.webp",
+    "url": "https://carysil.com/product/built-in-dishwasher-dw-01/",
+    "collection": "built-in-dishwasher",
+    "technical_details": {},
+    "colours_available": [
+      "Metallico"
+    ],
+    "scraped_at": "2026-06-21T15:22:46.773Z"
+  }
+]

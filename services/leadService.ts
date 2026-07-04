@@ -1,6 +1,6 @@
 import { sanitizeInferredCityValue } from "@/lib/inferredCitySanitize";
 import { getDbPool } from "@/lib/db";
-import type { ContactInfo, DetectedSalesIntent, LeadUpdate } from "@/types/lead";
+import type { ContactInfo, DetectedSalesIntent, FollowupStage, LeadUpdate } from "@/types/lead";
 import { ensureLeadSchema } from "@/services/sessionService";
 import { mergeIntoPerson } from "@/services/visitorService";
 
@@ -35,6 +35,11 @@ function looksLikeBarePlaceNameLine(message: string): boolean {
   if (/\b(sink|faucet|faucets|tap|taps|product|products|dealer|dealers|show|sure|need|want|please|quote|price|email|phone|call)\b/i.test(t)) {
     return false;
   }
+  // Same product/style/finish descriptor guard already proven correct for
+  // name extraction (e.g. rejects "Deck Mount") — a bare reply like
+  // "deck-mount" answering a style question is not a place name either.
+  if (PRODUCT_NAME_PHRASE.test(t)) return false;
+  if (t.split(/[\s-]+/).some((w) => PRODUCT_NAME_TOKENS.has(w.toLowerCase()))) return false;
   return /^[a-zA-Z][a-zA-Z\s.-]*$/.test(t);
 }
 
@@ -111,6 +116,64 @@ function couldBePersonNameChunk(chunk: string): boolean {
   return parts.every((p) => /^[A-Za-z][a-zA-Z.'-]*$/.test(p));
 }
 
+/** Generic connectors that can trail a greedy "i am X" capture (e.g. "vijay already and number is"). */
+const NAME_STOPWORDS = new Set([
+  "already",
+  "and",
+  "is",
+  "the",
+  "then",
+  "so",
+  "u",
+  "ur",
+  "your",
+  "my",
+  "was",
+  "that",
+  "this",
+  "it",
+  "ok",
+  "okay",
+  "please",
+  "there",
+  "here",
+  "now",
+  "just",
+  "also",
+  "too",
+]);
+
+/** Trims a raw "i am ___"-style capture down to just the plausible leading name tokens. */
+function trimNameCandidate(raw: string): string | null {
+  const words = raw.trim().split(/\s+/).filter(Boolean);
+  const kept: string[] = [];
+  for (const w of words) {
+    if (kept.length >= 3) break;
+    const lower = w.toLowerCase();
+    if (NAME_STOPWORDS.has(lower) || PRODUCT_NAME_TOKENS.has(lower)) break;
+    if (NAME_JUNK.test(w)) break;
+    kept.push(w);
+  }
+  return kept.length > 0 ? kept.join(" ") : null;
+}
+
+/** Single-message name extraction — used both for the current turn and for re-scanning history. */
+function extractNameFromSingleMessage(message: string): string | null {
+  const labeled = parseNameFromLabeledLine(message);
+  if (labeled) return labeled;
+
+  const nameMatch = message.match(
+    /\b(?:my\s+name\s+is|name\s+is|i\s+am|i\s*['’]?m)\s+([A-Za-z][a-zA-Z]+(?:\s+[A-Za-z][a-zA-Z]+){0,2})\b/i
+  );
+  if (nameMatch) {
+    const trimmed = trimNameCandidate(nameMatch[1]);
+    if (trimmed && couldBePersonNameChunk(trimmed)) {
+      return titleCase(trimmed);
+    }
+  }
+  return null;
+}
+
 function parseNameFromLabeledLine(message: string): string | null {
   const m = message.match(
     /\b(?:name|full\s*name)\s*[:=\-–—]\s*([A-Za-z][A-Za-z\s.'-]{1,48})(?=\s*(?:,|;|\n|\d|\s*$))/i
@@ -174,15 +237,10 @@ export function extractContactInfo(
   if (email) info.email = email;
   if (phone) info.phone = cleanPhone(phone);
 
-  const labeled = parseNameFromLabeledLine(message);
-  if (labeled) info.name = labeled;
+  const directName = extractNameFromSingleMessage(message);
+  if (directName) info.name = directName;
 
-  const nameMatch = message.match(
-    /\b(?:my\s+name\s+is|name\s+is|i\s+am|i'm)\s+([A-Za-z][a-zA-Z]+(?:\s+[A-Za-z][a-zA-Z]+){0,4})\b/
-  );
-  if (!info.name && nameMatch) {
-    info.name = titleCase(nameMatch[1]);
-  } else if (!info.name && (email || phone) && message.includes(",")) {
+  if (!info.name && (email || phone) && message.includes(",")) {
     const firstPart = message.split(",")[0]?.trim();
     if (firstPart && /^[a-zA-Z\s.'-]{2,40}$/.test(firstPart) && couldBePersonNameChunk(firstPart)) {
       info.name = titleCase(firstPart);
@@ -205,6 +263,20 @@ export function extractContactInfo(
     if (couldBePersonNameChunk(t)) {
       const w = t.split(/\s+/).filter(Boolean);
       if (w.length >= 2 && w.length <= 4) info.name = titleCase(t);
+    }
+  }
+
+  // Re-scan recent user turns for a name stated earlier but never persisted
+  // (e.g. "I am Vijay" on an early turn, before the capture window was open)
+  // — mirrors the city history re-scan below, which already does this.
+  if (!info.name) {
+    for (let index = history.length - 1; index >= 0; index -= 1) {
+      if (history[index].role !== "user") continue;
+      const historicalName = extractNameFromSingleMessage(history[index].content);
+      if (historicalName) {
+        info.name = historicalName;
+        break;
+      }
     }
   }
 
@@ -248,6 +320,27 @@ export async function getLeadPhoneEmail(
   return { phone: snap.phone ?? null, email: snap.email ?? null };
 }
 
+/**
+ * The stage persisted from the *prior* turn (COALESCE-preserved, never resets to null) —
+ * used to know whether recommendations were already shown in an earlier turn without
+ * scanning rendered assistant text. Callers must read this before this turn's own
+ * `updateLeadRecord` call so it reflects the prior turn, not the current one.
+ */
+export async function getLeadFollowupStage(sessionId: string): Promise<FollowupStage | null> {
+  if (!(await ensureLeadSchema())) return null;
+  try {
+    const pool = getDbPool();
+    const res = await pool.query<{ followup_stage: FollowupStage | null }>(
+      `SELECT followup_stage FROM leads WHERE session_id = $1 LIMIT 1`,
+      [sessionId]
+    );
+    return res.rows[0]?.followup_stage ?? null;
+  } catch (e) {
+    console.error("[lead] getLeadFollowupStage failed", e);
+    return null;
+  }
+}
+
 /** Current PII on the lead row — used to merge split name-then-phone replies and to gate writes. */
 export async function getLeadContactSnapshot(sessionId: string): Promise<ContactInfo> {
   if (!(await ensureLeadSchema())) {
@@ -277,7 +370,9 @@ export async function getLeadContactSnapshot(sessionId: string): Promise<Contact
 
 /**
  * Merge extracted contact with DB for a write. When allowNewPii is false, do not pass new
- * name/phone/email (avoids saving chip text like "Deck Mount" as a name during product browse).
+ * name/phone/email/city (avoids saving chip text like "Deck Mount" as a name or city during
+ * product browse). `allowNewPii` now also opens on a bare dealer-city question (see
+ * recentlyAskedForDealerCity in followupEngine.ts) so legitimate city answers still persist.
  */
 export function contactInfoForLeadDatabaseUpdate(
   extracted: ContactInfo,
@@ -285,11 +380,7 @@ export function contactInfoForLeadDatabaseUpdate(
   allowNewPii: boolean
 ): ContactInfo {
   if (!allowNewPii) {
-    const out: ContactInfo = {};
-    if (extracted.city !== undefined && extracted.city !== null && String(extracted.city).trim() !== "") {
-      out.city = extracted.city;
-    }
-    return out;
+    return {};
   }
   return {
     name: extracted.name ?? stored.name,
@@ -341,6 +432,7 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
     update.interestedProduct ||
     update.followupStage ||
     update.funnelStage ||
+    update.assignedDealerId ||
     typeof update.intentConfidence === "number" ||
     typeof update.buyingConfidence === "number" ||
     hasInterestedProducts;
@@ -354,12 +446,14 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
       INSERT INTO leads (
         session_id, name, phone, email, city, intent, interested_product,
         interested_products, followup_stage, lead_score, updated_at,
-        intent_confidence, buying_confidence, last_engagement_at, funnel_stage
+        intent_confidence, buying_confidence, last_engagement_at, funnel_stage,
+        assigned_dealer_id
       )
       VALUES (
         $1, $2, $3, $4, $5, $6, $7,
         $8::jsonb, COALESCE($9, 'browsing'), $10, NOW(),
-        $12, $13, NOW(), COALESCE($14, 'awareness')
+        $12, $13, NOW(), COALESCE($14, 'awareness'),
+        $15
       )
       ON CONFLICT (session_id) DO UPDATE SET
         name = COALESCE(EXCLUDED.name, leads.name),
@@ -385,7 +479,8 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
         intent_confidence = COALESCE(EXCLUDED.intent_confidence, leads.intent_confidence),
         buying_confidence = COALESCE(EXCLUDED.buying_confidence, leads.buying_confidence),
         last_engagement_at = NOW(),
-        funnel_stage = COALESCE(EXCLUDED.funnel_stage, leads.funnel_stage)
+        funnel_stage = COALESCE(EXCLUDED.funnel_stage, leads.funnel_stage),
+        assigned_dealer_id = COALESCE(EXCLUDED.assigned_dealer_id, leads.assigned_dealer_id)
       `,
       [
         sessionId,
@@ -402,6 +497,7 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
         typeof update.intentConfidence === "number" ? update.intentConfidence : null,
         typeof update.buyingConfidence === "number" ? update.buyingConfidence : null,
         update.funnelStage ?? null,
+        update.assignedDealerId ?? null,
       ]
     );
 

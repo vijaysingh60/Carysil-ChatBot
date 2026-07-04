@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import productsData from "@/data/products.json";
-import dealersData from "@/data/dealers.json";
 import { callAI } from "@/lib/ai";
-import { planClarificationWithGPT } from "@/lib/conciergeDialogPlanner";
-import { detectIntent, type IntentResult, type ProductCategory } from "@/lib/concierge";
+import { planClarificationWithGPT, planSmallTalkResponse } from "@/lib/conciergeDialogPlanner";
+import { detectIntent, CATEGORIES, type ProductCategory } from "@/lib/concierge";
 import {
   buildIntentClarificationFollowups,
   buildRecommendationFollowups,
@@ -21,305 +19,84 @@ import {
   recentlyAskedNameAndPhoneCapture,
   shouldPersistContactFieldsFromUserTurn,
   userMessageHasPhoneOrEmail,
+  buildContactCaptureFollowupChip,
+  STAGE_RANK,
   type FollowupResult,
   type RecommendationLite,
+  type ConversationMessage,
 } from "@/lib/followupEngine";
 import { detectSalesIntent } from "@/lib/intentDetection";
 import {
   clearDeferredProductQuery,
   getDeferredProductQuery,
-  setDeferredProductQuery,
 } from "@/services/deferredRecommendationService";
-import { searchSimilarProducts } from "@/lib/vectorSearch";
+import { hybridSearch } from "@/lib/hybridSearch";
+import { enhanceQuery } from "@/lib/queryEnhancement";
+import { verifyGroundedResponse } from "@/lib/grounding";
 import { storeAnalyticsEvent, storeAnalyticsEventAsync } from "@/services/analyticsService";
 import {
   calculateLeadScore,
   contactInfoForLeadDatabaseUpdate,
   getLeadContactSnapshot,
+  getLeadFollowupStage,
   mergeContactForRuntime,
 } from "@/services/leadService";
 import { createSession, storeChatEvent, storeChatEventAsync } from "@/services/sessionService";
 import { upsertVisitor } from "@/services/visitorService";
-import { ingestUserTurn } from "@/services/conversationStateService";
-import { buildConciergePrompt } from "@/lib/promptBuilder";
-import { flush as flushEventBus } from "@/lib/eventBus";
 import {
-  logRetrieval,
-  logShown,
-} from "@/services/recommendationAnalyticsService";
+  ingestUserTurn,
+  updateConversationState,
+  type ConversationTurnSignals,
+} from "@/services/conversationStateService";
+import { buildConciergePrompt } from "@/lib/promptBuilder";
+import { getPrompt } from "@/lib/prompts";
+import { flush as flushEventBus } from "@/lib/eventBus";
+import { logRetrieval, logShown, logRefinement, logIgnoredProducts } from "@/services/recommendationAnalyticsService";
 import { recordSignalsFromTurn } from "@/services/leadScoringService";
 import { generateNextQuestion } from "@/lib/followupPlanner";
 import type { FunnelStage } from "@/types/funnel";
 import type { RecommendationFollowupReason } from "@/types/recommendationEvent";
 import type { ChatEventType, ContactInfo } from "@/types/lead";
 import type { ConversationState } from "@/types/conversationState";
+import {
+  type Dealer,
+  allDealers,
+  filterDealersByLocation,
+  formatLocation,
+  dealerFollowupQuestion,
+  inferDealerLocationFromMessage,
+  knownDealerStates,
+  normalizeLoc,
+  pickBestDealer,
+} from "./handlers/dealer";
+import {
+  type Product,
+  dedupeProductsById,
+  filterByIntent,
+  getSearchCategories,
+  enrichProductIntent,
+} from "./handlers/product";
+import {
+  NOT_A_DEALER_CITY_REPLY,
+  toTitleCaseLocation,
+  inferProductContextFromText,
+  resolveFollowupIntent,
+} from "./handlers/intent";
+import {
+  userProvidedLeadSignals,
+  recentlyOfferedDealerConnect,
+  isAffirmativeLeadReply,
+  hasContactInfo,
+  hasValidIndianMobileInText,
+  looksLikeDeferredContactCaptureReply,
+} from "./handlers/contact";
+import {
+  sanitizeFollowupQuestion,
+  stripCatalogueEchoFromIntro,
+  stripTrailingFollowup,
+} from "./handlers/response";
 
-type Dealer = {
-  id: string;
-  name: string;
-  city: string;
-  state: string;
-  products_supported: string[];
-  contact_email: string;
-  phone: string;
-};
-
-const allDealers = dealersData as Dealer[];
-const knownDealerStates = new Set(allDealers.map((dealer) => normalizeLoc(dealer.state)));
-
-/** Normalize location string for fuzzy match (e.g. Bengaluru → bangalore, NCR → delhi/gurgaon/noida) */
-function normalizeLoc(s: string): string {
-  const lower = s.toLowerCase().trim();
-  const map: Record<string, string> = {
-    bangalore: "bangalore",
-    bengaluru: "bangalore",
-    bombay: "mumbai",
-    gurgaon: "gurgaon",
-    gurugram: "gurgaon",
-    ncr: "gurgaon",
-    "delhi ncr": "ncr",
-    delhi: "delhi",
-    "new delhi": "new delhi",
-    noida: "noida",
-    chennai: "chennai",
-    madras: "chennai",
-    kolkata: "kolkata",
-    calcutta: "kolkata",
-  };
-  return map[lower] ?? lower;
-}
-
-function locationAliases(s: string): string[] {
-  const normalized = normalizeLoc(s);
-  if (normalized === "ncr") {
-    return ["gurgaon", "noida", "new delhi", "delhi", "faridabad", "ghaziabad", "dwarka"];
-  }
-  return [normalized];
-}
-
-function locationMatches(candidate: string, search: string): boolean {
-  return locationAliases(search).some((alias) => {
-    const normalizedCandidate = normalizeLoc(candidate);
-    return normalizedCandidate.includes(alias) || alias.includes(normalizedCandidate);
-  });
-}
-
-function filterDealersByLocation(location: { city?: string; state?: string }): Dealer[] {
-  if (!location.city && !location.state) return [];
-  return allDealers.filter((d) => {
-    const matchCity = location.city ? locationMatches(d.city, location.city) : false;
-    const matchState = location.state ? locationMatches(d.state, location.state) : false;
-    if (location.city && location.state) return matchCity || matchState;
-    if (location.city) return matchCity;
-    return matchState;
-  });
-}
-
-function formatLocation(loc: { city?: string; state?: string }): string {
-  if (loc.city && loc.state) return `${loc.city}, ${loc.state}`;
-  return loc.city || loc.state || "";
-}
-
-/** One consultative follow-up after dealer cards (shown as a chip in the widget). */
-function dealerFollowupQuestion(input: {
-  dealerCount: number;
-  cityShort: string | null;
-  locationLabel: string;
-  allIndia?: boolean;
-}): string {
-  if (input.allIndia) {
-    return "Would you like help shortlisting sinks, faucets, or appliances before you contact a dealer?";
-  }
-  if (input.dealerCount > 0) {
-    const place = input.cityShort?.trim() || input.locationLabel.trim();
-    return place
-      ? `Would you like tailored Carysil product suggestions to discuss when you reach out in ${place}?`
-      : "Would you like tailored Carysil product suggestions to discuss when you reach out to a dealer?";
-  }
-  return "Would you like tailored Carysil product ideas from our catalogue for your kitchen or bathroom?";
-}
-
-function inferDealerLocationFromMessage(message: string): { city?: string; state?: string } | null {
-  if (NOT_A_DEALER_CITY_REPLY.test(message)) return null;
-  const nearMeMatch = message.match(/\bnear\s+me\s+(?:in|at|around)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+){0,2})\b/i);
-  const match = nearMeMatch || message.match(/\b(?:in|at|from|near)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+){0,2})\b/i);
-  if (!match) return null;
-  const location = toTitleCaseLocation(match[1]);
-  if (NOT_A_DEALER_CITY_REPLY.test(location)) return null;
-  const normalized = normalizeLoc(location);
-  if (knownDealerStates.has(normalized)) {
-    return { state: location };
-  }
-  return { city: location };
-}
-
-type Product = {
-  id: string;
-  name: string;
-  category: string;
-  size?: string | null;
-  style: string;
-  material: string;
-  price_range: string;
-  description: string;
-  price?: string;
-  image_url?: string;
-  url?: string;
-  collection?: string;
-};
-
-const allProducts = productsData as Product[];
-const productById = new Map<string, Product>();
-for (const product of allProducts) {
-  if (!productById.has(product.id)) {
-    productById.set(product.id, product);
-  }
-}
-
-function dedupeProductsById(products: Product[]): Product[] {
-  const seen = new Set<string>();
-  return products.filter((product) => {
-    if (seen.has(product.id)) return false;
-    seen.add(product.id);
-    return true;
-  });
-}
-
-function normalizeSizeToken(s: string): string {
-  return s.toLowerCase().replace(/\s+/g, "");
-}
-
-function extractCmFromText(s: string): string | null {
-  const m = s.match(/\b(\d{2,3})\s*cm\b/i);
-  return m ? `${m[1]}cm` : null;
-}
-
-/** Filter products by intent: categories and optional material/price_range/style */
-function filterByIntent(
-  intent: IntentResult
-): Product[] {
-  if (!intent.categories?.length) {
-    return allProducts;
-  }
-  const f = intent.filters;
-  const keywordList: string[] =
-    f?.keywords == null
-      ? []
-      : Array.isArray(f.keywords)
-        ? (f.keywords as unknown[]).map((k) => String(k))
-        : [String(f.keywords)];
-  // Map high-level intent categories to catalogue categories.
-  // In this project, many hobs are stored under category "Hob" (not "Appliance").
-  const rawCats = intent.categories as string[];
-  const expanded = new Set<string>();
-  const wantsChimney = keywordList.map((k) => k.toLowerCase()).includes("chimney");
-  for (const c of rawCats) {
-    expanded.add(c);
-    if (c === "Appliance") {
-      expanded.add("Hob");
-      if (wantsChimney) expanded.add("Combo");
-    }
-  }
-  let list = allProducts.filter((p) => expanded.has(p.category));
-  // Narrow appliances when the user mentions a subtype (hob/burner vs dishwasher vs chimney).
-  if (keywordList.length > 0 && intent.categories.length === 1 && intent.categories[0] === "Appliance") {
-    const hay = (p: Product) => `${p.name} ${p.description ?? ""}`.toLowerCase();
-    const kws = keywordList.map((k) => String(k).toLowerCase());
-    // If user asked for hob/burner, exclude cooking ranges unless explicitly requested.
-    const wantsHob = kws.includes("hob");
-    const wantsCookingRange = kws.includes("cooking range");
-    list = list.filter((p) => {
-      const h = hay(p);
-      const matchesAny = kws.some((k) => (k === "hob" ? /\bhob\b|\bburner\b|\bburners\b/.test(h) : h.includes(k)));
-      if (!matchesAny) return false;
-      if (wantsHob && !wantsCookingRange && /\b(cooking\s*range|freestanding\s*range|standing\s*range)\b/.test(h)) return false;
-      return true;
-    });
-  }
-  if (f?.material) {
-    const m = f.material.toLowerCase();
-    list = list.filter(
-      (p) => p.material?.toLowerCase().includes(m) || m.split(/\s+/).some((w) => p.material?.toLowerCase().includes(w))
-    );
-  }
-  if (f?.price_range) {
-    const pr = f.price_range.toLowerCase();
-    list = list.filter(
-      (p) => p.price_range?.toLowerCase() === pr || p.price_range?.toLowerCase().includes(pr)
-    );
-  }
-  if (f?.style) {
-    const s = f.style.toLowerCase();
-    list = list.filter(
-      (p) => p.style?.toLowerCase().includes(s) || s.split(/\s+/).some((w) => p.style?.toLowerCase().includes(w))
-    );
-  }
-  if (f?.size) {
-    const sz = normalizeSizeToken(String(f.size));
-    const listHasAnySize = list.some((p) => p.size != null && String(p.size).trim().length > 0);
-    const filtered = list.filter((p) => {
-      const direct = p.size != null ? normalizeSizeToken(String(p.size)) : "";
-      const derived = extractCmFromText(`${p.name} ${p.description ?? ""}`) || "";
-      const candidate = direct || derived;
-      if (!candidate) return false;
-      return candidate.includes(sz) || sz.includes(candidate);
-    });
-    // If size isn't populated on products yet, don't wipe out the whole category.
-    if (filtered.length > 0 || listHasAnySize) {
-      list = filtered;
-    }
-  }
-  return list.length > 0 ? list : allProducts.filter((p) => expanded.has(p.category));
-}
-
-const RECOMMENDATION_SYSTEM = `You are AskCary — the Carysil AI shopping concierge for Carysil (carysil.com), a premium kitchen and bathroom brand. You behave like a warm, attentive boutique consultant — never like a form or FAQ bot.
-
-You will receive:
-1. The user's message and recent conversation context
-2. The product category/categories they are interested in
-3. A RELEVANT catalogue (already filtered to match their intent). Recommend ONLY from this catalogue.
-
-**Recommendation rules:**
-1. If the catalogue is empty or you have no good matches, say so briefly and invite them to refine (different budget / material). Set recommended_ids to [].
-2. Otherwise, pick 3–4 products that best match the user's stated or implied needs (budget, material, style, size, use case). Use ONLY the "id" values from the catalogue (exact match). Aim for at least 3 recommendations when the catalogue has enough options.
-3. Prefer variety: different series, sizes, or colours where relevant.
-4. Reflect the user's constraints (colour, budget, style, bowl type, finish) only in a short intro — see rule 5.
-5. **"message" field (critical):** The app shows **clickable product cards** with names, prices, images, and links. Your "message" must be ONLY a **brief** warm intro (1–2 short sentences, plain text). **Do NOT** list product names, model lines, dimensions, prices, or features in "message". **Do NOT** use numbered lists (1. 2. 3.), bullets, markdown (**bold**), or "Rs." / rupee amounts in "message". Never echo the catalogue — the UI renders it.
-6. NEVER ask for phone, email, or address in this JSON. The app adds a separate optional line for name/mobile after your product question — keep "followup_question" strictly about products, style, or next shopping step.
-
-**Smart follow-up rules (very important):**
-After the recommendation message, ALWAYS continue the conversation naturally with ONE intelligent follow-up question in the "followup_question" field. It must:
-- be a SINGLE question (not multiple stacked together),
-- be CONTEXTUAL to what was just recommended (bowl type, finish, kitchen size, matching faucet, dealer help, quotation),
-- feel like a premium consultant — proactive, helpful, sales-aware, never pushy,
-- NOT ask for phone or email directly,
-- NOT repeat a question already visible in the recent conversation.
-
-Examples of good follow-up questions:
-- "Would you prefer a single-bowl or double-bowl configuration for your kitchen?"
-- "Would you like matching matte black faucet suggestions to pair with these sinks?"
-- "Are you looking at a 60 cm or 75 cm size to fit your countertop?"
-- "Would you like me to check Carysil dealer availability near your city?"
-- "Would you like a Carysil partner to share a quick price quotation for these?"
-
-**Response format – strict JSON only (no markdown, no backticks):**
-{
-  "asking_clarification": false,
-  "message": "One or two short sentences only — theme and reassurance. No product names, prices, or lists (cards show those).",
-  "recommended_ids": ["id1", "id2", "id3", "id4"],
-  "followup_question": "ONE contextual follow-up question to continue the conversation naturally."
-}
-
-- Use only ids that appear in the catalogue you were given.
-- followup_question must be one sentence ending with "?".`;
-
-/** Simple greeting – respond with a friendly Carysil welcome, no dealer push. */
 const GREETING_PATTERN = /^(hi|hello|hey|hi there|hello there|good\s+(morning|afternoon|evening)|howdy|greetings?|thanks|thank\s+you|ok|okay)\s*[\.\!]?\s*$/i;
-
-type ConversationMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
 
 function sanitizeHistory(rawHistory: unknown): ConversationMessage[] {
   if (!Array.isArray(rawHistory)) return [];
@@ -329,7 +106,7 @@ function sanitizeHistory(rawHistory: unknown): ConversationMessage[] {
       const role = (entry as { role?: unknown }).role;
       const content = String((entry as { content?: unknown }).content || "").trim();
       if ((role !== "user" && role !== "assistant") || !content) return null;
-      return { role, content };
+      return { role, content } as ConversationMessage;
     })
     .filter((entry): entry is ConversationMessage => entry !== null)
     .slice(-8);
@@ -342,359 +119,19 @@ function formatPlannerHistory(history: ConversationMessage[]): string {
     .join("\n");
 }
 
-function toTitleCaseLocation(text: string): string {
-  return text
-    .trim()
-    .replace(/\s+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function inferProductContextFromText(text: string): { category: ProductCategory; keywords?: string[] } | null {
-  const lower = text.toLowerCase();
-  if (/\b(faucet|faucets|tap|taps)\b/.test(lower)) return { category: "Faucet" };
-  if (/\b(sink|sinks)\b/.test(lower)) return { category: "Sink" };
-  if (/\b(disposer|disposers|food\s*waste|waste\s+disposers?|water\s+disposers?|garbage\s*disposal)\b/.test(lower))
-    return { category: "Disposer" };
-  if (/\b(accessory|accessories|waste\s*coupling)\b/.test(lower)) return { category: "Accessory" };
-  if (/\b(combo|combos)\b/.test(lower)) return { category: "Combo" };
-  if (/\b(hob|hobs|burner|burners)\b/.test(lower)) return { category: "Appliance", keywords: ["hob"] };
-  if (/\b(chimney|chimneys)\b/.test(lower)) return { category: "Appliance", keywords: ["chimney"] };
-  if (/\b(dishwasher|dishwashers)\b/.test(lower)) return { category: "Appliance", keywords: ["dishwasher"] };
-  if (/\b(appliance|appliances)\b/.test(lower)) return { category: "Appliance" };
-  if (/\b(full|modular|complete|entire|new)\s+kitchen\b|\bkitchen\s+(makeover|package|setup|project)\b/i.test(lower))
-    return { category: "Combo", keywords: ["kitchen"] };
-  return null;
-}
-
-function inferRecentProductContext(history: ConversationMessage[]): { category: ProductCategory; keywords?: string[] } | null {
-  for (let index = history.length - 1; index >= 0; index -= 1) {
-    if (history[index].role !== "user") continue;
-    const context = inferProductContextFromText(history[index].content);
-    if (context) return context;
-  }
-
-  for (let index = history.length - 1; index >= 0; index -= 1) {
-    const context = inferProductContextFromText(history[index].content);
-    if (context) return context;
-  }
-  return null;
-}
-
 /**
- * Only treat history as "waiting for a place name" when the **latest** assistant turn asked for it.
- * Scanning the last 6 messages caused product replies (e.g. chip "Full Range") to pair with an old
- * "which city?" line and get misrouted as dealer_intent with city "Full Range".
+ * Scans a small window (not just the single most-recent turn) because a
+ * question and a later, separate follow-up bubble (e.g. the soft contact-ask
+ * chip) both land as distinct assistant history entries — checking only the
+ * last one would miss a budget question asked one bubble earlier.
  */
-function hasRecentExplicitDealerLocationAsk(history: ConversationMessage[]): boolean {
-  for (let i = history.length - 1; i >= 0; i--) {
-    if (history[i].role !== "assistant") continue;
-    const c = history[i].content;
-    return (
-      /\b(which\s+city|what\s+city|city\s+or\s+state|your\s+city|your\s+state|pincode|postal\s+code)\b/i.test(
-        c
-      ) ||
-      /\b(where\s+are\s+you|where\s+do\s+you\s+live|location\s+in)\b/i.test(c) ||
-      /\bfind\s+(a\s+)?(carysil\s+)?dealer\b/i.test(c) ||
-      /\bwhere\s+to\s+buy\b/i.test(c) ||
-      /\bI'll\s+find\s+carysil\s+dealers\b/i.test(c)
-    );
-  }
-  return false;
-}
-
-function isOpenEndedFollowup(message: string): boolean {
-  return /^(any|anything|any\s+one|any\s+of\s+them|any\s+(?:size|type|style|budget|finish|colour|color)|no\s+(?:size|type|style|budget|finish|colour|color)\s+preference|no\s+preference|no\s+preferences|does(?:n'?t)?\s+matter|show\s+me|show\s+options|show\s+some|yes|yeah|yep|ok|okay|whatever|whatever\s+is\s+best|you\s+choose|recommend|recommend\s+some|best\s+one|explore\s+(?:the\s+)?full\s+range)(?:\s+(sink|sinks|faucet|faucets|tap|taps|hob|hobs|chimney|chimneys|dishwasher|dishwashers|disposer|disposers|combo|combos|accessory|accessories|appliance|appliances))?[\.\!]*$/i.test(
-    message.trim()
-  );
-}
-
-function inferFollowupProductFilters(
-  message: string,
-  context: { category: ProductCategory; keywords?: string[] }
-): Partial<IntentResult["filters"]> | null {
-  const lower = message.toLowerCase();
-  const keywords: string[] = [];
-
-  if (context.category === "Faucet") {
-    if (/\bpull[- ]?out\b|\bspray\b/.test(lower)) keywords.push("pull-out");
-    if (/\bstandard\s+spout\b|\bstandard\b|\bnormal\b|\bregular\b|\bspout\b|\bswivel\b/.test(lower)) keywords.push("spout");
-    if (/\bwall[- ]?mount\b|\bwall\b/.test(lower)) keywords.push("wall");
-    if (/\bdeck[- ]?mount\b|\bdeck\b/.test(lower)) keywords.push("deck");
-    if (/\bchrome\b/.test(lower)) keywords.push("chrome");
-    if (/\bblack\b|\bmatt\s+black\b|\bmatte\s+black\b/.test(lower)) keywords.push("black");
-    if (/\bpvd\b|\brose\s+gold\b|\bgold\b|\bgun\s+metal\b/.test(lower)) {
-      keywords.push(lower.match(/\brose\s+gold\b/) ? "rose gold" : lower.match(/\bgun\s+metal\b/) ? "gun metal" : "pvd");
-    }
-    if (/\b(budget|price|under|below|affordable|cheap|premium|luxury|medium|high)\b/.test(lower)) keywords.push("budget");
-  }
-
-  if (context.category === "Sink") {
-    if (/\bsingle\b/.test(lower)) keywords.push("single bowl");
-    if (/\bdouble\b/.test(lower)) keywords.push("double bowl");
-    if (/\bdrainboard\b/.test(lower)) keywords.push("drainboard");
-    if (/\bblack\b/.test(lower)) keywords.push("black");
-    if (/\bquartz\b/.test(lower)) keywords.push("quartz");
-    if (/\bstainless\s*steel\b|\bss\b/.test(lower)) keywords.push("stainless steel");
-    if (/\b(white|grey|gray|champagne|beige)\b/.test(lower)) keywords.push(lower.match(/\bchampagne\b/i) ? "champagne" : "finish");
-    if (/\b(budget|price|under|below|affordable|cheap|premium|luxury|medium|kitchen|bathroom)\b/.test(lower)) keywords.push("context");
-    if (/\b\d{2}\s*x\s*\d{2}\b|\b(45|50|55|60|70|75|80|85|90|100)\s*cm\b/i.test(lower)) keywords.push("size");
-  }
-
-  if (context.category === "Appliance") {
-    if (/\bhobs?\b|\bburners?\b/.test(lower)) keywords.push("hob");
-    if (/\bchimneys?\b/.test(lower)) keywords.push("chimney");
-    if (/\bdishwashers?\b/.test(lower)) keywords.push("dishwasher");
-    if (/\b(cooking\s*range|freestanding|standing\s*range|built[- ]?in)\b/.test(lower)) keywords.push("cooking range");
-    if (/\b(gas|induction)\b/.test(lower)) keywords.push(lower.match(/\binduction\b/) ? "induction" : "gas");
-    if (/\b(60|75|90)\s*cm\b/i.test(lower)) keywords.push("size");
-    if (/\b([345])\s*burner\b|three|four|five\s*burner/i.test(lower)) keywords.push("burners");
-
-    // Short replies after a hob size question ("larger or compact?") — keep Appliance+hob from history via resolveFollowupIntent.
-    const hobContinuation =
-      Boolean(context.keywords?.some((k) => /\b(hob|burner)\b/i.test(k))) ||
-      /\b(built[- ]?in\s+hob|hob\s+size)\b/i.test(lower);
-    if (hobContinuation) {
-      const showSizeRefinement =
-        /\b(show\s+(me\s+)?(the\s+)?)?(larger|bigger|big(\s+one)?|widest|the\s+biggest|max(?:imum)?|full[-\s]?width)\b/i.test(
-          lower
-        ) ||
-        /\b(show\s+(me\s+)?(the\s+)?)?(smaller|more\s+compact|compact(\s+(one|option|size))?|slim(line)?|the\s+smallest)\b/i.test(
-          lower
-        ) ||
-        /\b(medium|mid[-\s]?size|in\s+between)\b/i.test(lower) ||
-        /^(ok|okay|yes|yeah|yep|sure)\s*,?\s*(show\s+)?(the\s+)?(larger|bigger|smaller|compact)\b/i.test(lower.trim());
-      if (showSizeRefinement) {
-        keywords.push("size");
-        if (
-          /\b(larger|bigger|big(\s+one)?|widest|the\s+biggest|max(?:imum)?|full[-\s]?width|90\s*cm)\b/i.test(lower) ||
-          /^(ok|okay|yes|yeah|yep|sure)\s*,?\s*(show\s+)?(the\s+)?(larger|bigger)\b/i.test(lower.trim())
-        ) {
-          return {
-            keywords: Array.from(new Set([...(context.keywords || []), ...keywords, "hob"])),
-            size: "90 cm",
-          };
-        }
-        if (
-          /\b(smaller|more\s+compact|compact(\s+(one|option|size))?|slim(line)?|the\s+smallest|60\s*cm)\b/i.test(lower) ||
-          /^(ok|okay|yes|yeah|yep|sure)\s*,?\s*(show\s+)?(the\s+)?compact\b/i.test(lower.trim())
-        ) {
-          return {
-            keywords: Array.from(new Set([...(context.keywords || []), ...keywords, "hob"])),
-            size: "60 cm",
-          };
-        }
-        if (/\b(medium|mid[-\s]?size|in\s+between|75\s*cm)\b/i.test(lower)) {
-          return {
-            keywords: Array.from(new Set([...(context.keywords || []), ...keywords, "hob"])),
-            size: "75 cm",
-          };
-        }
-      }
-    }
-  }
-
-  if (context.category === "Disposer") {
-    const m = lower.match(/\b(\d+)\s*(people|persons|members)\b/);
-    if (m) keywords.push(`${m[1]}-person household`);
-    const fm = lower.match(/\bfamily\s+of\s*(\d+)\b/);
-    if (fm) keywords.push(`${fm[1]}-person household`);
-    if (/\b(quiet|silent|low\s*noise|noise)\b/.test(lower)) keywords.push("quiet");
-    if (/\b(power|hp|horsepower)\b/.test(lower)) keywords.push("power");
-    if (/\binstallation\b|\binstall\b|\bguidance\b/.test(lower)) keywords.push("installation");
-  }
-
-  return keywords.length > 0 ? { keywords: Array.from(new Set([...(context.keywords || []), ...keywords])) } : null;
-}
-
-function looksLikeNaturalLanguageShoppingRequest(message: string): boolean {
-  const t = message.trim().toLowerCase();
-  if (/\b[6-9]\d{9}\b/.test(t)) return true;
-  if (/\b(i|we)\s+(need|want|would\s+like|am\s+looking|are\s+looking|just\s+need|just\s+want)\b/.test(t)) return true;
-  if (/\b(looking\s+for|help\s+(with|me)|show\s+me|can\s+you|could\s+you)\b/.test(t)) return true;
-  if (/\b(full|new|complete|entire|modular|whole)\s+(kitchen|bathroom|bath)\b/.test(t)) return true;
-  if (/\b(kitchen|bathroom)\s+(package|project|reno|renovation|setup|design|for\s+my)\b/.test(t)) return true;
-  return false;
-}
-
-/** Product UI / chips (e.g. "Full Range") — not a place name; must not become dealer city. */
-const NOT_A_DEALER_CITY_REPLY =
-  /\b(explore\s+(?:the\s+)?full\s+range|full\s+range(?:\s+of)?|show\s+(?:me\s+)?(?:the\s+)?full\s+range)\b/i;
-
-function isLikelyLocationReply(message: string): boolean {
-  const trimmed = message.trim();
-  if (trimmed.length < 2 || trimmed.length > 60) return false;
-  if (NOT_A_DEALER_CITY_REPLY.test(trimmed)) return false;
-  if (looksLikeNaturalLanguageShoppingRequest(trimmed)) return false;
-  // Product browse (e.g. "show me hobs") must not be treated as a city after a generic "dealer" mention in the welcome.
-  if (inferProductContextFromText(trimmed)) return false;
-  if (/^\d{5,6}$/.test(trimmed)) return true;
-  if (/[?]/.test(trimmed)) return false;
-  if (
-    /\b(sinks?|faucets?|taps?|hobs?|chimneys?|dishwashers?|disposers?|combos?|accessories?|appliances?|burners?|dealers?|stores?|showrooms?)\b/i.test(
-      trimmed
-    )
-  ) {
-    return false;
-  }
-  if (/\bkitchen\b|\bbathroom\b|\bhome\b|\bhouse\b|\breno\b|\brenovation\b/i.test(trimmed)) return false;
-  return /^[a-zA-Z][a-zA-Z\s.-]*$/.test(trimmed);
-}
-
-function resolveFollowupIntent(message: string, history: ConversationMessage[]): IntentResult | null {
-  if (history.length === 0) return null;
-
-  if (hasRecentExplicitDealerLocationAsk(history) && isLikelyLocationReply(message)) {
-    if (inferProductContextFromText(message)) return null;
-    const normalizedMessage = normalizeLoc(message);
-    const isPincodeOnly = /^\d{5,6}$/.test(message.trim());
-    const location = knownDealerStates.has(normalizedMessage)
-      ? { state: toTitleCaseLocation(message) }
-      : { city: toTitleCaseLocation(message) };
-
-    return {
-      categories: [],
-      asking_clarification: isPincodeOnly,
-      clarification_message: isPincodeOnly
-        ? "I don't have pincode-level dealer data yet. Which city or state are you in?"
-        : null,
-      dealer_intent: true,
-      location: isPincodeOnly ? undefined : location,
-      filters: {},
-    };
-  }
-
-  const context = inferProductContextFromText(message) || inferRecentProductContext(history);
-  if (!context) return null;
-
-  const followupFilters = inferFollowupProductFilters(message, context);
-
-  /** User is answering disposer clarification (household size, noise, install) — keep Disposer and skip re-clarification. */
-  const disposerAnswer =
-    context.category === "Disposer" &&
-    /\b(\d+\s*(people|persons|members)|people\s+in|house\s*hold|household|family|noise|quiet|silent|power|hp|horsepower|installation|install|guidance|no\s+preference|any(\s+one)?\s+is\s+fine|doesn'?t\s+matter|not\s+sure|surprise\s+me|water\s+disposers?|(just|only)\b[\s\w]{0,24}\bdisposers?\b)\b/i.test(
-      message
-    );
-  if (disposerAnswer) {
-    return {
-      categories: ["Disposer"],
-      asking_clarification: false,
-      clarification_message: null,
-      filters: followupFilters || {},
-    };
-  }
-
-  if (!isOpenEndedFollowup(message) && !followupFilters) return null;
-
-
-  return {
-    categories: [context.category],
-    asking_clarification: false,
-    clarification_message: null,
-    filters: followupFilters || (context.keywords ? { keywords: context.keywords } : {}),
-  };
-}
-
-function getSearchCategories(message: string, intent: IntentResult): string[] | undefined {
-  if (!intent.categories?.length) return undefined;
-  if (intent.categories.includes("Combo") && /\bcombo|combos\b/i.test(message)) {
-    return ["Combo"];
-  }
-  return intent.categories;
-}
-
-function enrichProductIntent(message: string, intent: IntentResult): IntentResult {
-  if (intent.dealer_intent) return intent;
-  const inferred = inferProductContextFromText(message);
-  if (!inferred?.keywords?.length) return intent;
-
-  const existingKeywords = Array.isArray(intent.filters?.keywords)
-    ? intent.filters.keywords
-    : intent.filters?.keywords
-      ? [String(intent.filters.keywords)]
-      : [];
-
-  return {
-    ...intent,
-    categories: intent.categories.length > 0 ? intent.categories : [inferred.category],
-    filters: {
-      ...intent.filters,
-      keywords: Array.from(new Set([...existingKeywords, ...inferred.keywords])),
-    },
-  };
-}
-
-/** Phone/email in this message, or city clearly typed by the user (not product browse like "sure show me products"). */
-function userProvidedLeadSignals(message: string, contactFromMessageOnly: ContactInfo): boolean {
-  const trimmed = message.trim();
-  if (/\b[6-9]\d{9}\b/.test(trimmed) || /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(trimmed)) return true;
-  if (contactFromMessageOnly.phone || contactFromMessageOnly.email) return true;
-  if (contactFromMessageOnly.city && trimmed.length <= 80) {
-    const city = contactFromMessageOnly.city.toLowerCase();
-    if (new RegExp(`\\b${city.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(trimmed)) return true;
-  }
-  // Short place-only replies (e.g. "Hyderabad") after a lead prompt — exclude product / affirmation chatter.
-  if (isLikelyLocationReply(trimmed)) {
-    const lower = trimmed.toLowerCase();
-    if (
-      /\b(sure|yes|yeah|ok|please|show|want|need|give|tell|me|some|any|product|products|sink|faucets?|taps?|dealer|quote|price)\b/.test(
-        lower
-      )
-    ) {
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
-
-function recentlyOfferedDealerConnect(history: ConversationMessage[]): boolean {
-  return history
+function recentAssistantMentionedBudget(history: ConversationMessage[]): boolean {
+  const blob = history
     .slice(-4)
-    .some((message) =>
-      message.role === "assistant" &&
-      /\b(connect you|dealer near|carysil dealer|team can assist|would you like me to connect)\b/i.test(message.content)
-    );
-}
-
-function isAffirmativeLeadReply(message: string): boolean {
-  return /^(yes|yeah|yep|sure|ok|okay|please|connect me|call me|sounds good|do it)[\s.!]*$/i.test(message.trim());
-}
-
-function hasContactInfo(info: ContactInfo): boolean {
-  return Boolean(info.name || info.phone || info.email || info.city);
-}
-
-/** Indian mobile: optional +91, then 6–9 and 9 more digits. */
-function hasValidIndianMobileInText(text: string): boolean {
-  return /(?:\+91[\s-]?)?[6-9]\d{9}\b/.test(text);
-}
-
-/**
- * After we asked for name+mobile and recommendations are deferred, detect a reply that is
- * clearly trying to share contact (not a new product question) — even if the number is invalid.
- */
-function looksLikeDeferredContactCaptureReply(
-  message: string,
-  history: ConversationMessage[],
-  hasDeferred: boolean
-): boolean {
-  if (!hasDeferred || !recentlyAskedForLeadDetails(history)) return false;
-  const p = extractLeadData(message, undefined, history);
-  if (p.name || p.email || p.phone) return true;
-  const digits = message.replace(/\D/g, "");
-  if (digits.length >= 7) return true;
-  const t = message.trim();
-  if (t.length < 2 || t.length > 45) return false;
-  if (!/^[A-Za-z][a-zA-Z\s.'-]*$/.test(t)) return false;
-  if (t.split(/\s+/).filter(Boolean).length > 4) return false;
-  if (
-    /\b(sink|sinks|faucet|faucets|taps?|hob|hobs|chimney|disposer|kitchen|bathroom|show|want|need|budget|price|dealer|combo|appliance)\b/i.test(
-      t
-    )
-  ) {
-    return false;
-  }
-  return true;
+    .filter((entry) => entry.role === "assistant")
+    .map((entry) => entry.content)
+    .join("\n");
+  return /\bbudget\b|\bprice\b|\bcost\b/i.test(blob);
 }
 
 export async function POST(request: Request) {
@@ -724,6 +161,11 @@ export async function POST(request: Request) {
     }
 
     let leadSnapshotForWrite = await getLeadContactSnapshot(activeSessionId);
+    // Read before any `updateLeadRecord` call could fire this turn (the deferred-lead-capture
+    // branch further down writes a new stage but doesn't always return early), so this reflects
+    // the *prior* turn's persisted stage — used to gate the soft contact-ask on "recommendations
+    // were already shown before" without scanning rendered assistant text.
+    const priorFollowupStage = await getLeadFollowupStage(activeSessionId);
     const allowContactPersist = shouldPersistContactFieldsFromUserTurn(history);
 
     const deferredQuery = await getDeferredProductQuery(activeSessionId);
@@ -759,9 +201,25 @@ export async function POST(request: Request) {
     let memory: ConversationState | null = null;
     let memoryIntentConfidence: number | null = null;
     let memoryBuyingConfidence: number | null = null;
+    let turnSignals: ConversationTurnSignals = {
+      greeting: false,
+      farewell: false,
+      gratitude: false,
+      smallTalk: false,
+      frustration: false,
+      sentiment: null,
+      dealerRequest: false,
+      installationRequest: false,
+      warrantyRequest: false,
+      comparisonRequest: false,
+      recommendationRequest: false,
+      declinesRefinement: false,
+      confidence: null,
+    };
     try {
       const ingest = await ingestUserTurn(activeSessionId, userRawMessage, history);
       memory = ingest.memory;
+      turnSignals = ingest.extraction.turnSignals;
       if (typeof ingest.extraction.intentConfidence === "number") {
         memoryIntentConfidence = ingest.extraction.intentConfidence;
       }
@@ -771,6 +229,23 @@ export async function POST(request: Request) {
     } catch (memoryError) {
       console.error("[concierge] memory ingest failed", memoryError);
     }
+
+    // Name is durable memory, independent of full lead capture (phone/email) —
+    // acknowledged at most once per session by whichever response branch
+    // actually speaks to the user this turn.
+    const nameAcknowledged = Boolean(
+      memory?.preferences && (memory.preferences as Record<string, unknown>).name_acknowledged_at
+    );
+    const acknowledgeNameIfNeeded = async () => {
+      if (!memory?.userName || nameAcknowledged) return;
+      try {
+        await updateConversationState(activeSessionId, {
+          preferences: { name_acknowledged_at: new Date().toISOString() },
+        });
+      } catch (nameAckError) {
+        console.error("[concierge] failed to mark name acknowledged", nameAckError);
+      }
+    };
 
     if (
       deferredQuery &&
@@ -932,16 +407,47 @@ export async function POST(request: Request) {
       });
     }
 
-    // Greeting → friendly Carysil welcome and balanced help options (no dealer emphasis)
-    if (GREETING_PATTERN.test(userRawMessage)) {
-      const reply = "Hi! I'm AskCary, your Carysil assistant. I can help you with product recommendations (sinks, faucets, disposers, appliances), finding a dealer near you, or installation support. What would you like help with?";
+    // Pure small talk (greeting/farewell/gratitude/chit-chat with no product or
+    // dealer request) → warm LLM-generated reply, no catalogue search. The
+    // analyzer already commits to `smallTalk: false` whenever a message mixes
+    // a greeting with a real request (e.g. "hello, looking for a sink"); the
+    // cheap regex/keyword checks below are a belt-and-suspenders guard against
+    // routing an actionable message down this fast path.
+    const hasNoActionableIntent =
+      !turnSignals.dealerRequest &&
+      !turnSignals.installationRequest &&
+      !turnSignals.warrantyRequest &&
+      !turnSignals.comparisonRequest &&
+      !turnSignals.recommendationRequest;
+    const isPureSmallTalk =
+      (turnSignals.smallTalk ||
+        turnSignals.greeting ||
+        turnSignals.farewell ||
+        turnSignals.gratitude ||
+        GREETING_PATTERN.test(userRawMessage)) &&
+      hasNoActionableIntent &&
+      !inferProductContextFromText(userRawMessage);
+
+    if (isPureSmallTalk) {
+      const planned = await planSmallTalkResponse({
+        userMessage: userRawMessage,
+        historyLines: formatPlannerHistory(history),
+        greeting: turnSignals.greeting || GREETING_PATTERN.test(userRawMessage),
+        farewell: turnSignals.farewell,
+        gratitude: turnSignals.gratitude,
+        smallTalk: turnSignals.smallTalk,
+        userName: memory?.userName ?? null,
+        nameAcknowledged,
+        sentiment: turnSignals.sentiment,
+      });
+      void acknowledgeNameIfNeeded();
       const salesIntent = detectSalesIntent(userRawMessage, undefined, history);
       await storeChatEvent({
         sessionId: activeSessionId,
         role: "assistant",
-        message: reply,
+        message: planned.message,
         eventType: "assistant_message",
-        metadata: { greeting: true },
+        metadata: { smallTalk: true, dialogPlannerGpt: planned.gptUsed },
       });
       await storeAnalyticsEvent({
         sessionId: activeSessionId,
@@ -952,20 +458,13 @@ export async function POST(request: Request) {
         city: salesIntent.city,
       });
       return NextResponse.json({
-        result: reply,
+        result: planned.message,
         recommendations: [],
         dealers: [],
         reasoning: null,
         aiUsed: true,
         error: undefined,
-        followups: [
-          "I'm looking for a kitchen sink.",
-          "I need a faucet or tap.",
-          "Show me food waste disposers.",
-          "I'm interested in hobs or chimneys.",
-          "Find a dealer near me.",
-          "I need installation help.",
-        ],
+        followups: planned.followups,
         sessionId: activeSessionId,
       });
     }
@@ -982,14 +481,66 @@ export async function POST(request: Request) {
     const resolvedAsContextReply = Boolean(historyIntent) && (!messageHasProductContext || isOpenPreferenceReply);
     const salesIntent = detectSalesIntent(completingDeferred ? pipelineMessage : userRawMessage, intent, history);
     const contactInfo = extractLeadData(userRawMessage, salesIntent, history);
+    // The regex-based name extractor in leadService doesn't cover every phrasing
+    // (e.g. "myself Vijay"). Prefer the analyzer's memory.userName when the
+    // regex chain found nothing this turn — same PII-persist gating still
+    // applies downstream via contactInfoForLeadDatabaseUpdate/allowContactPersist.
+    if (!contactInfo.name && memory?.userName) {
+      contactInfo.name = memory.userName;
+    }
     const interestedProduct = intent.categories?.length ? intent.categories.join(", ") : salesIntent.category;
     if (intent.dealer_intent && (!intent.location || (!intent.location.city && !intent.location.state))) {
-      const inferredLocation = inferDealerLocationFromMessage(userRawMessage);
+      const inferredLocation = inferDealerLocationFromMessage(userRawMessage, NOT_A_DEALER_CITY_REPLY);
       if (inferredLocation) {
         intent.location = inferredLocation;
         intent.asking_clarification = false;
         intent.clarification_message = null;
       }
+    }
+
+    // Clarification loop guard: `detectIntent`/`shouldAskBeforeProductRecommendations`
+    // are pure per-message checks with no memory of prior turns, so a vague-but-declining
+    // reply ("no preference", "just sinks") gets re-asked the same question forever.
+    // Reuse the analyzer's `declinesRefinement` signal plus a small per-category attempt
+    // counter (persisted in the existing `preferences` JSONB — no new column) to force at
+    // most one clarification attempt per category, then always fall through to recommendations.
+    //
+    // A decline reply that drops the product word entirely (e.g. "anything is fine" after
+    // "I want a faucet") loses `intent.categories` too, since detectIntent/resolveFollowupIntent
+    // only look at the current message. Recover the category from the durable `memory.category`
+    // slot (populated by the same analyzer, preserved across turns via COALESCE) in that case.
+    //
+    // Same context-loss shape shows up for a genuine (non-declining) answer that's just a bare
+    // number replying to a budget question ("5000") — recover the category the same way, gated
+    // on the assistant having recently asked about budget/price/cost so an unprompted phone
+    // number or pincode doesn't get misread as a budget answer.
+    const isBareNumericBudgetReply =
+      /^\s*(?:rs\.?|₹)?\s*[\d,]+\s*$/i.test(userRawMessage) && recentAssistantMentionedBudget(history);
+    if (
+      !intent.dealer_intent &&
+      intent.categories.length === 0 &&
+      (turnSignals.declinesRefinement || isBareNumericBudgetReply) &&
+      memory?.category &&
+      (CATEGORIES as readonly string[]).includes(memory.category)
+    ) {
+      intent.categories = [memory.category as ProductCategory];
+    }
+    const clarificationMemo =
+      (memory?.preferences as { clarification?: { category?: string; attempts?: number } } | undefined)
+        ?.clarification ?? null;
+    const clarificationCategory = intent.categories?.[0] ?? null;
+    const clarificationAttemptsExhausted = Boolean(
+      clarificationCategory &&
+        clarificationMemo?.category === clarificationCategory &&
+        (clarificationMemo.attempts ?? 0) >= 1
+    );
+    const suppressClarification =
+      !intent.dealer_intent &&
+      intent.categories.length === 1 &&
+      (turnSignals.declinesRefinement || clarificationAttemptsExhausted || isBareNumericBudgetReply);
+    if (suppressClarification) {
+      intent.asking_clarification = false;
+      intent.clarification_message = null;
     }
 
     await storeAnalyticsEvent({
@@ -1002,7 +553,7 @@ export async function POST(request: Request) {
     });
 
     const broadProductFollowups = buildRecommendationFollowups(pipelineMessage, intent);
-    if (shouldAskBeforeProductRecommendations(pipelineMessage, intent, resolvedAsContextReply, history)) {
+    if (!suppressClarification && shouldAskBeforeProductRecommendations(pipelineMessage, intent, resolvedAsContextReply, history)) {
       const planned = await planClarificationWithGPT({
         mode: "pre_catalogue",
         userMessage: userRawMessage,
@@ -1021,8 +572,22 @@ export async function POST(request: Request) {
         backendOpeningHint: getProductClarificationMessage(intent),
         backendSuggestedChips: broadProductFollowups,
         userVolunteeredPhone: hasValidIndianMobileInText(userRawMessage),
+        userName: memory?.userName ?? null,
+        nameAcknowledged,
+        sentiment: turnSignals.sentiment,
       });
       const reply = planned.message;
+      void acknowledgeNameIfNeeded();
+      if (clarificationCategory) {
+        void updateConversationState(activeSessionId, {
+          preferences: {
+            clarification: {
+              category: clarificationCategory,
+              attempts: (clarificationMemo?.attempts ?? 0) + 1,
+            },
+          },
+        });
+      }
       await updateLeadRecord({
         sessionId: activeSessionId,
         contactInfo: contactInfoForLeadDatabaseUpdate(contactInfo, leadSnapshotForWrite, allowContactPersist),
@@ -1189,7 +754,21 @@ export async function POST(request: Request) {
         backendOpeningHint: intent.clarification_message,
         backendSuggestedChips: backendChips,
         userVolunteeredPhone: hasValidIndianMobileInText(userRawMessage),
+        userName: memory?.userName ?? null,
+        nameAcknowledged,
+        sentiment: turnSignals.sentiment,
       });
+      void acknowledgeNameIfNeeded();
+      if (clarificationCategory) {
+        void updateConversationState(activeSessionId, {
+          preferences: {
+            clarification: {
+              category: clarificationCategory,
+              attempts: (clarificationMemo?.attempts ?? 0) + 1,
+            },
+          },
+        });
+      }
 
       await updateLeadRecord({
         sessionId: activeSessionId,
@@ -1224,6 +803,7 @@ export async function POST(request: Request) {
     // Step 2: Dealer intent — filter dealers by location and return
     if (intent.dealer_intent && intent.location && (intent.location.city || intent.location.state)) {
       const dealers = filterDealersByLocation(intent.location);
+      const bestDealer = pickBestDealer(dealers, intent.categories?.[0] ?? salesIntent.category ?? null);
       const locationLabel = formatLocation(intent.location);
       const resultMessage =
         dealers.length > 0
@@ -1248,6 +828,7 @@ export async function POST(request: Request) {
         interestedProductLabel: interestedProduct ?? null,
         dealersShown: dealers.length,
         stage: "dealer_offered",
+        assignedDealerId: bestDealer?.id ?? null,
       });
       await storeChatEvent({
         sessionId: activeSessionId,
@@ -1268,6 +849,20 @@ export async function POST(request: Request) {
         eventType: "dealer_results_shown",
         metadata: { dealerCount: dealers.length, location: intent.location },
       });
+      if (bestDealer) {
+        await storeChatEvent({
+          sessionId: activeSessionId,
+          role: "system",
+          message: "Lead routed to dealer",
+          eventType: "dealer_assigned",
+          metadata: {
+            dealerId: bestDealer.id,
+            dealerName: bestDealer.name,
+            city: bestDealer.city,
+            state: bestDealer.state,
+          },
+        });
+      }
       await storeChatEvent({
         sessionId: activeSessionId,
         role: "system",
@@ -1299,6 +894,7 @@ export async function POST(request: Request) {
         result: resultMessage,
         recommendations: [],
         dealers: dealers.slice(0, 10),
+        assignedDealer: bestDealer ? { id: bestDealer.id, name: bestDealer.name } : null,
         reasoning: null,
         aiUsed: true,
         error: undefined,
@@ -1308,93 +904,41 @@ export async function POST(request: Request) {
       });
     }
 
+    // Recommendations are never gated on contact info — the assistant helps
+    // first and only offers to capture a phone/email afterwards (see the
+    // follow-up decision below, which reuses shouldAskLeadQuestion /
+    // buildContactCaptureFollowupChip). `hasFullContact` is still tracked for
+    // scoring and for the follow-up engine's own contact-aware branches.
     leadSnapshotForWrite = await getLeadContactSnapshot(activeSessionId);
     const contactMergedForCatalog = mergeContactForRuntime(
       contactInfo,
       leadSnapshotForWrite,
       allowContactPersist
     );
-    const hasCatalogContact = Boolean(contactMergedForCatalog.phone || contactMergedForCatalog.email);
-    const isProductRecPath = !intent.dealer_intent && intent.categories.length > 0;
-
-    if (!completingDeferred && isProductRecPath && !hasCatalogContact) {
-      await setDeferredProductQuery(activeSessionId, pipelineMessage);
-      const intro =
-        "Before I share personalised picks from our catalogue, could you share your name and mobile number? Our team can follow up with quotes or dealer options if you need them.";
-      await updateLeadRecord({
-        sessionId: activeSessionId,
-        contactInfo: contactInfoForLeadDatabaseUpdate(contactInfo, leadSnapshotForWrite, allowContactPersist),
-        salesIntent,
-        interestedProductLabel: interestedProduct ?? null,
-        stage: "lead_requested",
-        extraScore: 2,
-      });
-      await storeChatEvent({
-        sessionId: activeSessionId,
-        role: "assistant",
-        message: intro,
-        eventType: "assistant_message",
-        metadata: { followupStage: "lead_requested", contactBeforeRecommendations: true },
-      });
-      await storeChatEvent({
-        sessionId: activeSessionId,
-        role: "system",
-        message: "Contact requested before recommendations",
-        eventType: "lead_prompted",
-        metadata: { context: "contact_before_recommendations" },
-      });
-      await storeAnalyticsEvent({
-        sessionId: activeSessionId,
-        query: userRawMessage,
-        detectedIntent: salesIntent.intent,
-        category: salesIntent.category,
-        budgetType: salesIntent.budget_type,
-        city: contactInfo.city || salesIntent.city,
-        eventType: "lead_prompted",
-        metadata: { context: "contact_before_recommendations" },
-      });
-      return NextResponse.json({
-        result: intro,
-        recommendations: [],
-        dealers: [],
-        reasoning: null,
-        aiUsed: true,
-        error: undefined,
-        followups: [],
-        assistantMessages: [
-          {
-            result: intro,
-            recommendations: [],
-            dealers: [],
-            aiUsed: true,
-          },
-        ],
-        sessionId: activeSessionId,
-      });
-    }
-
+    const hasFullContact = Boolean(contactMergedForCatalog.phone || contactMergedForCatalog.email);
     const contactForEngine: ContactInfo = contactMergedForCatalog;
 
-    // Step 3: semantic + hybrid retrieval for recommendations.
-    // We only send top relevant products to AI (never full catalogue).
+    // Step 3: hybrid retrieval (vector + FTS) for recommendations.
+    // Query is enhanced with conversation state context before retrieval.
     const recommendationIntent = enrichProductIntent(pipelineMessage, intent);
+    const enhancedQuery = enhanceQuery(pipelineMessage, memory);
     let relevantProducts: Product[] = [];
+    let retrievedMatches: import("@/lib/vectorSearch").SimilarProduct[] = [];
     const skipVectorEmbedding =
       process.env.SKIP_VECTOR_EMBEDDING === "true" || process.env.SKIP_VECTOR_EMBEDDING === "1";
     try {
       if (skipVectorEmbedding) {
         relevantProducts = [];
       } else {
-        const vectorMatches = await searchSimilarProducts(pipelineMessage, {
+        const hybridMatches = await hybridSearch(enhancedQuery, {
           limit: 5,
-          filters: {
-            categories: getSearchCategories(pipelineMessage, recommendationIntent),
-            material: recommendationIntent.filters?.material,
-            style: recommendationIntent.filters?.style,
-            keywords: recommendationIntent.filters?.keywords,
-          },
+          categories: getSearchCategories(pipelineMessage, recommendationIntent),
+          material: recommendationIntent.filters?.material,
+          style: recommendationIntent.filters?.style,
+          keywords: recommendationIntent.filters?.keywords,
         });
-        relevantProducts = vectorMatches.map((row) => ({
+        retrievedMatches = hybridMatches;
+        relevantProducts = hybridMatches.map((row) => ({
           id: row.id,
           name: row.name,
           category: row.category,
@@ -1407,23 +951,20 @@ export async function POST(request: Request) {
           image_url: row.image_url ?? undefined,
           url: row.url ?? undefined,
         }));
-        // Recommendation analytics: log every product the retriever returned
-        // even if the model later chooses fewer of them. Powers ignored /
-        // failed-recommendation views and similarity-at-click metrics.
-        if (vectorMatches.length > 0) {
+        if (hybridMatches.length > 0) {
           logRetrieval(
             activeSessionId,
-            vectorMatches.map((row) => ({ id: row.id, similarity: row.similarity })),
+            hybridMatches.map((row) => ({ id: row.id, similarity: row.similarity })),
             pipelineMessage
           );
         }
       }
     } catch (vectorError) {
-      console.error("[concierge] vector search failed, using intent filter fallback", vectorError);
+      console.error("[concierge] hybrid search failed, using intent filter fallback", vectorError);
       relevantProducts = [];
     }
     if (relevantProducts.length === 0) {
-      relevantProducts = filterByIntent(recommendationIntent).slice(0, 8);
+      relevantProducts = (await filterByIntent(recommendationIntent)).slice(0, 8);
     }
     relevantProducts = dedupeProductsById(relevantProducts);
 
@@ -1448,7 +989,7 @@ export async function POST(request: Request) {
     // concise products only. The full catalogue and raw history never reach
     // the model — drops token usage and keeps the LRU cache effective.
     const conciergePrompt = buildConciergePrompt({
-      systemPrompt: RECOMMENDATION_SYSTEM,
+      systemPrompt: getPrompt("product_recommendation"),
       memory,
       summary: memory?.conversationSummary ?? null,
       recentMessages: history,
@@ -1463,7 +1004,10 @@ export async function POST(request: Request) {
       })),
       userMessage: pipelineMessage,
       categoryLabel,
+      nameAcknowledged,
+      sentiment: turnSignals.sentiment,
     });
+    void acknowledgeNameIfNeeded();
 
     const { text, aiUsed, error } = await callAI(
       conciergePrompt.systemPrompt,
@@ -1502,14 +1046,26 @@ export async function POST(request: Request) {
     } else {
       result = parsed;
     }
+
+    // Grounding check: verify the AI message doesn't mention prices not in retrieved products.
+    if (result.message && retrievedMatches.length > 0) {
+      const grounding = verifyGroundedResponse(result.message, { products: retrievedMatches });
+      if (!grounding.valid) {
+        console.warn("[concierge] grounding issues:", grounding.issues);
+        result = { ...result, message: grounding.safeResponse };
+      }
+    }
+
     const recommendedIds = Array.isArray(result.recommended_ids)
       ? result.recommended_ids
       : [];
-    const allowedProductIds = new Set(relevantProducts.map((product) => product.id));
+    // Recommended ids must come from the products we actually retrieved this
+    // turn (hybrid search / intent filter), looked up from that same set —
+    // not a separate global catalogue — so DB-sourced ids always resolve.
+    const relevantProductById = new Map(relevantProducts.map((product) => [product.id, product]));
     const recommendations = recommendedIds
       .map((id) => {
-        if (!allowedProductIds.has(id)) return null;
-        const p = productById.get(id);
+        const p = relevantProductById.get(id);
         if (!p) return null;
         return {
           id: p.id,
@@ -1573,11 +1129,19 @@ export async function POST(request: Request) {
     const engineLeadQuestion = wantsLead ? engineResult.question : null;
     const primaryCategory = (recommendationIntent.categories?.[0] ?? null) as ProductCategory | null;
 
-    // Resolve the funnel stage early so the planner has access to it.
+    // Resolve the funnel stage early so the planner (and the follow-up
+    // arbitration below) has access to it. `generateFollowupQuestion`'s stage
+    // describes what KIND of question it chose (several branches return
+    // "preferences_collected"/"cross_sell_offered" even when recommendations
+    // were just shown), so it can rank below "recommendations_shown" despite
+    // recs being shown this turn. Take the higher of the two via STAGE_RANK —
+    // the persisted stage must never regress below what factually happened —
+    // mirroring the same monotonic-progression pattern `maxStage` already
+    // uses inside `lib/followupEngine.ts`.
     const stage: FollowupResult["stage"] = recommendations.length > 0
-      ? engineResult.stage === "browsing"
-        ? "recommendations_shown"
-        : engineResult.stage
+      ? STAGE_RANK[engineResult.stage] >= STAGE_RANK.recommendations_shown
+        ? engineResult.stage
+        : "recommendations_shown"
       : "preferences_collected";
 
     // LLM-driven planner runs alongside the rules engine. When the feature
@@ -1597,7 +1161,7 @@ export async function POST(request: Request) {
         funnelStage: null as FunnelStage | null,
         intent: recommendationIntent,
         salesIntent,
-        hasContact: Boolean(contactForEngine.phone || contactForEngine.email),
+        hasContact: hasFullContact,
       });
       if (planner.aiUsed && planner.action === "ask" && planner.question && !wantsLead) {
         plannerQuestion = planner.question;
@@ -1607,14 +1171,45 @@ export async function POST(request: Request) {
       console.error("[concierge] follow-up planner failed", plannerError);
     }
 
+    // Single arbitration point: exactly one of these candidates survives, in priority
+    // order (explicit lead-request > planner slot-fill > AI's own follow-up > a
+    // *meaningful* product/dealer question from the rules engine > soft contact-ask >
+    // the rules engine's own generic tail-end question > generic fallback).
+    // The soft contact-ask used to be a second, independent bolt-on appended alongside
+    // whatever this chain already chose — folding it in here as one more candidate is
+    // what makes "exactly one question per turn" hold. It's gated on `priorStageHadRecommendations`
+    // (read from the already-persisted `leads.followup_stage` column, not by scanning
+    // rendered assistant text) so it never fires on the very first recommendation turn.
+    //
+    // `generateFollowupQuestion` (lib/followupEngine.ts) always returns SOME question once
+    // recommendations exist — its own last two branches ("generic_cross_sell"/"default_followup")
+    // are a generic tail-end fallback, not a targeted missing-slot question. Without excluding
+    // those two specifically, `engineResult.question` would virtually always be truthy and the
+    // soft ask (ranked below it) would never get a turn to win — so only *specific* engine
+    // questions (bowl/finish/city/hob-type/etc.) outrank the soft ask; its own generic fallback
+    // ranks below the soft ask, same as route.ts's separate `defaultFollowupAfterRecommendations`.
+    const GENERIC_ENGINE_RATIONALES = new Set(["generic_cross_sell", "default_followup"]);
+    const meaningfulEngineQuestion =
+      engineResult.question && !GENERIC_ENGINE_RATIONALES.has(engineResult.rationale)
+        ? engineResult.question
+        : null;
+    const priorStageHadRecommendations =
+      STAGE_RANK[priorFollowupStage ?? "browsing"] >= STAGE_RANK.recommendations_shown;
+    const contactCaptureCandidate =
+      recommendations.length > 0 && !hasFullContact && priorStageHadRecommendations
+        ? buildContactCaptureFollowupChip(null, contactForEngine, history)
+        : null;
     const followupQuestion =
       engineLeadQuestion ||
       plannerQuestion ||
       aiFollowup ||
+      meaningfulEngineQuestion ||
+      contactCaptureCandidate ||
       engineResult.question ||
       (recommendations.length > 0
         ? defaultFollowupAfterRecommendations(primaryCategory, lightRecommendations)
         : null);
+    const softContactAskWon = Boolean(contactCaptureCandidate) && followupQuestion === contactCaptureCandidate;
 
     let introBody = (result.message || "").trim();
     if (followupQuestion) {
@@ -1659,14 +1254,25 @@ export async function POST(request: Request) {
 
     // Behavioral signal capture (Part D). Non-blocking — keeps the per-turn
     // path fast while feeding the decayed scoring view.
+    const isRefinementTurn = Boolean(historyIntent) && !isOpenPreferenceReply;
     void recordSignalsFromTurn({
       sessionId: activeSessionId,
       salesIntent,
       contactInfo: contactForEngine,
       message: userRawMessage,
       recommendationsShown: recommendations.length,
-      refinement: Boolean(historyIntent) && !isOpenPreferenceReply,
+      refinement: isRefinementTurn,
     });
+    if (isRefinementTurn && retrievedMatches.length > 0) {
+      const previousUserMessage =
+        history.filter((m) => m.role === "user").slice(-1)[0]?.content ?? null;
+      logRefinement(
+        activeSessionId,
+        retrievedMatches.map((m) => m.id),
+        pipelineMessage,
+        previousUserMessage
+      );
+    }
 
     storeChatEventAsync({
       sessionId: activeSessionId,
@@ -1740,7 +1346,7 @@ export async function POST(request: Request) {
     }
     if (followupQuestion) {
       const followupEventType: ChatEventType =
-        engineResult.shouldRequestContact
+        engineResult.shouldRequestContact || softContactAskWon
           ? "lead_prompted"
           : engineResult.category === "cross_sell"
             ? "cross_sell_offered"
@@ -1756,6 +1362,7 @@ export async function POST(request: Request) {
           stage,
           followup_reason: followupReason,
           planner_used: plannerQuestion ? true : false,
+          soft_contact_ask: softContactAskWon,
         },
       });
       storeAnalyticsEventAsync({
@@ -1765,7 +1372,7 @@ export async function POST(request: Request) {
         category: salesIntent.category,
         budgetType: salesIntent.budget_type,
         city: contactForEngine.city || salesIntent.city,
-        eventType: engineResult.shouldRequestContact ? "lead_prompted" : "followup_question_asked",
+        eventType: engineResult.shouldRequestContact || softContactAskWon ? "lead_prompted" : "followup_question_asked",
         metadata: {
           followupCategory: engineResult.category,
           followupRationale: engineResult.rationale,
@@ -1773,6 +1380,7 @@ export async function POST(request: Request) {
           question: followupQuestion,
           followup_reason: followupReason,
           planner_used: plannerQuestion ? true : false,
+          soft_contact_ask: softContactAskWon,
         },
       });
     }
@@ -1780,7 +1388,14 @@ export async function POST(request: Request) {
     // Trigger an immediate (best-effort) drain of the event bus so the
     // background batch fires before the serverless host can suspend us. The
     // bus itself has retries, so a partial flush is still safe.
-    void flushEventBus().catch(() => {});
+    const eventBusFlush = flushEventBus();
+    void eventBusFlush.catch(() => {});
+    if (retrievedMatches.length > 0) {
+      // logIgnoredProducts reads rows this same turn's retrieved/shown logs
+      // just wrote — must wait for the batched event-bus flush above first,
+      // or it'll find nothing and silently no-op.
+      void eventBusFlush.then(() => logIgnoredProducts(activeSessionId)).catch(() => {});
+    }
 
     return NextResponse.json({
       result: finalMessage,
@@ -1803,68 +1418,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-function sanitizeFollowupQuestion(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  let trimmed = raw.trim().replace(/\s+/g, " ");
-  if (!trimmed) return null;
-  if (trimmed.length > 240) return null;
-  // Reject if it asks for personal contact details — engine handles those.
-  if (/\b(phone|email|whatsapp|mobile|contact\s+number|your\s+number)\b/i.test(trimmed)) return null;
-  // Normalise missing question mark (models often end with a period).
-  if (!/[?？]\s*$/.test(trimmed)) {
-    const withoutStop = trimmed.replace(/[.!…]+$/g, "").trim();
-    if (!withoutStop) return null;
-    if (/^(would|do|are|is|can|could|should|shall|may|have\s+you|need\s+you)\b/i.test(withoutStop)) {
-      trimmed = `${withoutStop}?`;
-    } else {
-      return null;
-    }
-  }
-  return trimmed;
-}
-
-/**
- * The widget renders product cards (name, price, link); the model often still pastes a full numbered list in JSON "message".
- * Drop catalogue-style content so users are not shown the same products twice.
- */
-function stripCatalogueEchoFromIntro(intro: string, hasProductCards: boolean): string {
-  if (!hasProductCards || !intro.trim()) return intro;
-  const lines = intro.split(/\r?\n/);
-  const kept: string[] = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (/^\d+[\.)]\s+/.test(trimmed)) break;
-    const inlineSplit = trimmed.match(/^(.{8,}?)\s+\d+[\.)]\s+.+/);
-    if (inlineSplit) {
-      kept.push(inlineSplit[1].trimEnd());
-      break;
-    }
-    kept.push(line);
-  }
-  let t = kept.join("\n").replace(/\*\*([^*]+)\*\*/g, "$1").trim();
-  t = t.replace(/\n*\s*(I hope one of these (catches your eye|works for you)|Let me know if any of these (appeal|work))[!.\s]*$/i, "").trim();
-  t = t.replace(/[:\u2014\-]\s*$/g, "").trim();
-  if (t.length < 16) {
-    return "Here are some curated picks from our catalogue that should suit what you're looking for.";
-  }
-  return t;
-}
-
-/** Remove trailing follow-up if the model duplicated it inside `message` (we surface it via `followups`). */
-function stripTrailingFollowup(intro: string, followup: string): string {
-  const t = followup.trim();
-  if (!t || !intro) return intro;
-  const lowerIntro = intro.toLowerCase();
-  const lowerQ = t.toLowerCase();
-  const glued = `\n\n${t}`;
-  if (lowerIntro.endsWith(lowerQ)) {
-    const idx = lowerIntro.lastIndexOf(lowerQ);
-    return intro.slice(0, idx).replace(/\n+\s*$/, "").trim();
-  }
-  if (lowerIntro.endsWith(glued.toLowerCase())) {
-    return intro.slice(0, -glued.length).trim();
-  }
-  return intro;
 }

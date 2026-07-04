@@ -2,12 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChatWidget } from "@/components/ChatWidget";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isEmbed = pathname?.startsWith("/embed");
+  const isDashboard = pathname?.startsWith("/dashboard");
 
+  // /embed/chat renders nothing itself — the floating ChatWidget IS its content.
   if (isEmbed) {
+    return (
+      <>
+        {children}
+        <ChatWidget />
+      </>
+    );
+  }
+
+  // Internal analytics tool: no public nav/footer, no floating chat bubble.
+  // It gets its own chrome from app/dashboard/layout.tsx instead.
+  if (isDashboard) {
     return <>{children}</>;
   }
 
@@ -63,6 +77,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
+      <ChatWidget />
     </>
   );
 }

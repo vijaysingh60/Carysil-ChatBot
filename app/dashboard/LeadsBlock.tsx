@@ -3,6 +3,9 @@
 import { useMemo, useState } from "react";
 import { formatDashboardDate } from "@/lib/dashboardFormat";
 import { InterestedProductsCell, type InterestedProductItem } from "./InterestedProductsCell";
+import { showMoreButtonClasses } from "./ShowMore";
+import { EmptyState } from "./_components/EmptyState";
+import { Badge } from "./_components/Badge";
 
 export type DashboardLeadRow = {
   session_id: string;
@@ -19,16 +22,7 @@ export type DashboardLeadRow = {
   updated_at: Date | string | null;
 };
 
-const showMoreBtn =
-  "rounded-full border border-[var(--carysil-red)] px-4 py-2 text-sm font-medium text-[var(--carysil-red)] transition hover:bg-[var(--carysil-red)] hover:text-white";
-
-function EmptyState({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-500">
-      {children}
-    </div>
-  );
-}
+const showMoreBtn = showMoreButtonClasses.replace("mt-4 ", "");
 
 export function LeadsBlock({ leads }: { leads: DashboardLeadRow[] }) {
   const [expanded, setExpanded] = useState(false);
@@ -82,9 +76,7 @@ export function LeadsBlock({ leads }: { leads: DashboardLeadRow[] }) {
               <div>
                 <span className="text-gray-500">Stage</span>
                 <p>
-                  <span className="inline-flex rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-carysil-stone ring-1 ring-gray-200">
-                    {lead.followup_stage || "browsing"}
-                  </span>
+                  <Badge tone="stone">{lead.followup_stage || "browsing"}</Badge>
                 </p>
               </div>
               <div className="col-span-2">
@@ -140,9 +132,7 @@ export function LeadsBlock({ leads }: { leads: DashboardLeadRow[] }) {
                 <td className="px-4 py-3 text-gray-700">{lead.city || "-"}</td>
                 <td className="px-4 py-3 text-gray-700">{lead.intent || "-"}</td>
                 <td className="px-4 py-3 text-gray-700">
-                  <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-carysil-stone">
-                    {lead.followup_stage || "browsing"}
-                  </span>
+                  <Badge tone="neutral">{lead.followup_stage || "browsing"}</Badge>
                 </td>
                 <td className="px-4 py-3 text-gray-700">
                   <InterestedProductsCell

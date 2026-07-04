@@ -1,0 +1,52 @@
+[
+  {
+    "id": "carysil-joy-ice-maker-silver",
+    "name": "Joy Portable Compact Countertop Ice Maker",
+    "category": "Appliance",
+    "size": "32.80x24.20x35.80 cm",
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "High",
+    "description": "Color Silver Capacity 2.20 Litres Special Feature 9 ice cubes/cycle Ice Production 12kg/24 hours Product Dimension 32.80x24.20x35.80 cm Product Weight 8.10 kg",
+    "price": "Rs. 16,990.00",
+    "image_url": "https://cdn.shopify.com/s/files/1/0822/8890/2337/files/1_991b1644-f9cd-482e-bef7-3099b76a7bcc.jpg?v=1755585324",
+    "url": "https://www.carysilshop.com/products/carysil-joy-ice-maker-silver",
+    "collection": "ice-maker",
+    "compare_at_price": "Rs. 16,990.00",
+    "technical_details": {
+      "Color": "Silver",
+      "Capacity": "2.20 Litres",
+      "Special Feature": "9 ice cubes/cycle",
+      "Ice Production": "12kg/24 hours",
+      "Product Dimension": "32.80x24.20x35.80 cm",
+      "Product Weight": "8.10 kg"
+    },
+    "colours_available": [],
+    "scraped_at": "2026-06-21T15:48:45.646Z"
+  },
+  {
+    "id": "carysil-sparkle-ice-maker",
+    "name": "Sparkle Portable Compact Countertop Ice Maker",
+    "category": "Appliance",
+    "size": "32.80x24.20x35.80 cm",
+    "style": "Modern",
+    "material": "Stainless Steel",
+    "price_range": "High",
+    "description": "Color Black Capacity 2.20 Litres Special Feature 9 ice cubes/cycle Ice Production 12kg/24 hours Product Dimension 32.80x24.20x35.80 cm Product Weight 7.80 kg",
+    "price": "Rs. 24,990.00",
+    "image_url": "https://cdn.shopify.com/s/files/1/0822/8890/2337/files/1_31305b44-6fae-4b7c-9d41-a3e2bae9db8a.jpg?v=1755585248",
+    "url": "https://www.carysilshop.com/products/carysil-sparkle-ice-maker",
+    "collection": "ice-maker",
+    "compare_at_price": "Rs. 24,990.00",
+    "technical_details": {
+      "Color": "Black",
+      "Capacity": "2.20 Litres",
+      "Special Feature": "9 ice cubes/cycle",
+      "Ice Production": "12kg/24 hours",
+      "Product Dimension": "32.80x24.20x35.80 cm",
+      "Product Weight": "7.80 kg"
+    },
+    "colours_available": [],
+    "scraped_at": "2026-06-21T15:48:45.646Z"
+  }
+]

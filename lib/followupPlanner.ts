@@ -1,5 +1,6 @@
 import { callAIJsonCached } from "@/lib/ai";
 import { hashKey } from "@/lib/cache";
+import { getPrompt } from "@/lib/prompts";
 import {
   CONVERSATION_SLOTS,
   PLANNER_SLOT_PRIORITY,
@@ -57,34 +58,6 @@ export type FollowupPlannerOutput = {
   aiUsed: boolean;
 };
 
-const FOLLOWUP_SYSTEM = `You are AskCary's follow-up planner. You decide the next conversational move for a kitchen / bath shopping concierge.
-
-Inputs (provided in the user message):
-- "memory": already-known slot values (category, product_type, budget, color, material, kitchen_size, installation_type, city, urgency, preferences)
-- "summary": one-sentence semantic summary (may be empty)
-- "recent": last few conversation turns
-- "recommendations": products already shown this session
-- "lead_stage" and "funnel_stage"
-- "intent" + "sales_intent"
-- "has_contact" flag
-
-Choose EXACTLY ONE action: "ask", "recommend", "capture_lead", "show_dealer", "none".
-
-Rules:
-1. NEVER ask about a slot that already has a non-null value in "memory".
-2. Ask AT MOST one short question (max 20 words, end with "?").
-3. Pick the highest-leverage missing slot for the detected intent.
-4. If all critical slots are filled and "has_contact" is true, prefer "recommend" or "show_dealer".
-5. Never ask for phone, email, or address — capture flow handles those.
-6. "reason" must match the slot you targeted (missing_budget, missing_color, missing_material, missing_kitchen_size, missing_installation_type, missing_city, missing_urgency, qualification, dealer_conversion, quotation_handoff, none).
-
-Output strict JSON:
-{
-  "action": "ask" | "recommend" | "capture_lead" | "show_dealer" | "none",
-  "question": string | null,
-  "reason": string,
-  "target_slot": string | null
-}`;
 
 type RawPlanner = {
   action?: string;
@@ -270,7 +243,7 @@ export async function generateNextQuestion(
 
   const cacheKey = hashKey(`planner|${input.sessionId}|${userContent}`);
   const { data, aiUsed } = await callAIJsonCached<RawPlanner>(
-    FOLLOWUP_SYSTEM,
+    getPrompt("followup_planner"),
     userContent,
     {},
     cacheKey

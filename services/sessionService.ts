@@ -59,6 +59,13 @@ CREATE TABLE IF NOT EXISTS conversation_state (
 CREATE INDEX IF NOT EXISTS conversation_state_updated_idx ON conversation_state (updated_at DESC);
 CREATE INDEX IF NOT EXISTS conversation_state_category_idx ON conversation_state (category);
 
+-- Idempotent backfill for tables created by an older schema version.
+ALTER TABLE conversation_state ADD COLUMN IF NOT EXISTS conversation_summary TEXT;
+ALTER TABLE conversation_state ADD COLUMN IF NOT EXISTS summary_token_estimate INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE conversation_state ADD COLUMN IF NOT EXISTS last_summarized_at TIMESTAMPTZ;
+ALTER TABLE conversation_state ADD COLUMN IF NOT EXISTS user_name TEXT;
+ALTER TABLE conversation_state ADD COLUMN IF NOT EXISTS buying_stage TEXT;
+
 CREATE TABLE IF NOT EXISTS recommendation_events (
   id BIGSERIAL PRIMARY KEY,
   session_id TEXT NOT NULL REFERENCES chat_sessions(session_id) ON DELETE CASCADE,
@@ -95,6 +102,9 @@ CREATE INDEX IF NOT EXISTS lead_signals_session_created_idx
 CREATE INDEX IF NOT EXISTS lead_signals_type_idx
   ON lead_signals (signal_type);
 
+-- Idempotent backfill for lead_signals tables created before decayed_weight existed.
+ALTER TABLE lead_signals ADD COLUMN IF NOT EXISTS decayed_weight NUMERIC(6,2) NOT NULL DEFAULT 0;
+
 CREATE TABLE IF NOT EXISTS funnel_transitions (
   id BIGSERIAL PRIMARY KEY,
   session_id TEXT NOT NULL REFERENCES chat_sessions(session_id) ON DELETE CASCADE,
@@ -124,6 +134,28 @@ CREATE INDEX IF NOT EXISTS leads_funnel_idx ON leads (funnel_stage);
 CREATE INDEX IF NOT EXISTS leads_priority_idx ON leads (lead_priority DESC);
 CREATE INDEX IF NOT EXISTS leads_last_engagement_idx ON leads (last_engagement_at DESC);
 CREATE INDEX IF NOT EXISTS leads_person_idx ON leads (person_id);
+
+-- Dealer lead routing: reproducible copy of the dealers table previously
+-- created directly against the DB, plus the column that links a lead to one.
+-- (dealer_products is bootstrapped separately below — it FKs to products,
+-- which isn't guaranteed to exist yet on a fresh environment.)
+CREATE TABLE IF NOT EXISTS dealers (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  city TEXT NOT NULL,
+  state TEXT NOT NULL,
+  contact_email TEXT,
+  phone TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS dealers_active_idx ON dealers (is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS dealers_city_idx ON dealers (city);
+CREATE INDEX IF NOT EXISTS dealers_state_idx ON dealers (state);
+
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS assigned_dealer_id TEXT REFERENCES dealers(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS leads_assigned_dealer_idx ON leads (assigned_dealer_id);
 
 CREATE INDEX IF NOT EXISTS analytics_events_typed_session_idx
   ON analytics_events (session_id, event_type)
@@ -159,11 +191,64 @@ HAVING COUNT(*) FILTER (WHERE event_type = 'shown') = 0
    AND COUNT(*) FILTER (WHERE event_type = 'clicked') = 0
 ORDER BY retrievals DESC;
 
+CREATE OR REPLACE VIEW v_failed_recommendations AS
+SELECT
+  product_id,
+  COUNT(*) FILTER (WHERE event_type = 'shown') AS impressions_last_7d
+FROM recommendation_events
+WHERE created_at > NOW() - INTERVAL '7 days'
+GROUP BY product_id
+HAVING COUNT(*) FILTER (WHERE event_type = 'shown') > 0
+   AND COUNT(*) FILTER (WHERE event_type = 'clicked') = 0
+ORDER BY impressions_last_7d DESC;
+
+CREATE OR REPLACE VIEW v_top_refined_searches AS
+SELECT
+  session_id,
+  COUNT(*) AS refinements,
+  MAX(created_at) AS last_refined_at
+FROM recommendation_events
+WHERE event_type = 'refined'
+GROUP BY session_id
+ORDER BY refinements DESC;
+
+CREATE OR REPLACE VIEW v_lead_converting_products AS
+SELECT
+  re.product_id,
+  l.lead_tier,
+  COUNT(DISTINCT re.session_id) AS sessions,
+  COUNT(*) FILTER (WHERE re.event_type = 'clicked') AS clicks,
+  COUNT(*) FILTER (WHERE re.event_type = 'converted') AS conversions
+FROM recommendation_events re
+JOIN leads l ON l.session_id = re.session_id
+GROUP BY re.product_id, l.lead_tier
+ORDER BY conversions DESC, clicks DESC;
+
 CREATE OR REPLACE VIEW v_funnel_distribution AS
 SELECT funnel_stage, COUNT(*) AS sessions
 FROM leads
 GROUP BY funnel_stage
 ORDER BY sessions DESC;
+`;
+
+/**
+ * Isolated from CREATE_FIN_UPGRADE_SQL: this FKs to `products`, which is
+ * only bootstrapped by the catalogue import scripts (lib/vectorStore.ts),
+ * not automatically on server start. A missing `products` table here must
+ * not roll back the rest of the fin-upgrade block (pg runs a multi-statement
+ * query string as one implicit transaction).
+ */
+export const CREATE_DEALER_PRODUCTS_SQL = `
+CREATE TABLE IF NOT EXISTS dealer_products (
+  id BIGSERIAL PRIMARY KEY,
+  dealer_id TEXT NOT NULL REFERENCES dealers(id) ON DELETE CASCADE,
+  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (dealer_id, product_id)
+);
+
+CREATE INDEX IF NOT EXISTS dealer_products_dealer_idx ON dealer_products (dealer_id);
+CREATE INDEX IF NOT EXISTS dealer_products_product_idx ON dealer_products (product_id);
 `;
 
 export const CREATE_LEAD_GENERATION_SCHEMA_SQL = `
@@ -256,6 +341,13 @@ export async function ensureLeadSchema(): Promise<boolean> {
       await pool.query(CREATE_FIN_UPGRADE_SQL);
     } catch (upgradeError) {
       console.error("[tracking] fin-upgrade DDL skipped", upgradeError);
+    }
+    // Isolated: depends on `products`, which may not exist yet on a fresh
+    // environment until the catalogue import scripts have run.
+    try {
+      await pool.query(CREATE_DEALER_PRODUCTS_SQL);
+    } catch (dealerProductsError) {
+      console.error("[tracking] dealer_products DDL skipped", dealerProductsError);
     }
     schemaReady = true;
     return true;

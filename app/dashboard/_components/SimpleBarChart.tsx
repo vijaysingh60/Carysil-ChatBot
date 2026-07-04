@@ -9,6 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { CHART_RED } from "./chartTheme";
 
 export type SimpleBarPoint = {
   label: string;
@@ -17,7 +18,7 @@ export type SimpleBarPoint = {
 
 export function SimpleBarChart({
   data,
-  color = "#dc2626",
+  color = CHART_RED,
   emptyText = "No data yet.",
 }: {
   data: SimpleBarPoint[];
