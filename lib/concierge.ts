@@ -1,5 +1,6 @@
 import { callAI } from "@/lib/ai";
 import { getPrompt } from "@/lib/prompts";
+import { describeCategoryRange, formatRangeList, getTopLevelRange } from "@/lib/catalogueRange";
 
 /** Catalogue categories in products.json */
 export const CATEGORIES = [
@@ -63,8 +64,20 @@ const INTENT_PLACEHOLDER: string = JSON.stringify(
   2
 );
 
-const WHAT_WE_HAVE =
-  "Here’s what we do have: kitchen & bathroom sinks, faucets, food waste disposers, combos, appliances (hob, chimney, dishwasher), and accessories. What would you like to explore?";
+/**
+ * Used only when the live catalogue can't be read. Deliberately omits combos —
+ * there are currently no active combo products — and describes appliances by
+ * breadth rather than naming three of the fourteen sub-types we stock.
+ */
+const WHAT_WE_HAVE_FALLBACK =
+  "Here’s what we do have: kitchen sinks, faucets, food waste disposers, hobs & cooktops, kitchen appliances, and sink accessories. What would you like to explore?";
+
+/** Live-data version of the above, so this copy can never drift from real stock. */
+async function buildWhatWeHave(): Promise<string> {
+  const topLevel = await getTopLevelRange();
+  if (topLevel.length < 2) return WHAT_WE_HAVE_FALLBACK;
+  return `Here’s what we do have: ${formatRangeList(topLevel).toLowerCase()}. What would you like to explore?`;
+}
 
 /** Keywords for products we DO carry – single source of truth. Use for intent override and messaging. */
 export const PRODUCT_KEYWORDS_WE_HAVE =
@@ -86,12 +99,18 @@ const OUT_OF_CATALOGUE: { pattern: RegExp; name: string }[] = [
   { pattern: /\b(water\s*heater|geyser)\b/i, name: "water heaters / geysers" },
 ];
 
+/** True when the message names something we explicitly don't stock (bath tubs, toilets, …). */
+export function mentionsOutOfCatalogueProduct(message: string): boolean {
+  const lower = message.toLowerCase().trim();
+  return OUT_OF_CATALOGUE.some(({ pattern }) => pattern.test(lower));
+}
+
 /** If the user is asking for a product we don't carry, return a friendly "we don't have X" message. */
-function getOutOfCatalogueReply(message: string): string | null {
+async function getOutOfCatalogueReply(message: string): Promise<string | null> {
   const lower = message.toLowerCase().trim();
   for (const { pattern, name } of OUT_OF_CATALOGUE) {
     if (pattern.test(lower)) {
-      return `We don’t have ${name} at the moment. ${WHAT_WE_HAVE}`;
+      return `We don’t have ${name} at the moment. ${await buildWhatWeHave()}`;
     }
   }
   return null;
@@ -229,7 +248,7 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
       if (inferred.length > 0) {
         parsed.categories = inferred;
       }
-      const outOfCatalogue = getOutOfCatalogueReply(userMessage);
+      const outOfCatalogue = await getOutOfCatalogueReply(userMessage);
       const isVague = inferred.length > 0 ? isVagueCategoryQuery(userMessage, parsed.categories) : true;
       if (outOfCatalogue) {
         parsed.asking_clarification = true;
@@ -252,7 +271,7 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
           const isHob = /\b(hob|burner|burners)\b/.test(lower);
           parsed.clarification_message = isHob
             ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
-            : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.";
+            : `We have ${(await describeCategoryRange("Appliance", 8))?.toLowerCase() ?? "hobs, chimneys and dishwashers"}. Which are you looking for? You can pick one or explore the full range.`;
         } else if (parsed.categories.includes("Accessory")) {
           parsed.clarification_message =
             "What kind of accessory? For example: waste couplings, mounting accessories, or explore the full range.";
@@ -296,7 +315,7 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
             parsed.clarification_message ||
             (isHob
               ? "To recommend the right hob, could you tell me the size (60 cm / 75 cm / 90 cm) and whether you prefer gas or induction, or explore the full range?"
-              : "We have hobs, chimneys, and dishwashers. Which are you looking for? You can pick one or explore the full range.");
+              : `We have ${(await describeCategoryRange("Appliance", 8))?.toLowerCase() ?? "hobs, chimneys and dishwashers"}. Which are you looking for? You can pick one or explore the full range.`);
         } else if (parsed.categories.includes("Accessory")) {
           parsed.clarification_message =
             parsed.clarification_message ||
@@ -407,7 +426,7 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
         filters: {},
       };
     }
-    const outOfCatalogue = getOutOfCatalogueReply(userMessage);
+    const outOfCatalogue = await getOutOfCatalogueReply(userMessage);
     return {
       categories: [],
       asking_clarification: true,

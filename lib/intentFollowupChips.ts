@@ -1,4 +1,5 @@
 import type { IntentResult } from "@/lib/concierge";
+import { describeCategoryRange } from "@/lib/catalogueRange";
 
 /** User gave enough shopping intent (e.g. cheapest / budget) — don't block catalogue on mount/finish chips. */
 const BUDGET_OR_VALUE_INTENT =
@@ -149,7 +150,10 @@ export function buildRecommendationFollowups(message: string, intent: IntentResu
 /**
  * Suggestion chips when intent detection asked for clarification (weak/ambiguous query).
  */
-export function buildIntentClarificationFollowups(intent: IntentResult, userRawMessage: string): string[] {
+export async function buildIntentClarificationFollowups(
+  intent: IntentResult,
+  userRawMessage: string
+): Promise<string[]> {
   const lower = userRawMessage.toLowerCase();
   const followups: string[] = [];
   const keywords: string[] =
@@ -213,8 +217,13 @@ export function buildIntentClarificationFollowups(intent: IntentResult, userRawM
       "Explore the full range."
     );
   } else if (!intent.dealer_intent && intent.categories.includes("Appliance")) {
+    // Named from live stock rather than the old hardcoded "hob, chimney, or
+    // dishwasher" — that listed 3 of the 14 appliance sub-types we actually carry.
+    const applianceRange = await describeCategoryRange("Appliance", 6);
     followups.push(
-      "Are you looking for a hob (burners), chimney, or dishwasher?",
+      applianceRange
+        ? `Are you looking for ${applianceRange.toLowerCase()}?`
+        : "Are you looking for a hob (burners), chimney, or dishwasher?",
       "Do you have any size preference (e.g. 60 cm / 90 cm)?",
       "Explore the full range."
     );
@@ -226,7 +235,9 @@ export function buildIntentClarificationFollowups(intent: IntentResult, userRawM
     );
   } else {
     followups.push(
-      "Are you looking for a sink, faucet, disposer, combo, appliance, or accessories?",
+      // "combo" intentionally dropped — there are no active combo products, so
+      // offering it just leads to a dead end.
+      "Are you looking for a sink, faucet, disposer, hob, appliance, or accessories?",
       "Any preferred size, finish, or budget?",
       "If you tell me what you’re installing it for (kitchen/bathroom), I can narrow it down."
     );

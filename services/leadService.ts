@@ -473,7 +473,25 @@ export async function updateLead(sessionId: string, update: LeadUpdate): Promise
           )
           ELSE leads.interested_products
         END,
-        followup_stage = COALESCE(EXCLUDED.followup_stage, leads.followup_stage),
+        -- Monotonic funnel ratchet: a plain COALESCE let a LOWER stage overwrite a
+        -- higher one, because every early-return branch (clarification, installation,
+        -- architect, range overview) writes a non-null "preferences_collected". That
+        -- silently knocked sessions back down from "recommendations_shown" and made
+        -- downstream stage checks read stale. Ranking mirrors STAGE_RANK in
+        -- lib/followupEngine.ts, and matches the ratchet recomputeFunnelStage already
+        -- applies to funnel_stage.
+        followup_stage = CASE
+          WHEN EXCLUDED.followup_stage IS NULL THEN leads.followup_stage
+          WHEN leads.followup_stage IS NULL THEN EXCLUDED.followup_stage
+          WHEN COALESCE(array_position(
+                 ARRAY['browsing','preferences_collected','recommendations_shown','cross_sell_offered','dealer_offered','lead_requested','lead_captured'],
+                 EXCLUDED.followup_stage), 0)
+               >= COALESCE(array_position(
+                 ARRAY['browsing','preferences_collected','recommendations_shown','cross_sell_offered','dealer_offered','lead_requested','lead_captured'],
+                 leads.followup_stage), 0)
+            THEN EXCLUDED.followup_stage
+          ELSE leads.followup_stage
+        END,
         lead_score = LEAST(100, leads.lead_score + EXCLUDED.lead_score),
         updated_at = NOW(),
         intent_confidence = COALESCE(EXCLUDED.intent_confidence, leads.intent_confidence),

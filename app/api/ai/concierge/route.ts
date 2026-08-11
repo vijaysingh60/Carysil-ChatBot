@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { callAI } from "@/lib/ai";
 import { planClarificationWithGPT, planSmallTalkResponse } from "@/lib/conciergeDialogPlanner";
-import { detectIntent, CATEGORIES, type ProductCategory } from "@/lib/concierge";
+import { detectIntent, mentionsOutOfCatalogueProduct, CATEGORIES, type ProductCategory } from "@/lib/concierge";
 import {
   buildIntentClarificationFollowups,
   buildRecommendationFollowups,
@@ -82,6 +82,7 @@ import {
   inferProductContextFromText,
   resolveFollowupIntent,
   looksLikeDisplayComplaint,
+  looksLikeRangeOverviewQuery,
 } from "./handlers/intent";
 import {
   userProvidedLeadSignals,
@@ -98,6 +99,7 @@ import {
 } from "./handlers/response";
 import { answerInstallationQuery } from "./handlers/installation";
 import { answerArchitectQuery } from "./handlers/architect";
+import { getCategoryRange, getTopLevelRange } from "@/lib/catalogueRange";
 
 const GREETING_PATTERN = /^(hi|hello|hey|hi there|hello there|good\s+(morning|afternoon|evening)|howdy|greetings?|thanks|thank\s+you|ok|okay)\s*[\.\!]?\s*$/i;
 
@@ -486,6 +488,33 @@ export async function POST(request: Request) {
     // product category so this re-runs retrieval instead of re-clarifying; this flag
     // just lets the eventual response acknowledge the complaint when it succeeds.
     const isDisplayComplaint = looksLikeDisplayComplaint(userRawMessage);
+    // "What all products do you have?" asks about the RANGE, not for specific
+    // SKUs. Resolved here (not at the range branch below) because a no-category
+    // range question makes detectIntent set asking_clarification, and the
+    // clarification branch would otherwise early-return before the range branch
+    // is ever reached — sending "what all products do you have" back a "what are
+    // you looking for?" question instead of the answer.
+    //
+    // Skipped when the turn carries concrete constraints ("what quartz sinks do
+    // you have under 20000" is a filtered product request, not a range question).
+    // Note: hasProductRefinement() is NOT usable as this guard — it returns true
+    // for the bare word "appliances", which would suppress the exact case being
+    // fixed here.
+    const hasConcreteProductFilters =
+      Boolean(
+        intent.filters?.material ||
+          intent.filters?.price_range ||
+          intent.filters?.size ||
+          intent.filters?.style
+      ) || /\b(under|below|above|over|budget|cheap|premium|luxury|₹|rs\.?\s*\d|\d{4,})\b/i.test(userRawMessage);
+    // "What bath tubs do you have?" reads as a range question, but the honest
+    // answer is "we don't stock those" — leave those to the clarification branch,
+    // which already says so and then lists what we do have.
+    const isRangeOverviewQuery =
+      !intent.dealer_intent &&
+      !hasConcreteProductFilters &&
+      !mentionsOutOfCatalogueProduct(userRawMessage) &&
+      looksLikeRangeOverviewQuery(userRawMessage);
     const messageHasProductContext = Boolean(
       inferProductContextFromText(userRawMessage) || inferProductContextFromText(pipelineMessage)
     );
@@ -815,8 +844,8 @@ export async function POST(request: Request) {
       });
     }
 
-    if (intent.asking_clarification && intent.clarification_message) {
-      const backendChips = buildIntentClarificationFollowups(intent, userRawMessage);
+    if (intent.asking_clarification && intent.clarification_message && !isRangeOverviewQuery) {
+      const backendChips = await buildIntentClarificationFollowups(intent, userRawMessage);
       const planned = await planClarificationWithGPT({
         mode: "intent_clarification",
         userMessage: userRawMessage,
@@ -999,6 +1028,68 @@ export async function POST(request: Request) {
     );
     const hasFullContact = Boolean(contactMergedForCatalog.phone || contactMergedForCatalog.email);
     const contactForEngine: ContactInfo = contactMergedForCatalog;
+
+    // Answer range questions from live catalogue data (lib/catalogueRange.ts)
+    // instead of 4 arbitrary product cards, then let the user drill into a
+    // sub-type. `isRangeOverviewQuery` is resolved up at intent detection so the
+    // clarification branch can defer to it — see the comment there.
+    if (isRangeOverviewQuery && !turnSignals.smallTalk) {
+      const rangeCategory = intent.categories.length === 1 ? intent.categories[0] : null;
+      // Categories with a single sub-type (Faucet, Disposer) have no meaningful
+      // breakdown to show — a one-item "range" reads worse than just showing
+      // products, so those fall through to the normal recommendation flow.
+      const subTypes = rangeCategory ? await getCategoryRange(rangeCategory) : [];
+      const topLevel = rangeCategory ? [] : await getTopLevelRange();
+      const entries = rangeCategory ? subTypes : topLevel;
+
+      if (entries.length >= 2) {
+        const scopeLabel = rangeCategory
+          ? `${rangeCategory === "Appliance" ? "kitchen appliance" : rangeCategory.toLowerCase()} range`
+          : "range";
+        // Built deterministically rather than via the LLM — same grounding
+        // discipline as handlers/installation.ts: a model rephrasing a factual
+        // stock list is pure hallucination risk for no benefit.
+        const rangeLines = entries.map((entry) => `• ${entry.label}`).join("\n");
+        const rangeMessage = `Here's our ${scopeLabel}:\n\n${rangeLines}\n\nWhich of these would you like to explore?`;
+        const rangeFollowups = entries.slice(0, 6).map((entry) => entry.label);
+
+        void acknowledgeNameIfNeeded();
+        await updateLeadRecord({
+          sessionId: activeSessionId,
+          contactInfo: contactInfoForLeadDatabaseUpdate(contactInfo, leadSnapshotForWrite, allowContactPersist),
+          salesIntent,
+          interestedProductLabel: interestedProduct ?? null,
+          stage: "preferences_collected",
+        });
+        await storeChatEvent({
+          sessionId: activeSessionId,
+          role: "assistant",
+          message: rangeMessage,
+          eventType: "assistant_message",
+          metadata: { rangeOverview: true, scope: rangeCategory ?? "all", subTypes: entries.length },
+        });
+        await storeAnalyticsEvent({
+          sessionId: activeSessionId,
+          query: userRawMessage,
+          detectedIntent: salesIntent.intent,
+          category: salesIntent.category,
+          budgetType: salesIntent.budget_type,
+          city: contactInfo.city || salesIntent.city,
+          eventType: "range_overview_shown",
+          metadata: { scope: rangeCategory ?? "all", subTypes: entries.length },
+        });
+        return NextResponse.json({
+          result: rangeMessage,
+          recommendations: [],
+          dealers: [],
+          reasoning: null,
+          aiUsed: true,
+          error: undefined,
+          followups: rangeFollowups,
+          sessionId: activeSessionId,
+        });
+      }
+    }
 
     // Step 3: hybrid retrieval (vector + FTS) for recommendations.
     // Query is enhanced with conversation state context before retrieval.
@@ -1281,44 +1372,44 @@ export async function POST(request: Request) {
     }
 
     // Single arbitration point: exactly one of these candidates survives, in priority
-    // order (explicit lead-request > planner slot-fill > AI's own follow-up > a
-    // *meaningful* product/dealer question from the rules engine > soft contact-ask >
-    // the rules engine's own generic tail-end question > generic fallback).
-    // The soft contact-ask used to be a second, independent bolt-on appended alongside
-    // whatever this chain already chose — folding it in here as one more candidate is
-    // what makes "exactly one question per turn" hold. It's gated on `priorStageHadRecommendations`
-    // (read from the already-persisted `leads.followup_stage` column, not by scanning
-    // rendered assistant text) so it never fires on the very first recommendation turn.
+    // order (explicit lead-request > soft contact-ask > planner slot-fill > AI's own
+    // follow-up > the rules engine's question > generic fallback).
     //
-    // `generateFollowupQuestion` (lib/followupEngine.ts) always returns SOME question once
-    // recommendations exist — its own last two branches ("generic_cross_sell"/"default_followup")
-    // are a generic tail-end fallback, not a targeted missing-slot question. Without excluding
-    // those two specifically, `engineResult.question` would virtually always be truthy and the
-    // soft ask (ranked below it) would never get a turn to win — so only *specific* engine
-    // questions (bowl/finish/city/hob-type/etc.) outrank the soft ask; its own generic fallback
-    // ranks below the soft ask, same as route.ts's separate `defaultFollowupAfterRecommendations`.
-    const GENERIC_ENGINE_RATIONALES = new Set(["generic_cross_sell", "default_followup"]);
-    const meaningfulEngineQuestion =
-      engineResult.question && !GENERIC_ENGINE_RATIONALES.has(engineResult.rationale)
-        ? engineResult.question
-        : null;
-    const priorStageHadRecommendations =
-      STAGE_RANK[priorFollowupStage ?? "browsing"] >= STAGE_RANK.recommendations_shown;
+    // The soft contact-ask MUST outrank `aiFollowup`. The product_recommendation prompt
+    // tells the model to always return a `followup_question` (and the no-API placeholder
+    // hardcodes one), while `sanitizeFollowupQuestion` strips anything mentioning
+    // phone/mobile/email — so `aiFollowup` is truthy on virtually every recommendation
+    // turn and can never itself be a contact ask. Ranked below it, the soft ask never got
+    // a turn to win, and lead capture silently stopped: zero rows ever reached
+    // `followup_stage = 'lead_requested'`.
+    //
+    // This also retires the old `meaningfulEngineQuestion` / `GENERIC_ENGINE_RATIONALES`
+    // denylist, which existed only to rank engine questions against the soft ask. It
+    // listed 2 of ~20 rationales, so `buying_intent_fallback` (fires on lead_probability
+    // >= 0.45 — exactly the buying sessions worth capturing) also shadowed the ask. With
+    // the soft ask above it, that split collapses back into plain `engineResult.question`.
+    //
+    // Fires from the FIRST product turn (no prior-stage gate); `recentlyAskedNameAndPhoneCapture`
+    // is what stops it repeating, rather than a stage read that a later lower-stage write
+    // could clobber.
     const contactCaptureCandidate =
-      recommendations.length > 0 && !hasFullContact && priorStageHadRecommendations
+      recommendations.length > 0 && !hasFullContact && !recentlyAskedNameAndPhoneCapture(history)
         ? buildContactCaptureFollowupChip(null, contactForEngine, history)
         : null;
     const followupQuestion =
       engineLeadQuestion ||
+      contactCaptureCandidate ||
       plannerQuestion ||
       aiFollowup ||
-      meaningfulEngineQuestion ||
-      contactCaptureCandidate ||
       engineResult.question ||
       (recommendations.length > 0
         ? defaultFollowupAfterRecommendations(primaryCategory, lightRecommendations)
         : null);
     const softContactAskWon = Boolean(contactCaptureCandidate) && followupQuestion === contactCaptureCandidate;
+    // When the soft ask wins, this turn IS the contact request — persist that stage so
+    // `leads.followup_stage` reflects it. Without this the stage stayed at
+    // "recommendations_shown" and `lead_requested` never appeared in the funnel at all.
+    const persistedStage: FollowupResult["stage"] = softContactAskWon ? "lead_requested" : stage;
 
     let introBody = (result.message || "").trim();
     if (followupQuestion) {
@@ -1355,7 +1446,7 @@ export async function POST(request: Request) {
       interestedProductLabel: interestedProduct ?? null,
       recommendations: lightRecommendations,
       recommendationsShown: recommendations.length,
-      stage,
+      stage: persistedStage,
       extraScore: Math.max(scoreDelta - calculateLeadScore({ salesIntent, contactInfo: contactForEngine }), 0),
       intentConfidence: memoryIntentConfidence,
       buyingConfidence: memoryBuyingConfidence,
@@ -1393,7 +1484,7 @@ export async function POST(request: Request) {
         recommendationCount: recommendations.length,
         followupCategory: engineResult.category,
         followupRationale: engineResult.rationale,
-        followupStage: stage,
+        followupStage: persistedStage,
         detectedIntent: salesIntent.intent,
         leadOffered: engineResult.shouldOfferLead,
       },
@@ -1420,7 +1511,7 @@ export async function POST(request: Request) {
         metadata: {
           chunk: "followup",
           followupCategory: engineResult.category,
-          followupStage: stage,
+          followupStage: persistedStage,
         },
       });
     }
@@ -1468,7 +1559,7 @@ export async function POST(request: Request) {
         metadata: {
           category: engineResult.category,
           rationale: engineResult.rationale,
-          stage,
+          stage: persistedStage,
           followup_reason: followupReason,
           planner_used: plannerQuestion ? true : false,
           soft_contact_ask: softContactAskWon,
@@ -1485,7 +1576,7 @@ export async function POST(request: Request) {
         metadata: {
           followupCategory: engineResult.category,
           followupRationale: engineResult.rationale,
-          followupStage: stage,
+          followupStage: persistedStage,
           question: followupQuestion,
           followup_reason: followupReason,
           planner_used: plannerQuestion ? true : false,
@@ -1515,7 +1606,7 @@ export async function POST(request: Request) {
       error,
       followups: [],
       followupQuestion,
-      followupStage: stage,
+      followupStage: persistedStage,
       followupCategory: engineResult.category,
       assistantMessages,
       sessionId: activeSessionId,

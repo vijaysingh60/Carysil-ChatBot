@@ -62,6 +62,32 @@ export function hasRecentExplicitDealerLocationAsk(history: ConversationMessage[
 }
 
 /**
+ * "What all products do you have?" — a question about the RANGE, not a request
+ * for specific SKUs. Without this the intent classifier just extracts a category
+ * and the turn returns 4 arbitrary product cards, which doesn't answer what was
+ * asked.
+ *
+ * Deliberately does NOT match "full range" — the existing suggestion chips say
+ * "Explore the full range", which means "show me the products", and
+ * FULL_RANGE_PATTERN in lib/concierge.ts already routes that to results.
+ * Likewise "show me all sinks" stays a product request; only "all your
+ * products"/"everything" reads as a catalogue question.
+ */
+const RANGE_OVERVIEW_PATTERNS: RegExp[] = [
+  /\bwhat\s+all\b/i,
+  /\b(?:what|which)\s+(?:\w+\s+){0,3}(?:do|does)\s+(?:u|you|carysil)\s+(?:have|offer|sell|carry|stock)\b/i,
+  /\bwhat\s+(?:kinds?|types?|varieties)\s+of\b/i,
+  /\b(?:show|tell|list|give)\s+(?:me\s+)?(?:everything|all\s+(?:your\s+)?(?:products?|categories|ranges?|collections?))\b/i,
+  /\bwhat\s+else\s+do\s+(?:u|you)\s+have\b/i,
+  /\b(?:your|the)\s+(?:entire|complete|whole)\s+(?:range|catalogue|catalog|collection)\b/i,
+];
+
+export function looksLikeRangeOverviewQuery(message: string): boolean {
+  const trimmed = message.trim();
+  return RANGE_OVERVIEW_PATTERNS.some((pattern) => pattern.test(trimmed));
+}
+
+/**
  * Purpose-built for "I can't see the products" style replies — not the generic
  * LLM `frustration` signal, which is too broad (would also fire on unrelated
  * complaints like "the price is too high") and would trigger the wrong recovery.
