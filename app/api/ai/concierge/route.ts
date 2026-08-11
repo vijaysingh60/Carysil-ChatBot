@@ -81,6 +81,7 @@ import {
   toTitleCaseLocation,
   inferProductContextFromText,
   resolveFollowupIntent,
+  looksLikeDisplayComplaint,
 } from "./handlers/intent";
 import {
   userProvidedLeadSignals,
@@ -95,8 +96,17 @@ import {
   stripCatalogueEchoFromIntro,
   stripTrailingFollowup,
 } from "./handlers/response";
+import { answerInstallationQuery } from "./handlers/installation";
+import { answerArchitectQuery } from "./handlers/architect";
 
 const GREETING_PATTERN = /^(hi|hello|hey|hi there|hello there|good\s+(morning|afternoon|evening)|howdy|greetings?|thanks|thank\s+you|ok|okay)\s*[\.\!]?\s*$/i;
+
+// Off by default for now — scope is product recommendation + dealer routing only.
+// The handlers, prompts, and scraped data stay in place; flip these on later.
+const installationSupportEnabled =
+  process.env.ENABLE_INSTALLATION_SUPPORT === "true" || process.env.ENABLE_INSTALLATION_SUPPORT === "1";
+const architectAssistantEnabled =
+  process.env.ENABLE_ARCHITECT_ASSISTANT === "true" || process.env.ENABLE_ARCHITECT_ASSISTANT === "1";
 
 function sanitizeHistory(rawHistory: unknown): ConversationMessage[] {
   if (!Array.isArray(rawHistory)) return [];
@@ -472,6 +482,10 @@ export async function POST(request: Request) {
     // Step 1: Detect intent (categories + optional clarification)
     const historyIntent = resolveFollowupIntent(userRawMessage, history);
     const intent = historyIntent || (await detectIntent(pipelineMessage));
+    // "I can't see the products" — resolveFollowupIntent already recovers the last
+    // product category so this re-runs retrieval instead of re-clarifying; this flag
+    // just lets the eventual response acknowledge the complaint when it succeeds.
+    const isDisplayComplaint = looksLikeDisplayComplaint(userRawMessage);
     const messageHasProductContext = Boolean(
       inferProductContextFromText(userRawMessage) || inferProductContextFromText(pipelineMessage)
     );
@@ -689,10 +703,21 @@ export async function POST(request: Request) {
       });
     }
 
-    if (!intent.dealer_intent && salesIntent.intent === "installation_inquiry") {
-      const result = intent.categories.length > 0
-        ? `I can help with ${intent.categories.join(", ").toLowerCase()} installation support. What issue are you facing: new installation, fitting guidance, leakage, cleaning, or troubleshooting?`
-        : "I can help with installation support. Which Carysil product are you installing, and what issue are you facing?";
+    // Feature-flagged off for now (product recommendation + dealer routing only) —
+    // set ENABLE_INSTALLATION_SUPPORT=true to re-enable. Handler/prompt/data stay
+    // in place; disabled here just skips the branch so these intents fall through
+    // to the normal recommendation flow like any other message.
+    if (
+      installationSupportEnabled &&
+      !intent.dealer_intent &&
+      salesIntent.intent === "installation_inquiry"
+    ) {
+      const installationCategory = intent.categories.length > 0 ? intent.categories.join(", ") : null;
+      // Grounded in real carysil.com FAQ content (see lib/documentSearch.ts +
+      // handlers/installation.ts) instead of a canned clarifying question —
+      // answers directly when we have a confirmed source, otherwise escalates
+      // to a dealer/support contact rather than guessing at installation steps.
+      const installationAnswer = await answerInstallationQuery(userRawMessage, installationCategory);
       await updateLeadRecord({
         sessionId: activeSessionId,
         contactInfo: contactInfoForLeadDatabaseUpdate(contactInfo, leadSnapshotForWrite, allowContactPersist),
@@ -703,9 +728,14 @@ export async function POST(request: Request) {
       await storeChatEvent({
         sessionId: activeSessionId,
         role: "assistant",
-        message: result,
+        message: installationAnswer.message,
         eventType: "assistant_message",
-        metadata: { installationSupport: true, detectedIntent: salesIntent.intent },
+        metadata: {
+          installationSupport: true,
+          detectedIntent: salesIntent.intent,
+          matched: installationAnswer.matched,
+          sources: installationAnswer.sources,
+        },
       });
       await storeAnalyticsEvent({
         sessionId: activeSessionId,
@@ -714,21 +744,73 @@ export async function POST(request: Request) {
         category: salesIntent.category,
         budgetType: salesIntent.budget_type,
         city: contactInfo.city || salesIntent.city,
-        eventType: "installation_request",
-        metadata: { categories: intent.categories },
+        // Distinct from the generic "installation_request" intent-tracking event above —
+        // this tells the dashboard whether the FAQ knowledge base actually covered the
+        // question, which is the signal for deciding whether to invest in sourcing real
+        // internal manuals (see plans/for-ask-cary-spicy-planet.md Phase 1).
+        eventType: installationAnswer.matched ? "installation_answered" : "installation_escalated",
+        metadata: { categories: intent.categories, sources: installationAnswer.sources },
       });
       return NextResponse.json({
-        result,
+        result: installationAnswer.message,
         recommendations: [],
         dealers: [],
         reasoning: null,
         aiUsed: true,
         error: undefined,
-        followups: [
-          "New installation guidance",
-          "Troubleshooting or leakage issue",
-          "Cleaning and maintenance help",
-        ],
+        followups: installationAnswer.followups,
+        sessionId: activeSessionId,
+      });
+    }
+
+    // Architect/designer/contractor persona (see resolvePersona in
+    // services/conversationStateService.ts — sticky once detected, folded into
+    // memory.preferences.persona rather than a new column). Only takes over when
+    // there's also a concrete product category this turn; pure chit-chat from a
+    // professional still goes through the normal small-talk path below.
+    // Feature-flagged off for now — set ENABLE_ARCHITECT_ASSISTANT=true to
+    // re-enable; handler/prompt stay in place, this just skips the branch.
+    const userPersona = (memory?.preferences as { persona?: string } | undefined)?.persona;
+    if (
+      architectAssistantEnabled &&
+      userPersona === "professional" &&
+      !intent.dealer_intent &&
+      !turnSignals.smallTalk &&
+      intent.categories.length > 0
+    ) {
+      const architectAnswer = await answerArchitectQuery(userRawMessage, intent.categories);
+      await updateLeadRecord({
+        sessionId: activeSessionId,
+        contactInfo: contactInfoForLeadDatabaseUpdate(contactInfo, leadSnapshotForWrite, allowContactPersist),
+        salesIntent,
+        interestedProductLabel: interestedProduct ?? null,
+        stage: "preferences_collected",
+      });
+      await storeChatEvent({
+        sessionId: activeSessionId,
+        role: "assistant",
+        message: architectAnswer.message,
+        eventType: "assistant_message",
+        metadata: { architectAssistant: true, sources: architectAnswer.sources },
+      });
+      await storeAnalyticsEvent({
+        sessionId: activeSessionId,
+        query: userRawMessage,
+        detectedIntent: salesIntent.intent,
+        category: salesIntent.category,
+        budgetType: salesIntent.budget_type,
+        city: contactInfo.city || salesIntent.city,
+        eventType: "architect_query_answered",
+        metadata: { categories: intent.categories, sources: architectAnswer.sources },
+      });
+      return NextResponse.json({
+        result: architectAnswer.message,
+        recommendations: [],
+        dealers: [],
+        reasoning: null,
+        aiUsed: true,
+        error: undefined,
+        followups: architectAnswer.followups,
         sessionId: activeSessionId,
       });
     }
@@ -1092,6 +1174,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // Guard against the bug where the model returns `recommended_ids: []` (a
+    // correct "no good match" signal per the product_recommendation prompt)
+    // while still writing confident/upbeat text — the "always warm
+    // acknowledgment" and "say so if no matches" prompt rules are independent,
+    // so nothing upstream cross-checks them, and the UI renders zero cards
+    // under a message that implies success. Every turn in this recommendation
+    // path is generated by the same prompt, so forcing an honest "no match"
+    // framing here whenever recommendations end up empty is always correct.
+    if (recommendations.length === 0) {
+      const fallbackCategoryPhrase = categoryLabel === "various" ? "catalogue" : categoryLabel.toLowerCase();
+      result = {
+        ...result,
+        message: `I couldn't find an exact match for that in our ${fallbackCategoryPhrase} range — want me to show close alternatives, or adjust the budget/material?`,
+      };
+    } else if (isDisplayComplaint) {
+      // Retrieval succeeded on retry — acknowledge the earlier display issue
+      // rather than silently re-showing products as if nothing happened.
+      result = {
+        ...result,
+        message: `Sorry about that — here they are again:\n\n${result.message ?? ""}`.trim(),
+      };
+    }
+
     const recommendationConfidence: "low" | "medium" | "high" =
       recommendations.length === 0
         ? "low"
@@ -1114,6 +1219,10 @@ export async function POST(request: Request) {
       recommendations: lightRecommendations,
       contactInfo: contactForEngine,
       recommendationConfidence,
+      // Same decline/exhaustion signals that gate the pre-catalogue clarification guard
+      // above (line ~537) — without this, the post-recommendation engine would re-open
+      // the same "keep asking for filters" loop that guard was built to close.
+      declinesRefinement: turnSignals.declinesRefinement || clarificationAttemptsExhausted,
     });
 
     const aiFollowup = sanitizeFollowupQuestion(result.followup_question);

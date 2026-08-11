@@ -384,6 +384,17 @@ async function run(): Promise<void> {
     }
   }
 
+  if (embedded > 0) {
+    const pool = getDbPool();
+    const lists = Math.max(1, Math.ceil(rows.length / 1000));
+    await pool.query(`DROP INDEX IF EXISTS products_embedding_cosine_idx`);
+    await pool.query(
+      `CREATE INDEX products_embedding_cosine_idx ON products
+       USING ivfflat (embedding vector_cosine_ops) WITH (lists = ${lists})`
+    );
+    console.log(`Rebuilt products_embedding_cosine_idx (lists=${lists}).`);
+  }
+
   console.log("Catalogue import completed.");
 }
 

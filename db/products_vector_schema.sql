@@ -17,4 +17,4 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE INDEX IF NOT EXISTS products_embedding_cosine_idx
 ON products
 USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
+WITH (lists = 1);

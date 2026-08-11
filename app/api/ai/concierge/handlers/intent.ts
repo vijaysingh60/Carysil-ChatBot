@@ -61,6 +61,18 @@ export function hasRecentExplicitDealerLocationAsk(history: ConversationMessage[
   return false;
 }
 
+/**
+ * Purpose-built for "I can't see the products" style replies — not the generic
+ * LLM `frustration` signal, which is too broad (would also fire on unrelated
+ * complaints like "the price is too high") and would trigger the wrong recovery.
+ */
+const DISPLAY_COMPLAINT_PATTERN =
+  /\b(can'?t|cannot|couldn'?t|don'?t)\s+see\b|\bnot\s+(showing|visible|loading|working|appearing)\b|\bnothing\s+(shows?|loads?|appears?|is\s+showing)\b|\bno\s+(products?|cards?|images?|pictures?)\s*(shown|showing|visible|loaded)?\b|\bwhere\s+(are|is)\s+the\s+(products?|sinks?|images?)\b|\b(blank|empty)\s+(screen|page|chat)\b/i;
+
+export function looksLikeDisplayComplaint(message: string): boolean {
+  return DISPLAY_COMPLAINT_PATTERN.test(message.trim());
+}
+
 export function isOpenEndedFollowup(message: string): boolean {
   return /^(any|anything|any\s+one|any\s+of\s+them|any\s+(?:size|type|style|budget|finish|colour|color)|no\s+(?:size|type|style|budget|finish|colour|color)\s+preference|no\s+preference|no\s+preferences|does(?:n'?t)?\s+matter|show\s+me|show\s+options|show\s+some|yes|yeah|yep|ok|okay|whatever|whatever\s+is\s+best|you\s+choose|recommend|recommend\s+some|best\s+one|explore\s+(?:the\s+)?full\s+range)(?:\s+(sink|sinks|faucet|faucets|tap|taps|hob|hobs|chimney|chimneys|dishwasher|dishwashers|disposer|disposers|combo|combos|accessory|accessories|appliance|appliances))?[\.\!]*$/i.test(
     message.trim()
@@ -223,7 +235,12 @@ export function resolveFollowupIntent(
     };
   }
 
-  if (!isOpenEndedFollowup(message) && !followupFilters) return null;
+  // "I can't see the products" carries no category keyword or filter of its own —
+  // without this, it falls through to a stateless detectIntent(message) call with
+  // no history, which reclassifies it as a fresh vague query and re-asks "what
+  // product are you looking for" instead of retrying the product context that was
+  // just discussed (see plans/for-ask-cary-spicy-planet.md — display-complaint bug).
+  if (!isOpenEndedFollowup(message) && !followupFilters && !looksLikeDisplayComplaint(message)) return null;
 
   return {
     categories: [context.category],

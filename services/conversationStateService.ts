@@ -173,6 +173,7 @@ Schema:
   "preferences": object,
   "intent_confidence": number,
   "buying_confidence": number,
+  "professional_query": boolean,
 
   "greeting": boolean,
   "farewell": boolean,
@@ -208,7 +209,16 @@ Rules:
    e.g. "no preference", "just sinks", "just show me sinks", "anything is fine", "doesn't matter",
    "don't care", "whatever", "any one is fine", "surprise me". This is about accepting a broad/unfiltered
    result, NOT about product intent — a message can decline refinement while still naming the category
-   (e.g. "just sinks" → category "Sink", declines_refinement true).`;
+   (e.g. "just sinks" → category "Sink", declines_refinement true).
+9. "professional_query" is true when the message reads like it's from an architect, interior designer,
+   contractor, dealer, or other trade professional rather than a homeowner shopping for their own kitchen —
+   e.g. mentions "spec sheet", "cutout dimensions", "cutout size", "load rating", "specification",
+   "for a client project", "for a project", "bulk order", "CAD", "certification", "site engineer", "BOQ",
+   "specifying for", "on behalf of a client". A bare product question from a homeowner ("what sizes do
+   quartz sinks come in?") is NOT professional_query — only set true on a clear trade/technical signal.
+   Once true, treat it as sticky for the rest of the conversation (this is folded into durable state, not
+   re-asked every turn) — so still return true on later turns that continue the same technical thread even
+   without repeating the trigger phrase, based on the recent conversation context provided.`;
 
 type EntityExtractionResult = ConversationStatePatch & {
   intentConfidence?: number;
@@ -262,6 +272,7 @@ type RawExtraction = {
   preferences?: Record<string, unknown>;
   intent_confidence?: number;
   buying_confidence?: number;
+  professional_query?: boolean;
 
   greeting?: boolean;
   farewell?: boolean;
@@ -277,6 +288,19 @@ type RawExtraction = {
   declines_refinement?: boolean;
   confidence?: number;
 };
+
+/**
+ * "professional" is sticky for the session once detected — an architect asking a
+ * follow-up product question shouldn't have to repeat trade language every turn.
+ * Resolved in code (not left to the model to re-derive from context each call)
+ * for the same reason the clarification-attempt counter is explicit state rather
+ * than re-inferred per message: re-derivation is where these signals silently drop.
+ */
+function resolvePersona(raw: RawExtraction, prior: ConversationState | null): "professional" | null {
+  const priorPersona = (prior?.preferences as { persona?: string } | undefined)?.persona;
+  if (priorPersona === "professional" || raw.professional_query) return "professional";
+  return null;
+}
 
 function clamp01(value: unknown): number | undefined {
   if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
@@ -373,7 +397,12 @@ export async function extractStructuredEntities(
     cacheKey
   );
   const raw = data ?? {};
-  return { ...stripNulls(raw), turnSignals: data ? extractTurnSignals(raw) : EMPTY_TURN_SIGNALS };
+  const extraction = stripNulls(raw);
+  const persona = resolvePersona(raw, prior);
+  if (persona) {
+    extraction.preferences = { ...(extraction.preferences ?? {}), persona };
+  }
+  return { ...extraction, turnSignals: data ? extractTurnSignals(raw) : EMPTY_TURN_SIGNALS };
 }
 
 const SUMMARY_SYSTEM = `You are AskCary's conversation summarizer. Compress the conversation into ONE short sentence

@@ -9,7 +9,8 @@
     "lint": "next lint",
     "embed:products": "node --import tsx scripts/generateProductEmbeddings.ts",
     "import:catalog": "node --import tsx scripts/importCatalogProducts.ts",
-    "import:dealers": "node --import tsx scripts/importDealers.ts"
+    "import:dealers": "node --import tsx scripts/importDealers.ts",
+    "import:documents": "node --import tsx scripts/importDocuments.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

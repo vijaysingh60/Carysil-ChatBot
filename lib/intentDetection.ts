@@ -78,7 +78,13 @@ export function detectSalesIntent(
     signals.push("dealer_inquiry");
     probability += 0.34;
   }
-  if (/\b(install|installation|fitting|support|service)\b/.test(lower)) {
+  // Install/troubleshoot only — bare "support"/"service" must not steal shopping turns.
+  if (
+    /\b(install(?:ation|ing|ed)?|reinstall|uninstal+)\b/.test(lower) ||
+    /\b(how\s+to\s+fit|fitting\s+instructions|fitting\s+guide)\b/.test(lower) ||
+    /\b(mount(?:ing|ed)?|undermount|top\s*mount|cut[\s-]?out)\b/.test(lower) ||
+    /\b(troubleshoot(?:ing)?|warranty\s+claim)\b/.test(lower)
+  ) {
     signals.push("installation_inquiry");
     probability += 0.3;
   }

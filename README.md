@@ -32,11 +32,19 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Initialize/sync vectors in another terminal:
+Initialize/sync catalogue and knowledge base in another terminal (embedding service must be running):
 
 ```bash
+npm run import:catalog
+npm run import:documents
 npm run embed:products
 ```
+
+- `import:catalog` — upserts scraped products into Postgres with `features` / `specifications` from `technical_details` (needed for architect/spec answers), then rebuilds the product IVFFlat index
+- `import:documents` — embeds FAQs from `data/documents/faqs.json` into the `documents` table (needed for installation/support RAG), then rebuilds the document IVFFlat index
+- `embed:products` — backfills product embeddings if the catalog import skipped them
+
+> IVFFlat indexes must be rebuilt after the first embedding load (import scripts do this). Creating them on an empty table with a high `lists` value makes nearest-neighbor search miss true matches.
 
 Run app:
 
@@ -50,31 +58,31 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Primary demo UI (single chatbot)
 
-- `/` — **Carysil Concierge** (one chatbot that routes requests to products, dealer routing, installation help, or design assistant)
+- `/` — **AskCary** landing page
+- `/concierge` — the chatbot UI
+- `/embed/chat` — embeddable widget
+- `/dashboard` — internal analytics/leads dashboard
 
-API route used by the chatbot: `/api/ai/concierge`.
-This route now performs hybrid retrieval:
+API route used by the chatbot: `/api/ai/concierge`. This is a single orchestrator route
+(with logic split into `app/api/ai/concierge/handlers/*`) that routes each message to
+product recommendation, dealer routing, lead capture, installation support, or architect/spec assistance. It performs
+hybrid retrieval for products:
 1) query embedding generation via Flask service
 2) `pgvector` similarity search (`ORDER BY embedding <=> $1`)
 3) SQL filters for user constraints (material/style/keywords/budget)
 4) only top relevant products are sent to OpenAI for response generation
 
-### Legacy single-feature pages (optional)
+**Installation support** answers from retrieved FAQ/guide documents and escalates to a dealer when guidance is missing or only says “refer to the manual.”
+**Architect support** (sticky professional persona) answers from ranked catalog specifications plus gated reference documents — never invents dimensions or certifications.
 
-These pages still exist in the prototype but are no longer the primary demo UI:
-
-- `/kitchen-recommendation`
-- `/dealer-routing`
-- `/installation-help`
-- `/design-assistant`
-
-Other API routes: `/api/ai/recommend-products`, `/api/ai/dealer-routing`, `/api/ai/install-help`, `/api/ai/design-assistant`.
+Other API routes: `/api/ai/status`, `/api/ai/track-click`, `/api/cron/decay-leads`.
 
 ## Data
 
 - `data/products.json` — Kitchen & bathroom products (name, category, style, material, price_range, description)
+- `data/categories/` + `data/categories2/` — scraped catalogue with `technical_details` (source for `import:catalog`)
+- `data/documents/faqs.json` — Carysil FAQ entries (source for `import:documents`)
 - `data/dealers.json` — Dealers (name, city, state, products_supported, contact_email, phone)
-- `data/installation_guides.json` — Installation guides (product, issue, solution, video_link, manual_link)
 
 ## Environment
 

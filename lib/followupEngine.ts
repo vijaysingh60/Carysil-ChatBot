@@ -30,6 +30,15 @@ export type FollowupContext = {
   recommendations: RecommendationLite[];
   contactInfo: ContactInfo;
   recommendationConfidence?: "low" | "medium" | "high";
+  /**
+   * True when the user has already declined to narrow down this turn (or exhausted the
+   * pre-catalogue clarification attempt budget for this category — see the guard in
+   * app/api/ai/concierge/route.ts). Once true, this engine must not ask another filter
+   * question (bowl type, finish, hob type, etc.) — same "give up after 1 attempt" policy
+   * as the pre-catalogue guard, applied here so the post-recommendation branches don't
+   * re-open the same loop the pre-catalogue fix closed.
+   */
+  declinesRefinement?: boolean;
 };
 
 export type FollowupResult = {
@@ -280,7 +289,7 @@ export function generateFollowupQuestion(ctx: FollowupContext): FollowupResult {
     };
   }
 
-  if (lowConfidence && category) {
+  if (lowConfidence && category && !ctx.declinesRefinement) {
     const clarifier = clarificationQuestion(category, message, history);
     if (clarifier) {
       return {
@@ -331,7 +340,11 @@ export function generateFollowupQuestion(ctx: FollowupContext): FollowupResult {
         rationale: "sink_cross_sell_premium",
       };
     }
-    if (!userHasSizeOrBowlPreference(message, history) && !recentlyAskedQuestion(history, /single\s+bowl|double\s+bowl/i)) {
+    if (
+      !ctx.declinesRefinement &&
+      !userHasSizeOrBowlPreference(message, history) &&
+      !recentlyAskedQuestion(history, /single\s+bowl|double\s+bowl/i)
+    ) {
       return {
         question: "Would you prefer a single-bowl or double-bowl configuration?",
         category: "clarification",
@@ -348,7 +361,7 @@ export function generateFollowupQuestion(ctx: FollowupContext): FollowupResult {
     STAGE_RANK[inferredStage] < STAGE_RANK.cross_sell_offered &&
     !recentlyAskedQuestion(history, /matching\s+sink|sink\s+to\s+pair/i)
   ) {
-    if (!userHasFinishOrColor(message, history)) {
+    if (!ctx.declinesRefinement && !userHasFinishOrColor(message, history)) {
       return {
         question: "Any preferred finish — chrome, matte black, or PVD?",
         category: "clarification",
@@ -387,7 +400,7 @@ export function generateFollowupQuestion(ctx: FollowupContext): FollowupResult {
       : [];
     const isHob = keywords.includes("hob") || /\b(hob|burner)\b/i.test(message);
     const isChimney = keywords.includes("chimney") || /\bchimney\b/i.test(message);
-    if (isHob && !userMentionsHobType(message, history)) {
+    if (isHob && !ctx.declinesRefinement && !userMentionsHobType(message, history)) {
       return {
         question: "Do you prefer a gas or induction hob, and how many burners (3 / 4 / 5)?",
         category: "clarification",
@@ -419,7 +432,7 @@ export function generateFollowupQuestion(ctx: FollowupContext): FollowupResult {
     }
   }
 
-  if (category === "Combo" && STAGE_RANK[inferredStage] < STAGE_RANK.cross_sell_offered) {
+  if (category === "Combo" && !ctx.declinesRefinement && STAGE_RANK[inferredStage] < STAGE_RANK.cross_sell_offered) {
     return {
       question: "Would you like me to fine-tune the combo by size, finish, or budget?",
       category: "clarification",
@@ -453,6 +466,20 @@ export function generateFollowupQuestion(ctx: FollowupContext): FollowupResult {
       shouldOfferLead: false,
       shouldRequestContact: false,
       rationale: "generic_cross_sell",
+    };
+  }
+
+  if (hasRecommendations && ctx.declinesRefinement) {
+    // User already declined to narrow down — offer a neutral next step (dealer connect)
+    // instead of another category-specific filter question (bowl type, finish, etc.),
+    // which is exactly the loop the pre-catalogue clarification guard exists to prevent.
+    return {
+      question: "Would you like me to connect you with a Carysil dealer near your city for pricing and availability?",
+      category: "dealer",
+      stage: "recommendations_shown",
+      shouldOfferLead: true,
+      shouldRequestContact: false,
+      rationale: "declined_refinement_neutral_followup",
     };
   }
 
