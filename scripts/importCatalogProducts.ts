@@ -386,13 +386,29 @@ async function run(): Promise<void> {
 
   if (embedded > 0) {
     const pool = getDbPool();
-    const lists = Math.max(1, Math.ceil(rows.length / 1000));
+    // Below ~5,000 rows an IVFFlat ANN index is a net negative: verified
+    // during the RAG audit that `lists=100` on 586 rows (whatever earlier
+    // process created it) combined with pgvector's default `probes=1`
+    // returned 1 row for a `LIMIT 10` query where a sequential scan
+    // correctly returned all 10 with the true match ranked first — the
+    // index was silently starving retrieval. A seq scan over a few thousand
+    // rows computing exact cosine distance costs single-digit milliseconds,
+    // so there is no latency reason to index this small. Drop rather than
+    // rebuild until the catalogue is large enough to need approximate search.
+    const ANN_INDEX_ROW_THRESHOLD = 5000;
     await pool.query(`DROP INDEX IF EXISTS products_embedding_cosine_idx`);
-    await pool.query(
-      `CREATE INDEX products_embedding_cosine_idx ON products
-       USING ivfflat (embedding vector_cosine_ops) WITH (lists = ${lists})`
-    );
-    console.log(`Rebuilt products_embedding_cosine_idx (lists=${lists}).`);
+    if (rows.length >= ANN_INDEX_ROW_THRESHOLD) {
+      const lists = Math.max(1, Math.round(Math.sqrt(rows.length)));
+      await pool.query(
+        `CREATE INDEX products_embedding_cosine_idx ON products
+         USING ivfflat (embedding vector_cosine_ops) WITH (lists = ${lists})`
+      );
+      console.log(`Rebuilt products_embedding_cosine_idx (lists=${lists}).`);
+    } else {
+      console.log(
+        `Skipped ANN index (${rows.length} rows < ${ANN_INDEX_ROW_THRESHOLD} threshold) — relying on exact sequential scan.`
+      );
+    }
   }
 
   console.log("Catalogue import completed.");

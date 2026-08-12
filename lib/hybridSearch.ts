@@ -1,5 +1,6 @@
-import { searchSimilarProducts, type SimilarProduct } from "@/lib/vectorSearch";
+import { searchSimilarProducts, expandVectorCategories, type SimilarProduct } from "@/lib/vectorSearch";
 import { getDbPool } from "@/lib/db";
+import { buildTsQuery, ftsRankToSimilarity } from "@/lib/textSearch";
 
 type SearchOptions = {
   limit?: number;
@@ -15,23 +16,20 @@ async function searchByFTS(
   query: string,
   options: SearchOptions
 ): Promise<SimilarProduct[]> {
-  const pool = getDbPool();
-  const params: Array<string | number | string[]> = [];
-  const where: string[] = ["is_active = true"];
+  // A stopword-only or punctuation-only query has nothing meaningful to
+  // search on — skip FTS rather than let to_tsquery match everything.
+  const tsQuery = buildTsQuery(query);
+  if (!tsQuery) return [];
 
-  // FTS using the auto-generated search_text column (GIN index)
-  const tsQuery = query
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .join(" | ");
-  params.push(tsQuery);
-  where.push(
-    `to_tsvector('simple', COALESCE(search_text, '')) @@ to_tsquery('simple', $${params.length})`
-  );
+  const pool = getDbPool();
+  const params: Array<string | number | string[]> = [tsQuery];
+  const where: string[] = [
+    "is_active = true",
+    `to_tsvector('english', COALESCE(search_text, '')) @@ to_tsquery('english', $1)`,
+  ];
 
   if (options.categories && options.categories.length > 0) {
-    params.push(options.categories);
+    params.push(expandVectorCategories(options.categories, options.keywords));
     where.push(`category = ANY($${params.length}::text[])`);
   }
   if (options.material) {
@@ -50,15 +48,14 @@ async function searchByFTS(
   params.push(options.limit ?? 5);
   const { rows } = await pool.query<SimilarProduct & { rank: number }>(
     `SELECT id, name, category, material, style, size, description, price, url, image_url,
-            0 AS similarity,
-            ts_rank(to_tsvector('simple', COALESCE(search_text, '')), to_tsquery('simple', $1)) AS rank
+            ts_rank(to_tsvector('english', COALESCE(search_text, '')), to_tsquery('english', $1)) AS rank
      FROM products
      WHERE ${where.join(" AND ")}
      ORDER BY rank DESC
      LIMIT $${params.length}`,
     params
   );
-  return rows;
+  return rows.map((row) => ({ ...row, similarity: ftsRankToSimilarity(Number(row.rank)) }));
 }
 
 function mergeResults(

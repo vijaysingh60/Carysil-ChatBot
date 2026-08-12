@@ -1,0 +1,4873 @@
+{
+  "generated_at": "2026-08-11T16:42:02.826Z",
+  "hybrid": {
+    "aggregate": {
+      "n_queries": 60,
+      "recall_at_1": 0.7421568627450981,
+      "recall_at_3": 0.8848039215686274,
+      "recall_at_5": 0.9191176470588236,
+      "recall_at_10": 0.9549019607843138,
+      "precision_at_5": 0.20333333333333323,
+      "mrr": 0.8422883597883598,
+      "zero_hit_queries": [
+        {
+          "id": "typo_56",
+          "question": "quarts sinc for kitchen",
+          "expected": [
+            "carysil-13322-tango-single-bowl-kitchen-sink"
+          ]
+        },
+        {
+          "id": "typo_57",
+          "question": "kichen fawcet reccomendation",
+          "expected": [
+            "ala-01504"
+          ]
+        }
+      ]
+    },
+    "per_query": [
+      {
+        "id": "lookup_name_1",
+        "category": "product_lookup_name",
+        "question": "What is the \"15 Marine Grade\"?",
+        "expected": [
+          "15-marine-grade"
+        ],
+        "retrieved_top10": [
+          "15-marine-grade",
+          "carysil-all-in-one-ss-workstation-30x20x8-inches-chrome",
+          "carysil-all-in-one-ss-workstation-30x20x8-inches-gun-metal",
+          "carysil-oven-bio-01",
+          "carysil-multipurpose-304-grade-stainless-steel-kitchen-basket",
+          "carysil-fold-mat-drying-rack-for-kitchen-sink-36-8x2-6x1-4cm",
+          "carysil-espresso-maker",
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "carysil-fold-mat-drying-rack-for-kitchen-sink-38-6x2-6x1-4cm",
+          "carysil-oven-bio-02"
+        ],
+        "scores_top10": [
+          0.15198177499999999,
+          0.12665147499999999,
+          0.12665147499999999,
+          0.0721209825,
+          0.068954695,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_name_2",
+        "category": "product_lookup_name",
+        "question": "What is the \"Abwasser Platform Chimney\"?",
+        "expected": [
+          "abwasser-platform-chimney"
+        ],
+        "retrieved_top10": [
+          "abwasser-platform-chimney",
+          "railing-island-chimney",
+          "rock-chimney",
+          "miracle-chimney-90-cm",
+          "teckno-chimney",
+          "vista-chimney",
+          "starship-chimney",
+          "rockstar-chimney",
+          "rome-chimney",
+          "miracle-chimney-60-cm"
+        ],
+        "scores_top10": [
+          0.1899772125,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_name_3",
+        "category": "product_lookup_name",
+        "question": "What is the \"ALA 01504, ALA 01504\"?",
+        "expected": [
+          "ala-01504"
+        ],
+        "retrieved_top10": [
+          "ala-01504",
+          "ala-01509",
+          "ala-1512",
+          "ala-1511",
+          "ala-2301",
+          "ala-01508",
+          "ala-01507",
+          "ala-01506",
+          "carysil-ala-1512-brass-kitchen-faucet-with-pull-out-spout-sprayer-and-single-handle-pull-down-kitchen-sink-faucet",
+          "carysil-alpha04-kitchen-faucet-pull-out-sprayer-solid-brass-180-swivel-spout-2-function-spray-ceramic-cartridge-stainless-steel-hoses-easy-installation-premium-packaging"
+        ],
+        "scores_top10": [
+          0.19842063999999998,
+          0.1034320425,
+          0.1034320425,
+          0.1034320425,
+          0.1034320425,
+          0.1034320425,
+          0.1034320425,
+          0.1034320425,
+          0.09498860749999999,
+          0.07599088749999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_name_4",
+        "category": "product_lookup_name",
+        "question": "What is the \"BIH 01 Smart Induction\"?",
+        "expected": [
+          "bih-01-smart-induction"
+        ],
+        "retrieved_top10": [
+          "bih-01-smart-induction",
+          "carysil-sm430-smart-series-single-bowl-kitchen-sink",
+          "qubix-01-wall-mounted",
+          "coldtap-ct-01",
+          "chicago-01",
+          "carysil-sm530-smart-series-single-bowl-kitchen-sink",
+          "built-in-refrigerator-01",
+          "smart-wall-mounted-chimney",
+          "tune-c-wall-mounted-chimney",
+          "carysil-sm370-smart-series-single-bowl-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.18047835,
+          0.0517160225,
+          0.0517160225,
+          0.0517160225,
+          0.047494302499999995,
+          0.047494302499999995,
+          0.047494302499999995,
+          0.047494302499999995,
+          0.047494302499999995,
+          0.047494302499999995
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_name_5",
+        "category": "product_lookup_name",
+        "question": "What is the \"Chopping Board for Kitchen\"?",
+        "expected": [
+          "carysil-20mm-chopping-board-for-kitchen"
+        ],
+        "retrieved_top10": [
+          "carysil-780-waltz-single-bowl-kitchen-sink",
+          "carysil-780-u-waltz-single-bowl-kitchen-sink",
+          "carysil-20mm-chopping-board-for-kitchen",
+          "carysil-chopping-board-546-x-460",
+          "chopping-board-259x434",
+          "carysil-step-up-sink-31x20x10",
+          "carysil-680u-waltz-single-bowl-kitchen-sink",
+          "carysil-ala-1512-brass-kitchen-faucet-with-pull-out-spout-sprayer-and-single-handle-pull-down-kitchen-sink-faucet",
+          "carysil-d150-tip-toe-single-with-drainer-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.164646925,
+          0.164646925,
+          0.15198177499999999,
+          0.13228043,
+          0.12665147499999999,
+          0.10132118250000001,
+          0.10132118250000001,
+          0.0721209825,
+          0.068954695,
+          0.068954695
+        ],
+        "rank_of_first_hit": 3,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_name_6",
+        "category": "product_lookup_name",
+        "question": "What is the \"Food Waste Disposer for Home Sink\"?",
+        "expected": [
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person"
+        ],
+        "retrieved_top10": [
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-food-waste-disposer-3-4-hp-standard-2to6-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "food-waste-disposer-1-2-hp-heavy-duty-with-air-switch",
+          "food-waste-disposer-1-2-hp-standard",
+          "food-waste-disposer-3-4-hp-heavy-duty",
+          "food-waste-disposer-3-4-hp-standard",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person"
+        ],
+        "scores_top10": [
+          0.15958087499999998,
+          0.15958087499999998,
+          0.15958087499999998,
+          0.15958087499999998,
+          0.15958087499999998,
+          0.147760045,
+          0.132561875,
+          0.132561875,
+          0.132561875,
+          0.1291845175
+        ],
+        "rank_of_first_hit": 5,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_id_7",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id american-design-adb3322.",
+        "expected": [
+          "american-design-adb3322"
+        ],
+        "retrieved_top10": [
+          "american-design-adb3322",
+          "carysil-2-slice-bread-toaster",
+          "american-design-asb1818",
+          "american-design-asb2418",
+          "carysil-ala-pro-1512-pull-out-faucet-chrome",
+          "american-design-asb2522",
+          "carysil-ala-pro-1512-pull-out-faucet-rose-gold",
+          "carysil-stainless-steel-vegetable-colander-for-kitchen-sink-modern-kitchen-strainer-rust-resistant-compact-easy-draining-washing-for-fruits-vegetables-pasta-36-5x18x7-5-cm",
+          "carysil-stainless-steel-vegetable-colander-for-kitchen-sink-modern-kitchen-strainer-rust-resistant-compact-easy-draining-washing-for-fruits-vegetables-pasta-38-4x18x7-5-cm",
+          "carysil-free-standing-cooking-range-fscr-04-62l-electric-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-black"
+        ],
+        "scores_top10": [
+          0.0823234675,
+          0.061390787499999995,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.050660590000000005,
+          0.050660590000000005,
+          0.050660590000000005
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_id_8",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id arbor-ceiling-chimney.",
+        "expected": [
+          "arbor-ceiling-chimney"
+        ],
+        "retrieved_top10": [
+          "arbor-ceiling-chimney",
+          "bower-ceiling-hood-chimney",
+          "carysil-rome-90cm-curved-kitchen-chimney",
+          "carysil-mint-60cm-t-shape-kitchen-chimney",
+          "carysil-rome-60cm-curved-kitchen-chimney",
+          "carysil-vista-60cm-vertical-slant-kitchen-chimney",
+          "carysil-vista-90cm-vertical-slant-kitchen-chimney",
+          "carysil-rockstar-90cm-kitchen-chimney-silver",
+          "carysil-rockstar-60cm-kitchen-chimney-black",
+          "carysil-kia-fl-75cm-curved-kitchen-chimney"
+        ],
+        "scores_top10": [
+          0.0978030825,
+          0.066140215,
+          0.061390787499999995,
+          0.061390787499999995,
+          0.061390787499999995,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.056993165
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_id_9",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id ala-01506.",
+        "expected": [
+          "ala-01506"
+        ],
+        "retrieved_top10": [
+          "ala-01506",
+          "carysil-ala-pro-1504-kitchen-faucet-nera",
+          "carysil-ala-pro-1512-pull-out-faucet-matt-black",
+          "carysil-ala-pro-1512-pull-out-faucet-rose-gold",
+          "carysil-ala-pro-1504-kitchen-faucet-cornflakes",
+          "carysil-ala-pro-1512-pull-out-faucet-chrome",
+          "carysil-joy-ice-maker-silver",
+          "carysil-sparkle-ice-maker",
+          "carysil-pro-3-burner-60-cm-built-in-hob",
+          "carysil-pro-3-burner-75-cm-built-in-hob"
+        ],
+        "scores_top10": [
+          0.07936826,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.045332787500000006,
+          0.045332787500000006,
+          0.04327259,
+          0.04327259
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_id_10",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id carysil-bravo-78cm-built-in-glass-hob-3-brass-burner.",
+        "expected": [
+          "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner"
+        ],
+        "retrieved_top10": [
+          "carysil-pro-4-burner-78-cm-built-in-hob",
+          "carysil-brazzo-4-burner-78-cm-square-pan-support",
+          "carysil-brazzo-3-burner-78-cm-square-pan-support",
+          "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-3-burner-60-cm-built-in-hob",
+          "carysil-pro-3-burner-75-cm-built-in-hob",
+          "carysil-pro-4-burner-60-cm-built-in-hob",
+          "carysil-tek-plus-60cm-4-burner-built-in-hob",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob"
+        ],
+        "scores_top10": [
+          0.11878374,
+          0.115329615,
+          0.115329615,
+          0.1086132325,
+          0.1049672075,
+          0.1049672075,
+          0.1049672075,
+          0.10151307999999999,
+          0.10151307999999999,
+          0.10151307999999999
+        ],
+        "rank_of_first_hit": 4,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_id_11",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-rose-gold-pvd-finish.",
+        "expected": [
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-rose-gold-pvd-finish"
+        ],
+        "retrieved_top10": [
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-rose-gold-pvd-finish",
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-yellow-gold-pvd-finish",
+          "carysil-ss-square-waste-coupling-pvd-rose-gold",
+          "carysil-ss-square-waste-coupling-pvd-yellow-gold",
+          "carysil-square-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-yellow-gold-pvd-finish",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-rose-gold-pvd-finish",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-pmq-9-pvd-double-bowl-kitchen-sink",
+          "carysil-pmq-3-pvd-single-bowl-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.112884995,
+          0.1031566875,
+          0.0861321675,
+          0.07787229500000001,
+          0.0710349575,
+          0.0710349575,
+          0.06277508,
+          0.06277508,
+          0.0625915225,
+          0.0625915225
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_id_12",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family.",
+        "expected": [
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family"
+        ],
+        "retrieved_top10": [
+          "food-waste-disposer-3-4-hp-heavy-duty-with-air-switch",
+          "food-waste-disposer-1-2-hp-heavy-duty-with-air-switch",
+          "food-waste-disposer-1-2-hp-heavy-duty",
+          "food-waste-disposer-3-4-hp-heavy-duty",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-food-waste-disposer-3-4-hp-standard-2to6-person"
+        ],
+        "scores_top10": [
+          0.102446965,
+          0.094847875,
+          0.08443432000000001,
+          0.07711667999999999,
+          0.06001872999999999,
+          0.06001872999999999,
+          0.06001872999999999,
+          0.06001872999999999,
+          0.06001872999999999,
+          0.06001872999999999
+        ],
+        "rank_of_first_hit": 7,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 1
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_13",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the built-in Automatic Coffee Maker Machine with LCD display?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "built-in-coffee-maker-02",
+          "carysil-built-in-microwave-mwo-01",
+          "mwo-01-microwave",
+          "carysil-espresso-coffee-maker",
+          "free-standing-wine-chiller-126-bottles",
+          "aspetto-semi-professional-coffee-machine",
+          "thunder-burst-multi-boiler-coffee-machine",
+          "mwo-02-microwaves",
+          "legna-extreme-premium-class-double-group-coffee-machine"
+        ],
+        "scores_top10": [
+          0.160029425,
+          0.0733523125,
+          0.066492025,
+          0.066492025,
+          0.0617426,
+          0.061742592500000006,
+          0.049605159999999995,
+          0.049605159999999995,
+          0.047494302499999995,
+          0.047494302499999995
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_14",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Rustic Classic Gas Hob 90 cm?",
+        "expected": [
+          "rustic-classic-gas-hob-90-cm"
+        ],
+        "retrieved_top10": [
+          "rustic-classic-gas-hob-90-cm",
+          "eclipse-matt-gas-hob-90-cm",
+          "matrix-black-gas-hob-90-cm",
+          "vitroceramic-electric-hob-90-cm",
+          "linear-gas-oven-90-cm",
+          "carysil-tek-plus-90cm-built-in-glass-hob-5-brass-burner",
+          "rustic-classic-electric-oven-60-cm",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-tek-plus-90cm-4-burner-built-in-hob"
+        ],
+        "scores_top10": [
+          0.16826552500000003,
+          0.124842175,
+          0.124842175,
+          0.10313048999999999,
+          0.09770257500000001,
+          0.09604403750000001,
+          0.09227465000000001,
+          0.0838312125,
+          0.0838312125,
+          0.0838312125
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_15",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Matrix Black Gas Hob 90 cm?",
+        "expected": [
+          "matrix-black-gas-hob-90-cm"
+        ],
+        "retrieved_top10": [
+          "matrix-black-gas-hob-90-cm",
+          "rustic-classic-gas-hob-90-cm",
+          "eclipse-matt-gas-hob-90-cm",
+          "carysil-tek-plus-90cm-built-in-glass-hob-5-brass-burner",
+          "vitroceramic-electric-hob-90-cm",
+          "linear-gas-oven-90-cm",
+          "carysil-tek-plus-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-tek-plus-75cm-built-in-glass-hob-3-brass-burner",
+          "eclipse-oven-90-cm",
+          "vitroceramic-electric-hob-60-cm"
+        ],
+        "scores_top10": [
+          0.17369347499999999,
+          0.14655385999999998,
+          0.14655385999999998,
+          0.12559605,
+          0.124842175,
+          0.119414255,
+          0.1038843675,
+          0.1038843675,
+          0.09770257500000001,
+          0.09770257500000001
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_16",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Eclipse Matt Gas Hob 90 cm?",
+        "expected": [
+          "eclipse-matt-gas-hob-90-cm"
+        ],
+        "retrieved_top10": [
+          "eclipse-matt-gas-hob-90-cm",
+          "rustic-classic-gas-hob-90-cm",
+          "matrix-black-gas-hob-90-cm",
+          "vitroceramic-electric-hob-90-cm",
+          "linear-gas-oven-90-cm",
+          "eclipse-oven-90-cm",
+          "carysil-tek-plus-90cm-built-in-glass-hob-5-brass-burner",
+          "carysil-ala-pro-1512-pull-out-faucet-matt-black",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob"
+        ],
+        "scores_top10": [
+          0.16826552500000003,
+          0.124842175,
+          0.124842175,
+          0.10313048999999999,
+          0.09770257500000001,
+          0.09770257500000001,
+          0.09604403750000001,
+          0.08624361750000001,
+          0.0838312125,
+          0.0838312125
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_17",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Vitroceramic Electric Hob 90 cm?",
+        "expected": [
+          "vitroceramic-electric-hob-90-cm"
+        ],
+        "retrieved_top10": [
+          "vitroceramic-electric-hob-90-cm",
+          "vitroceramic-electric-hob-60-cm",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "rustic-classic-gas-hob-90-cm",
+          "eclipse-matt-gas-hob-90-cm",
+          "matrix-black-gas-hob-90-cm",
+          "carysil-tek-plus-90cm-4-burner-built-in-hob",
+          "carysil-tek-plus-5-burner-90-cm-built-in-hob",
+          "carysil-tek-plus-75cm-3-burner-built-in-hob"
+        ],
+        "scores_top10": [
+          0.1709795,
+          0.139316625,
+          0.129465945,
+          0.129465945,
+          0.1203189,
+          0.1203189,
+          0.1203189,
+          0.0978030825,
+          0.0978030825,
+          0.0978030825
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_18",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Vitroceramic Electric Hob 60 cm?",
+        "expected": [
+          "vitroceramic-electric-hob-60-cm"
+        ],
+        "retrieved_top10": [
+          "vitroceramic-electric-hob-60-cm",
+          "vitroceramic-electric-hob-90-cm",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "matrix-electric-oven-60-cm",
+          "rustic-classic-electric-oven-60-cm",
+          "carysil-tek-plus-75cm-3-burner-built-in-hob",
+          "carysil-tek-plus-90cm-4-burner-built-in-hob",
+          "carysil-tek-plus-5-burner-90-cm-built-in-hob",
+          "carysil-tek-plus-60cm-4-burner-built-in-hob"
+        ],
+        "scores_top10": [
+          0.1709795,
+          0.139316625,
+          0.129465945,
+          0.129465945,
+          0.121198435,
+          0.11398633,
+          0.0978030825,
+          0.0978030825,
+          0.0978030825,
+          0.0978030825
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_19",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Bravo 78cm Built-in Glass Hob?",
+        "expected": [
+          "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner"
+        ],
+        "retrieved_top10": [
+          "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-4-burner-78-cm-built-in-hob",
+          "carysil-brazzo-4-burner-78-cm-square-pan-support",
+          "carysil-brazzo-3-burner-78-cm-square-pan-support",
+          "carysil-pro-78cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-3-burner-60-cm-built-in-hob",
+          "carysil-pro-3-burner-75-cm-built-in-hob",
+          "carysil-pro-4-burner-60-cm-built-in-hob",
+          "carysil-tek-plus-60cm-4-burner-built-in-hob",
+          "carysil-tek-plus-5-burner-90-cm-built-in-hob"
+        ],
+        "scores_top10": [
+          0.1484636875,
+          0.1456491925,
+          0.1393166175,
+          0.1393166175,
+          0.125947855,
+          0.1203189,
+          0.1203189,
+          0.1203189,
+          0.11398633,
+          0.11398633
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_20",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Pro 78cm Built-in Glass Hob?",
+        "expected": [
+          "carysil-pro-78cm-built-in-glass-hob-4-brass-burner"
+        ],
+        "retrieved_top10": [
+          "carysil-pro-4-burner-78-cm-built-in-hob",
+          "carysil-pro-78cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-4-burner-60-cm-built-in-hob",
+          "carysil-pro-3-burner-75-cm-built-in-hob",
+          "carysil-pro-3-burner-60-cm-built-in-hob",
+          "carysil-brazzo-3-burner-78-cm-square-pan-support",
+          "carysil-brazzo-4-burner-78-cm-square-pan-support",
+          "carysil-pro-75cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-60cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-60cm-built-in-glass-hob-4-brass-burner"
+        ],
+        "scores_top10": [
+          0.170979475,
+          0.157610725,
+          0.1456492,
+          0.1456492,
+          0.1456492,
+          0.1393166175,
+          0.1393166175,
+          0.13228043,
+          0.13228043,
+          0.13228043
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_21",
+        "category": "attribute_material",
+        "question": "What material is the Built-In Barbeque made of?",
+        "expected": [
+          "carysil-built-in-barbeque"
+        ],
+        "retrieved_top10": [
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "carysil-built-in-barbeque",
+          "carysil-tek-plus-5-burner-90-cm-built-in-hob",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-big-bowl-kitchen-sink",
+          "carysil-tek-plus-90cm-4-burner-built-in-hob",
+          "carysil-oven-bio-02",
+          "carysil-oven-bio-01",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "carysil-tek-plus-75cm-3-burner-built-in-hob"
+        ],
+        "scores_top10": [
+          0.11398633,
+          0.09498860749999999,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_22",
+        "category": "attribute_material",
+        "question": "What material is the Built-in Coffee-Maker 02 made of?",
+        "expected": [
+          "built-in-coffee-maker-02"
+        ],
+        "retrieved_top10": [
+          "built-in-coffee-maker-02",
+          "carysil-oven-bio-02",
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "built-in-refrigerator-02",
+          "carysil-espresso-coffee-maker",
+          "coldtap-ct-02",
+          "carysil-oven-bio-01",
+          "carysil-big-bowl-kitchen-sink",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob"
+        ],
+        "scores_top10": [
+          0.123133375,
+          0.0823234575,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.06332573999999999,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.056993165
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_23",
+        "category": "attribute_material",
+        "question": "What material is the built-in Automatic Coffee Maker Machine with LCD display made of?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "built-in-coffee-maker-02",
+          "carysil-espresso-coffee-maker",
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "thunder-burst-multi-boiler-coffee-machine",
+          "aspetto-semi-professional-coffee-machine",
+          "legna-extreme-premium-class-double-group-coffee-machine",
+          "grande-caldaiato-double-group-coffee-machine",
+          "piccola-semi-professional-coffee-machine",
+          "carysil-oven-bio-01"
+        ],
+        "scores_top10": [
+          0.1182080425,
+          0.0652020575,
+          0.0548823075,
+          0.050660590000000005,
+          0.044093475,
+          0.044093475,
+          0.042217160000000004,
+          0.039871762500000005,
+          0.039871762500000005,
+          0.037995445
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_24",
+        "category": "attribute_material",
+        "question": "What material is the Built In Dishwasher DW – 04 made of?",
+        "expected": [
+          "built-in-dishwasher-dw-04"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "built-in-dishwasher-dw-02",
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "carysil-built-in-dishwasher-dw-01-14-place-7-wash-programs",
+          "carysil-semi-built-in-dishwasher-dw-02-12-place-6-wash-programs",
+          "free-standing-dishwasher-dw-03",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-big-bowl-kitchen-sink",
+          "carysil-oven-bio-02"
+        ],
+        "scores_top10": [
+          0.11398633,
+          0.0823234575,
+          0.0823234575,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.06332573999999999,
+          0.056993165,
+          0.056993165,
+          0.056993165
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_25",
+        "category": "attribute_material",
+        "question": "What material is the Free Standing Dishwasher DW – 03 made of?",
+        "expected": [
+          "free-standing-dishwasher-dw-03"
+        ],
+        "retrieved_top10": [
+          "free-standing-dishwasher-dw-03",
+          "carysil-built-in-dishwasher-dw-03-12-place-6-wash-programs",
+          "carysil-built-in-dishwasher-dw-04-12-place-6-wash-programs",
+          "free-standing-wine-chiller-38-bottles",
+          "free-standing-wine-chiller-31-bottles",
+          "free-standing-wine-chiller-54-bottles",
+          "free-standing-wine-chiller-24-bottles",
+          "wine-chiller-46-bottles",
+          "free-standing-wine-chiller-126-bottles",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml"
+        ],
+        "scores_top10": [
+          0.119414255,
+          0.0868467325,
+          0.0868467325,
+          0.059104025000000004,
+          0.059104025000000004,
+          0.059104025000000004,
+          0.059104025000000004,
+          0.059104025000000004,
+          0.059104025000000004,
+          0.05804859
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_26",
+        "category": "attribute_material",
+        "question": "What material is the Built In Dishwasher DW – 02 made of?",
+        "expected": [
+          "built-in-dishwasher-dw-02"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-02",
+          "built-in-dishwasher-dw-04",
+          "carysil-oven-bio-02",
+          "built-in-dishwasher-dw-01",
+          "carysil-built-in-dishwasher-dw-01-14-place-7-wash-programs",
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "carysil-semi-built-in-dishwasher-dw-02-12-place-6-wash-programs",
+          "free-standing-dishwasher-dw-03",
+          "built-in-refrigerator-02",
+          "coldtap-ct-02"
+        ],
+        "scores_top10": [
+          0.10765375,
+          0.0886560325,
+          0.0823234575,
+          0.0823234575,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.056993165
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_27",
+        "category": "attribute_material",
+        "question": "What material is the Linear Electric Oven 90 made of?",
+        "expected": [
+          "linear-electric-oven-90"
+        ],
+        "retrieved_top10": [
+          "linear-electric-oven-90",
+          "linear-advance-oven-90-cm",
+          "linear-gas-oven-90-cm",
+          "carysil-free-standing-cooking-range-fscr-04-electric-oven",
+          "carysil-oven-bio-02",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-oven-bio-01",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "carysil-free-standing-cooking-range-fscr-04-62l-electric-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-black",
+          "carysil-big-bowl-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.10132118250000001,
+          0.0823234675,
+          0.0823234675,
+          0.067723355,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.056993165,
+          0.056993165
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_28",
+        "category": "attribute_material",
+        "question": "What material is the Built In Dishwasher DW – 01 made of?",
+        "expected": [
+          "built-in-dishwasher-dw-01"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-01",
+          "built-in-dishwasher-dw-04",
+          "carysil-oven-bio-01",
+          "built-in-dishwasher-dw-02",
+          "carysil-built-in-dishwasher-dw-01-14-place-7-wash-programs",
+          "carysil-semi-built-in-dishwasher-dw-02-12-place-6-wash-programs",
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "built-in-refrigerator-01",
+          "free-standing-dishwasher-dw-03",
+          "coldtap-ct-01"
+        ],
+        "scores_top10": [
+          0.10765375,
+          0.0886560325,
+          0.0823234575,
+          0.0823234575,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.06332573999999999,
+          0.06332573999999999,
+          0.05980764
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_29",
+        "category": "attribute_price",
+        "question": "What is the price of the built-in Automatic Coffee Maker Machine with LCD display?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "built-in-coffee-maker-02",
+          "carysil-espresso-coffee-maker",
+          "thunder-burst-multi-boiler-coffee-machine",
+          "aspetto-semi-professional-coffee-machine",
+          "legna-extreme-premium-class-double-group-coffee-machine",
+          "piccola-semi-professional-coffee-machine",
+          "grande-caldaiato-double-group-coffee-machine",
+          "carysil-tek-plus-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-tek-plus-90cm-built-in-glass-hob-5-brass-burner"
+        ],
+        "scores_top10": [
+          0.15198177499999999,
+          0.09235003,
+          0.080740325,
+          0.0686028825,
+          0.0686028825,
+          0.066492025,
+          0.063853455,
+          0.063853455,
+          0.0617426,
+          0.0617426
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_30",
+        "category": "attribute_price",
+        "question": "What is the price of the Milk Frother 4-in-1?",
+        "expected": [
+          "carysil-milk-frother"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "carysil-milk-frother",
+          "built-in-dishwasher-dw-02",
+          "free-standing-dishwasher-dw-03",
+          "built-in-dishwasher-dw-01",
+          "linear-electric-oven-90",
+          "built-in-dishwasher-dw-04",
+          "carysil-built-in-deep-fryer",
+          "rustic-classic-gas-hob-90-cm",
+          "built-in-coffee-maker-02"
+        ],
+        "scores_top10": [
+          0.19490255,
+          0.15198177499999999,
+          0.050660590000000005,
+          0.050660590000000005,
+          0.050660590000000005,
+          0.050660590000000005,
+          0.050660590000000005,
+          0.050660590000000005,
+          0.050660590000000005,
+          0.050660590000000005
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_31",
+        "category": "attribute_price",
+        "question": "What is the price of the Sparkle Portable Compact Countertop Ice Maker?",
+        "expected": [
+          "carysil-sparkle-ice-maker"
+        ],
+        "retrieved_top10": [
+          "carysil-sparkle-ice-maker",
+          "carysil-joy-ice-maker-silver",
+          "carysil-joy-ice-maker",
+          "carysil-espresso-maker",
+          "carysil-blender-juicer-mixer-grinder-smoothie-maker",
+          "carysil-1-7l-electric-kettle",
+          "built-in-coffee-maker-02",
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "built-in-dishwasher-dw-02",
+          "berlin-chimney-90-cm"
+        ],
+        "scores_top10": [
+          0.16204755,
+          0.1403358675,
+          0.1231836425,
+          0.07056296749999999,
+          0.04885128750000001,
+          0.04885128750000001,
+          0.04885128750000001,
+          0.043423367500000004,
+          0.043423367500000004,
+          0.043423367500000004
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_32",
+        "category": "attribute_price",
+        "question": "What is the price of the Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery?",
+        "expected": [
+          "carysil-premium-cotton-apron-black"
+        ],
+        "retrieved_top10": [
+          "carysil-premium-cotton-apron-black",
+          "carysil-premium-cotton-apron-red",
+          "carysil-d100l-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-radius-appron-sink-33x22x9",
+          "carysil-straight-appron-sink-33x22x9",
+          "legna-extreme-premium-class-double-group-coffee-machine",
+          "carysil-alpha04-kitchen-faucet-pull-out-sprayer-solid-brass-180-swivel-spout-2-function-spray-ceramic-cartridge-stainless-steel-hoses-easy-installation-premium-packaging",
+          "built-in-dishwasher-dw-02",
+          "asl-2201",
+          "pvd-cooktop-4br"
+        ],
+        "scores_top10": [
+          0.1519817675,
+          0.1519817675,
+          0.045594529999999994,
+          0.045594529999999994,
+          0.045594529999999994,
+          0.0341959,
+          0.030396355,
+          0.030396355,
+          0.030396355,
+          0.030396355
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_33",
+        "category": "attribute_price",
+        "question": "What is the price of the Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery?",
+        "expected": [
+          "carysil-premium-cotton-apron-red"
+        ],
+        "retrieved_top10": [
+          "carysil-premium-cotton-apron-black",
+          "carysil-premium-cotton-apron-red",
+          "carysil-d100l-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-radius-appron-sink-33x22x9",
+          "carysil-straight-appron-sink-33x22x9",
+          "legna-extreme-premium-class-double-group-coffee-machine",
+          "carysil-alpha04-kitchen-faucet-pull-out-sprayer-solid-brass-180-swivel-spout-2-function-spray-ceramic-cartridge-stainless-steel-hoses-easy-installation-premium-packaging",
+          "built-in-dishwasher-dw-02",
+          "asl-2201",
+          "pvd-cooktop-4br"
+        ],
+        "scores_top10": [
+          0.1519817675,
+          0.1519817675,
+          0.045594529999999994,
+          0.045594529999999994,
+          0.045594529999999994,
+          0.0341959,
+          0.030396355,
+          0.030396355,
+          0.030396355,
+          0.030396355
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_34",
+        "category": "attribute_price",
+        "question": "What is the price of the Blender?",
+        "expected": [
+          "carysil-blender-juicer-mixer-grinder-smoothie-maker"
+        ],
+        "retrieved_top10": [
+          "carysil-blender",
+          "carysil-blender-juicer-mixer-grinder-smoothie-maker",
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "free-standing-dishwasher-dw-03",
+          "built-in-dishwasher-dw-02",
+          "linear-electric-oven-90",
+          "carysil-built-in-deep-fryer",
+          "built-in-dishwasher-dw-01",
+          "rustic-classic-gas-hob-90-cm",
+          "built-in-dishwasher-dw-04"
+        ],
+        "scores_top10": [
+          0.1709795,
+          0.15198177499999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_35",
+        "category": "attribute_price",
+        "question": "What is the price of the Passilo 90cm Built-in Hob?",
+        "expected": [
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob"
+        ],
+        "retrieved_top10": [
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-tek-plus-90cm-built-in-glass-hob-5-brass-burner",
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "carysil-tek-plus-5-burner-90-cm-built-in-hob",
+          "carysil-tek-plus-90cm-4-burner-built-in-hob",
+          "carysil-tek-plus-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-tek-plus-75cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-75cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-60cm-built-in-glass-hob-3-brass-burner"
+        ],
+        "scores_top10": [
+          0.15958085,
+          0.1420607425,
+          0.1291845175,
+          0.1291845,
+          0.1291845,
+          0.111664385,
+          0.111664385,
+          0.1097646175,
+          0.1097646175,
+          0.1097646175
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_36",
+        "category": "attribute_price",
+        "question": "What is the price of the Passilo 100cm Built-in Hob?",
+        "expected": [
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob"
+        ],
+        "retrieved_top10": [
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob",
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob",
+          "carysil-tek-plus-90cm-built-in-glass-hob-5-brass-burner",
+          "carysil-tek-plus-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-tek-plus-75cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-60cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-78cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-75cm-built-in-glass-hob-3-brass-burner",
+          "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner"
+        ],
+        "scores_top10": [
+          0.15958085,
+          0.1291845175,
+          0.111664385,
+          0.111664385,
+          0.111664385,
+          0.1097646175,
+          0.1097646175,
+          0.1097646175,
+          0.1097646175,
+          0.10216552500000001
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_37",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil D100L Tip Toe Single Bowl with Drainer Kitchen sink support?",
+        "expected": [
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d150-tip-toe-single-with-drainer-kitchen-sink",
+          "carysil-d100-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-tip-toe-double-bowl-with-drainer-kitchen-sink",
+          "carysil-n200-tip-toe-double-bowl-kitchen-sink",
+          "carysil-d100l-jazz-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100l-polo-single-bowl-with-drainer-kitchen-sink-2"
+        ],
+        "scores_top10": [
+          0.16508667500000002,
+          0.1580504875,
+          0.1580504875,
+          0.1580504875,
+          0.1580504875,
+          0.1580504875,
+          0.1548842,
+          0.141603375,
+          0.1342153825,
+          0.13166476
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_38",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil Retro Green Sink support?",
+        "expected": [
+          "carysil-retro-green-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-retro-green-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-big-bowl-kitchen-sink",
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-n200-tip-toe-double-bowl-kitchen-sink",
+          "carysil-cg2b-3322-double-bowl-kitchen-sink",
+          "carysil-680u-waltz-single-bowl-kitchen-sink",
+          "carysil-crystal-3618-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.158163575,
+          0.1255960575,
+          0.1255960575,
+          0.1255960575,
+          0.12405211,
+          0.1231836425,
+          0.1231836425,
+          0.1231836425,
+          0.1093122825,
+          0.10795530750000001
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_39",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil CG2B 3322 Double Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-cg2b-3322-double-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-cg2b-3322-u-double-bowls-two-bowl-kitchen-sink",
+          "carysil-cg2b-3322-double-bowl-kitchen-sink",
+          "carysil-cgdb-3322-double-bowl-kitchen-sink",
+          "carysil-lbu-3322-tango-double-bowl-kitchen-sink",
+          "carysil-u-3322-tango-double-bowl-kitchen-sink",
+          "carysil-3322-tango-double-bowl-kitchen-sink",
+          "carysil-d200-tip-toe-double-bowl-with-drainer-kitchen-sink",
+          "carysil-n200-jumbo-double-bowl-kitchen-sink",
+          "carysil-n200-tip-toe-double-bowl-kitchen-sink",
+          "carysil-d200-jazz-double-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.15725892500000002,
+          0.156309025,
+          0.1420607425,
+          0.14111085,
+          0.139422165,
+          0.139422165,
+          0.13308959,
+          0.13235079,
+          0.13235079,
+          0.1306621
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_40",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil Big Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-big-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-big-bowl-kitchen-sink-2",
+          "carysil-big-bowl-kitchen-sink",
+          "carysil-sm370-smart-series-single-bowl-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-tip-toe-double-bowl-with-drainer-kitchen-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d150-tip-toe-single-with-drainer-kitchen-sink",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-crystal-3618-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.16501105,
+          0.15815075,
+          0.157390825,
+          0.1426148425,
+          0.1426148425,
+          0.1426148425,
+          0.1426148425,
+          0.1426148425,
+          0.1426148425,
+          0.141955195
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_41",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil 780 Waltz Single Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-780-waltz-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-780-waltz-single-bowl-kitchen-sink",
+          "carysil-780-u-waltz-single-bowl-kitchen-sink",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-680u-waltz-single-bowl-kitchen-sink",
+          "carysil-560-ef-waltz-single-bowl-kitchen-sink",
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "carysil-400n-waltz-single-bowl-kitchen-sink",
+          "carysil-680-waltz-single-bowl-kitchen-sink",
+          "carysil-n100l-enigma-single-bowl-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.1710850375,
+          0.16939635000000003,
+          0.14828776999999999,
+          0.14828776999999999,
+          0.1465990675,
+          0.144910385,
+          0.144910385,
+          0.144910385,
+          0.14279954250000002,
+          0.14111085
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_42",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil N200 Vivaldi Double Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-n200-vivaldi-double-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-n200-vivaldi-double-bowl-kitchen-sink",
+          "carysil-n200-jumbo-double-bowl-kitchen-sink",
+          "carysil-n200-tip-toe-double-bowl-kitchen-sink",
+          "carysil-d200-vivaldi-double-bowl-kitchen-sink-with-drainer",
+          "carysil-n200-swan-double-bowl-kitchen-sink",
+          "carysil-d200-tip-toe-double-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-jazz-double-bowl-with-drainer-kitchen-sink",
+          "carysil-d100-vivaldi-single-bowl-with-drainer-kitchen-sink",
+          "carysil-4520-largo-double-bowl-kitchen-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.16274714999999998,
+          0.151348505,
+          0.14754897,
+          0.14754896,
+          0.14171877500000002,
+          0.13308959,
+          0.1306621,
+          0.1306621,
+          0.130320145,
+          0.12929005
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_43",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil N100S Enigma Single Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-n100s-enigma-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-n100s-enigma-single-bowl-kitchen-sink",
+          "carysil-n100m-enigma-single-bowl-kitchen-sink",
+          "carysil-d150-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100l-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-n100l-enigma-single-bowl-kitchen-sink",
+          "carysil-n100n-enigma-single-bowl-kitchen-sink",
+          "carysil-d100-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100-tip-toe-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.1601085625,
+          0.1449103925,
+          0.1449103925,
+          0.1449103925,
+          0.1449103925,
+          0.1449103925,
+          0.1449103925,
+          0.13308959,
+          0.13308959,
+          0.13308959
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_44",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil SM530 Smart Series Single Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-sm530-smart-series-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-sm530-smart-series-single-bowl-kitchen-sink",
+          "carysil-sm430-smart-series-single-bowl-kitchen-sink",
+          "carysil-sm370-smart-series-single-bowl-kitchen-sink",
+          "carysil-680u-waltz-single-bowl-kitchen-sink",
+          "carysil-d150-tip-toe-single-with-drainer-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-vogue-single-bowl-with-drainer-40x20x9"
+        ],
+        "scores_top10": [
+          0.17126732499999997,
+          0.15054255,
+          0.149007375,
+          0.12981774999999998,
+          0.1209905375,
+          0.1209905375,
+          0.1209905375,
+          0.1209905375,
+          0.1209905375,
+          0.12089459999999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_45",
+        "category": "attribute_color",
+        "question": "What colours is the Built-In Barbeque available in?",
+        "expected": [
+          "carysil-built-in-barbeque"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-barbeque",
+          "munich-built-in-hood-chimney",
+          "carysil-tek-plus-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-60cm-built-in-glass-hob-4-brass-burner",
+          "built-in-coffee-maker-02",
+          "carysil-tek-plus-75cm-built-in-glass-hob-3-brass-burner",
+          "carysil-pro-78cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-75cm-built-in-glass-hob-3-brass-burner",
+          "built-in-dishwasher-dw-04",
+          "carysil-pro-60cm-built-in-glass-hob-3-brass-burner"
+        ],
+        "scores_top10": [
+          0.13298405,
+          0.08971146249999999,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975,
+          0.08548975
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_46",
+        "category": "attribute_color",
+        "question": "What colours is the Built-in Coffee-Maker 02 available in?",
+        "expected": [
+          "built-in-coffee-maker-02"
+        ],
+        "retrieved_top10": [
+          "built-in-coffee-maker-02",
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "coldtap-ct-02",
+          "built-in-dishwasher-dw-02",
+          "carysil-oven-bio-02",
+          "peso-pesante-83-mst-83",
+          "piccola-semi-professional-coffee-machine",
+          "built-in-refrigerator-02",
+          "thunder-burst-multi-boiler-coffee-machine",
+          "munich-built-in-hood-chimney"
+        ],
+        "scores_top10": [
+          0.1484636675,
+          0.10132118250000001,
+          0.0823234675,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.066140215,
+          0.06332573999999999,
+          0.05980764,
+          0.05980764
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_47",
+        "category": "attribute_color",
+        "question": "What colours is the built-in Automatic Coffee Maker Machine with LCD display available in?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "built-in-coffee-maker-02",
+          "piccola-semi-professional-coffee-machine",
+          "aspetto-semi-professional-coffee-machine",
+          "thunder-burst-multi-boiler-coffee-machine",
+          "legna-extreme-premium-class-double-group-coffee-machine",
+          "grande-caldaiato-double-group-coffee-machine",
+          "carysil-espresso-coffee-maker",
+          "carysil-tek-plus-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-tek-plus-90cm-built-in-glass-hob-5-brass-burner"
+        ],
+        "scores_top10": [
+          0.135094915,
+          0.08208891499999998,
+          0.060980337499999995,
+          0.060980337499999995,
+          0.060980337499999995,
+          0.059104022500000006,
+          0.056758625,
+          0.0548823075,
+          0.054882305,
+          0.054882305
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_48",
+        "category": "attribute_color",
+        "question": "What colours is the Built In Dishwasher DW – 04 available in?",
+        "expected": [
+          "built-in-dishwasher-dw-04"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "built-in-dishwasher-dw-02",
+          "free-standing-dishwasher-dw-03",
+          "carysil-semi-built-in-dishwasher-dw-02-12-place-6-wash-programs",
+          "carysil-built-in-dishwasher-dw-01-14-place-7-wash-programs",
+          "munich-built-in-hood-chimney",
+          "carysil-built-in-barbeque",
+          "carysil-pro-60cm-built-in-glass-hob-4-brass-burner",
+          "carysil-pro-78cm-built-in-glass-hob-4-brass-burner"
+        ],
+        "scores_top10": [
+          0.1393166175,
+          0.10765375,
+          0.10765375,
+          0.0886560325,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.05980764,
+          0.056993165,
+          0.056993165,
+          0.056993165
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_49",
+        "category": "attribute_color",
+        "question": "What colours is the Free Standing Dishwasher DW – 03 available in?",
+        "expected": [
+          "free-standing-dishwasher-dw-03"
+        ],
+        "retrieved_top10": [
+          "free-standing-dishwasher-dw-03",
+          "carysil-built-in-dishwasher-dw-03-12-place-6-wash-programs",
+          "carysil-built-in-dishwasher-dw-04-12-place-6-wash-programs",
+          "free-standing-wine-chiller-54-bottles",
+          "free-standing-wine-chiller-126-bottles",
+          "free-standing-wine-chiller-38-bottles",
+          "free-standing-wine-chiller-31-bottles",
+          "wine-chiller-46-bottles",
+          "free-standing-wine-chiller-24-bottles",
+          "wine-chiller-77-bottles"
+        ],
+        "scores_top10": [
+          0.14112592499999999,
+          0.0868467325,
+          0.0868467325,
+          0.08081569999999999,
+          0.08081569999999999,
+          0.08081569999999999,
+          0.08081569999999999,
+          0.08081569999999999,
+          0.08081569999999999,
+          0.07599088749999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_50",
+        "category": "attribute_color",
+        "question": "What colours is the Built In Dishwasher DW – 02 available in?",
+        "expected": [
+          "built-in-dishwasher-dw-02"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-02",
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "free-standing-dishwasher-dw-03",
+          "coldtap-ct-02",
+          "built-in-coffee-maker-02",
+          "carysil-semi-built-in-dishwasher-dw-02-12-place-6-wash-programs",
+          "carysil-oven-bio-02",
+          "carysil-built-in-dishwasher-dw-01-14-place-7-wash-programs",
+          "built-in-refrigerator-02"
+        ],
+        "scores_top10": [
+          0.132984045,
+          0.11398633,
+          0.10765375,
+          0.0886560325,
+          0.0823234675,
+          0.0823234575,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.06332573999999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_51",
+        "category": "attribute_color",
+        "question": "What colours is the Linear Electric Oven 90 available in?",
+        "expected": [
+          "linear-electric-oven-90"
+        ],
+        "retrieved_top10": [
+          "linear-electric-oven-90",
+          "linear-advance-oven-90-cm",
+          "linear-gas-oven-90-cm",
+          "eclipse-oven-90-cm",
+          "vitroceramic-electric-hob-90-cm",
+          "carysil-free-standing-cooking-range-fscr-04-62l-electric-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-black",
+          "rustic-classic-electric-oven-60-cm",
+          "linear-advance-oven-60-cm",
+          "linear-combi-oven-microwave",
+          "matrix-electric-oven-60-cm"
+        ],
+        "scores_top10": [
+          0.12665147499999999,
+          0.107653765,
+          0.107653765,
+          0.0823234675,
+          0.0823234675,
+          0.0823234575,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_52",
+        "category": "attribute_color",
+        "question": "What colours is the Built In Dishwasher DW – 01 available in?",
+        "expected": [
+          "built-in-dishwasher-dw-01"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-01",
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-02",
+          "free-standing-dishwasher-dw-03",
+          "coldtap-ct-01",
+          "bih-01-smart-induction",
+          "coldtap-ct-02",
+          "mwo-01-microwave",
+          "carysil-oven-bio-01",
+          "carysil-semi-built-in-dishwasher-dw-02-12-place-6-wash-programs"
+        ],
+        "scores_top10": [
+          0.132984045,
+          0.11398633,
+          0.10765375,
+          0.0886560325,
+          0.0851379425,
+          0.0823234675,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999,
+          0.07599088749999999
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "paraphrase_53",
+        "category": "semantic_paraphrase",
+        "question": "Do you have anything like the 15 Marine Grade?",
+        "expected": [
+          "15-marine-grade"
+        ],
+        "retrieved_top10": [
+          "15-marine-grade",
+          "carysil-all-in-one-ss-workstation-30x20x8-inches-gun-metal",
+          "carysil-all-in-one-ss-workstation-30x20x8-inches-chrome",
+          "carysil-quartz-new-beethoven-d-100l-ultra-40x20x8-inches-pearl-black",
+          "carysil-quartz-new-beethoven-d-100l-ultra-drainboard-40x20x8-inches-whisper-grey",
+          "carysil-oven-bio-01",
+          "carysil-multipurpose-304-grade-stainless-steel-kitchen-basket",
+          "carysil-fold-mat-drying-rack-for-kitchen-sink-36-8x2-6x1-4cm",
+          "carysil-espresso-maker",
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "scores_top10": [
+          0.0911890625,
+          0.0759908825,
+          0.0759908825,
+          0.0683918,
+          0.0683918,
+          0.04327259,
+          0.0413728175,
+          0.037995442500000004,
+          0.037995442500000004,
+          0.037995442500000004
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "paraphrase_54",
+        "category": "semantic_paraphrase",
+        "question": "I'm interested in learning more about American Design ADB3322 — what's it like?",
+        "expected": [
+          "american-design-adb3322"
+        ],
+        "retrieved_top10": [
+          "american-design-adb3322",
+          "american-design-asb2418",
+          "american-design-asb1818",
+          "american-design-asb2522",
+          "amaze-1",
+          "harmony-sd-780-workstation",
+          "designer-kitchen-faucet",
+          "bower-ceiling-hood-chimney",
+          "piccola-semi-professional-coffee-machine",
+          "carysil-german-design-ss-sink"
+        ],
+        "scores_top10": [
+          0.0823234675,
+          0.056993165,
+          0.056993165,
+          0.056993165,
+          0.050660590000000005,
+          0.031662869999999996,
+          0.031662869999999996,
+          0.031662869999999996,
+          0.031662869999999996,
+          0.031662869999999996
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "paraphrase_55",
+        "category": "semantic_paraphrase",
+        "question": "Can you show me details on American Design ASB1818?",
+        "expected": [
+          "american-design-asb1818"
+        ],
+        "retrieved_top10": [
+          "american-design-asb1818",
+          "american-design-adb3322",
+          "american-design-asb2418",
+          "american-design-asb2522",
+          "vintage-farmhouse-1",
+          "legna-extreme-premium-class-double-group-coffee-machine",
+          "ala-01509",
+          "harmony-sd-780-workstation",
+          "piccola-semi-professional-coffee-machine",
+          "designer-kitchen-faucet"
+        ],
+        "scores_top10": [
+          0.09878816,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.06079271,
+          0.06079271,
+          0.06079271,
+          0.037995442500000004,
+          0.037995442500000004,
+          0.037995442500000004
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "typo_56",
+        "category": "semantic_typo",
+        "question": "quarts sinc for kitchen",
+        "expected": [
+          "carysil-13322-tango-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-ala-1512-brass-kitchen-faucet-with-pull-out-spout-sprayer-and-single-handle-pull-down-kitchen-sink-faucet",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-tip-toe-double-bowl-with-drainer-kitchen-sink",
+          "drinking-kitchen-faucet",
+          "carysil-d150-tip-toe-single-with-drainer-kitchen-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-n200-tip-toe-double-bowl-kitchen-sink",
+          "designer-kitchen-faucet",
+          "carysil-d100-tip-toe-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.0721209825,
+          0.068954695,
+          0.068954695,
+          0.068954695,
+          0.068954695,
+          0.068954695,
+          0.068954695,
+          0.068954695,
+          0.068954695,
+          0.068954695
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "typo_57",
+        "category": "semantic_typo",
+        "question": "kichen fawcet reccomendation",
+        "expected": [
+          "ala-01504"
+        ],
+        "retrieved_top10": [
+          "15-marine-grade",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-croma",
+          "carysil-kia-fl-90cm-curved-kitchen-chimney",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-croma",
+          "carysil-kia-fl-60cm-curved-kitchen-chimney",
+          "carysil-kia-fl-75cm-curved-kitchen-chimney",
+          "carysil-multipurpose-304-grade-stainless-steel-rust-resistant-expandable-kitchen-basket-for-straining-vegetables-fruits-and-more-ideal-for-daily-use-easy-to-clean-durable",
+          "carysil-ss-square-waste-coupling-pvd-yellow-gold",
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-yellow-gold-pvd-finish",
+          "linear-electric-oven-90"
+        ],
+        "scores_top10": [
+          0.2561910472599441,
+          0.2561583304641172,
+          0.24900498238221658,
+          0.2464527559089198,
+          0.2360903831801212,
+          0.2268849569949447,
+          0.2137644780067679,
+          0.20479202072454017,
+          0.20140686652166861,
+          0.19903557581345743
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "typo_58",
+        "category": "semantic_typo",
+        "question": "food wast disposal unit",
+        "expected": [
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person"
+        ],
+        "retrieved_top10": [
+          "food-waste-disposer-1-2-hp-heavy-duty",
+          "food-waste-disposer-1-2-hp-heavy-duty-with-air-switch",
+          "food-waste-disposer-3-4-hp-standard",
+          "food-waste-disposer-3-4-hp-heavy-duty",
+          "food-waste-disposer-3-4-hp-heavy-duty-with-air-switch",
+          "food-waste-disposer-1-2-hp-standard",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person"
+        ],
+        "scores_top10": [
+          0.15514806,
+          0.146704625,
+          0.12770691,
+          0.12770691,
+          0.12770691,
+          0.12770691,
+          0.1234852,
+          0.1234852,
+          0.1234852,
+          0.1234852
+        ],
+        "rank_of_first_hit": 9,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 1
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "filter_59",
+        "category": "filtering",
+        "question": "Show me quartz sinks under 20000 rupees.",
+        "expected": [
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-arena",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-basalt-grey",
+          "carysil-quartz-new-ascend-single-bowl-kitchen-sink-34x20x8-inches-cream",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-basalt-grey",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-cream",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-arena",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-cream",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-pearl-black",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-arena",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-champagne",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-champagne",
+          "carysil-quartz-tip-toe-db-ultra-double-bowl-kitchen-sink-34x20x8-inches-cream",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-croma",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-champagne",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-croma",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-croma",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-nera",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-nera",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-nera",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-double-bowl-34x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-cream",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-cream",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-cream",
+          "carysil-quartz-dolce-uk-double-bowl-34x18x8-inches-pearl-black",
+          "carysil-quartz-new-beethoven-d-100-ultra-drainboard-34x20x8-inches-sand",
+          "carysil-quartz-new-beethoven-d-100l-ultra-40x20x8-inches-sand"
+        ],
+        "retrieved_top10": [
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-arena",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-basalt-grey",
+          "carysil-quartz-new-ascend-single-bowl-kitchen-sink-34x20x8-inches-cream",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-basalt-grey",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-cream",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-arena",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-cream",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-pearl-black",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml"
+        ],
+        "scores_top10": [
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918,
+          0.0683918
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 0.029411764705882353,
+          "3": 0.08823529411764706,
+          "5": 0.14705882352941177,
+          "10": 0.29411764705882354
+        },
+        "precision_at_5": 1
+      },
+      {
+        "id": "filter_60",
+        "category": "filtering",
+        "question": "I want stainless steel faucets.",
+        "expected": [],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "compare_61",
+        "category": "comparison",
+        "question": "Compare the American Design ASB2418 and the American Design ASB2522.",
+        "expected": [
+          "american-design-asb2418",
+          "american-design-asb2522"
+        ],
+        "retrieved_top10": [
+          "american-design-asb2418",
+          "american-design-asb2522",
+          "american-design-asb1818",
+          "american-design-adb3322",
+          "carysil-2-slice-bread-toaster",
+          "carysil-ala-pro-1512-pull-out-faucet-chrome",
+          "carysil-ala-pro-1509-kitchen-faucet-cornflakes",
+          "carysil-ala-pro-1509-kitchen-faucet-chrome",
+          "carysil-ala-pro-1512-pull-out-faucet-rose-gold",
+          "carysil-german-design-ss-sink"
+        ],
+        "scores_top10": [
+          0.09878816,
+          0.09878816,
+          0.0683918,
+          0.0683918,
+          0.06079271,
+          0.06079271,
+          0.06079271,
+          0.06079271,
+          0.06079271,
+          0.037995442500000004
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 0.5,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.4
+      }
+    ]
+  },
+  "vector_only": {
+    "aggregate": {
+      "n_queries": 60,
+      "recall_at_1": 0.22549019607843138,
+      "recall_at_3": 0.2848039215686275,
+      "recall_at_5": 0.28578431372549024,
+      "recall_at_10": 0.28823529411764703,
+      "precision_at_5": 0.07888888888888891,
+      "mrr": 0.275,
+      "zero_hit_queries": [
+        {
+          "id": "lookup_name_1",
+          "question": "What is the \"15 Marine Grade\"?",
+          "expected": [
+            "15-marine-grade"
+          ]
+        },
+        {
+          "id": "lookup_name_2",
+          "question": "What is the \"Abwasser Platform Chimney\"?",
+          "expected": [
+            "abwasser-platform-chimney"
+          ]
+        },
+        {
+          "id": "lookup_name_3",
+          "question": "What is the \"ALA 01504, ALA 01504\"?",
+          "expected": [
+            "ala-01504"
+          ]
+        },
+        {
+          "id": "lookup_name_4",
+          "question": "What is the \"BIH 01 Smart Induction\"?",
+          "expected": [
+            "bih-01-smart-induction"
+          ]
+        },
+        {
+          "id": "lookup_name_6",
+          "question": "What is the \"Food Waste Disposer for Home Sink\"?",
+          "expected": [
+            "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person"
+          ]
+        },
+        {
+          "id": "lookup_id_7",
+          "question": "Tell me about the product with id american-design-adb3322.",
+          "expected": [
+            "american-design-adb3322"
+          ]
+        },
+        {
+          "id": "lookup_id_8",
+          "question": "Tell me about the product with id arbor-ceiling-chimney.",
+          "expected": [
+            "arbor-ceiling-chimney"
+          ]
+        },
+        {
+          "id": "lookup_id_9",
+          "question": "Tell me about the product with id ala-01506.",
+          "expected": [
+            "ala-01506"
+          ]
+        },
+        {
+          "id": "lookup_id_10",
+          "question": "Tell me about the product with id carysil-bravo-78cm-built-in-glass-hob-3-brass-burner.",
+          "expected": [
+            "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner"
+          ]
+        },
+        {
+          "id": "lookup_id_12",
+          "question": "Tell me about the product with id carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family.",
+          "expected": [
+            "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family"
+          ]
+        },
+        {
+          "id": "dim_13",
+          "question": "What are the dimensions of the built-in Automatic Coffee Maker Machine with LCD display?",
+          "expected": [
+            "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+          ]
+        },
+        {
+          "id": "dim_14",
+          "question": "What are the dimensions of the Rustic Classic Gas Hob 90 cm?",
+          "expected": [
+            "rustic-classic-gas-hob-90-cm"
+          ]
+        },
+        {
+          "id": "dim_16",
+          "question": "What are the dimensions of the Eclipse Matt Gas Hob 90 cm?",
+          "expected": [
+            "eclipse-matt-gas-hob-90-cm"
+          ]
+        },
+        {
+          "id": "dim_17",
+          "question": "What are the dimensions of the Vitroceramic Electric Hob 90 cm?",
+          "expected": [
+            "vitroceramic-electric-hob-90-cm"
+          ]
+        },
+        {
+          "id": "dim_18",
+          "question": "What are the dimensions of the Vitroceramic Electric Hob 60 cm?",
+          "expected": [
+            "vitroceramic-electric-hob-60-cm"
+          ]
+        },
+        {
+          "id": "dim_19",
+          "question": "What are the dimensions of the Bravo 78cm Built-in Glass Hob?",
+          "expected": [
+            "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner"
+          ]
+        },
+        {
+          "id": "dim_20",
+          "question": "What are the dimensions of the Pro 78cm Built-in Glass Hob?",
+          "expected": [
+            "carysil-pro-78cm-built-in-glass-hob-4-brass-burner"
+          ]
+        },
+        {
+          "id": "material_21",
+          "question": "What material is the Built-In Barbeque made of?",
+          "expected": [
+            "carysil-built-in-barbeque"
+          ]
+        },
+        {
+          "id": "material_22",
+          "question": "What material is the Built-in Coffee-Maker 02 made of?",
+          "expected": [
+            "built-in-coffee-maker-02"
+          ]
+        },
+        {
+          "id": "material_23",
+          "question": "What material is the built-in Automatic Coffee Maker Machine with LCD display made of?",
+          "expected": [
+            "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+          ]
+        },
+        {
+          "id": "material_25",
+          "question": "What material is the Free Standing Dishwasher DW – 03 made of?",
+          "expected": [
+            "free-standing-dishwasher-dw-03"
+          ]
+        },
+        {
+          "id": "material_26",
+          "question": "What material is the Built In Dishwasher DW – 02 made of?",
+          "expected": [
+            "built-in-dishwasher-dw-02"
+          ]
+        },
+        {
+          "id": "material_27",
+          "question": "What material is the Linear Electric Oven 90 made of?",
+          "expected": [
+            "linear-electric-oven-90"
+          ]
+        },
+        {
+          "id": "price_29",
+          "question": "What is the price of the built-in Automatic Coffee Maker Machine with LCD display?",
+          "expected": [
+            "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+          ]
+        },
+        {
+          "id": "price_31",
+          "question": "What is the price of the Sparkle Portable Compact Countertop Ice Maker?",
+          "expected": [
+            "carysil-sparkle-ice-maker"
+          ]
+        },
+        {
+          "id": "price_32",
+          "question": "What is the price of the Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery?",
+          "expected": [
+            "carysil-premium-cotton-apron-black"
+          ]
+        },
+        {
+          "id": "price_33",
+          "question": "What is the price of the Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery?",
+          "expected": [
+            "carysil-premium-cotton-apron-red"
+          ]
+        },
+        {
+          "id": "price_34",
+          "question": "What is the price of the Blender?",
+          "expected": [
+            "carysil-blender-juicer-mixer-grinder-smoothie-maker"
+          ]
+        },
+        {
+          "id": "price_35",
+          "question": "What is the price of the Passilo 90cm Built-in Hob?",
+          "expected": [
+            "carysil-passilo-5-burner-90-cm-built-in-glass-hob"
+          ]
+        },
+        {
+          "id": "price_36",
+          "question": "What is the price of the Passilo 100cm Built-in Hob?",
+          "expected": [
+            "carysil-passilo-4-burner-100-cm-built-in-glass-hob"
+          ]
+        },
+        {
+          "id": "install_38",
+          "question": "What installation type does the Carysil Retro Green Sink support?",
+          "expected": [
+            "carysil-retro-green-sink"
+          ]
+        },
+        {
+          "id": "install_40",
+          "question": "What installation type does the Carysil Big Bowl Kitchen Sink support?",
+          "expected": [
+            "carysil-big-bowl-kitchen-sink"
+          ]
+        },
+        {
+          "id": "color_45",
+          "question": "What colours is the Built-In Barbeque available in?",
+          "expected": [
+            "carysil-built-in-barbeque"
+          ]
+        },
+        {
+          "id": "color_46",
+          "question": "What colours is the Built-in Coffee-Maker 02 available in?",
+          "expected": [
+            "built-in-coffee-maker-02"
+          ]
+        },
+        {
+          "id": "color_49",
+          "question": "What colours is the Free Standing Dishwasher DW – 03 available in?",
+          "expected": [
+            "free-standing-dishwasher-dw-03"
+          ]
+        },
+        {
+          "id": "color_50",
+          "question": "What colours is the Built In Dishwasher DW – 02 available in?",
+          "expected": [
+            "built-in-dishwasher-dw-02"
+          ]
+        },
+        {
+          "id": "paraphrase_53",
+          "question": "Do you have anything like the 15 Marine Grade?",
+          "expected": [
+            "15-marine-grade"
+          ]
+        },
+        {
+          "id": "paraphrase_54",
+          "question": "I'm interested in learning more about American Design ADB3322 — what's it like?",
+          "expected": [
+            "american-design-adb3322"
+          ]
+        },
+        {
+          "id": "paraphrase_55",
+          "question": "Can you show me details on American Design ASB1818?",
+          "expected": [
+            "american-design-asb1818"
+          ]
+        },
+        {
+          "id": "typo_56",
+          "question": "quarts sinc for kitchen",
+          "expected": [
+            "carysil-13322-tango-single-bowl-kitchen-sink"
+          ]
+        },
+        {
+          "id": "typo_57",
+          "question": "kichen fawcet reccomendation",
+          "expected": [
+            "ala-01504"
+          ]
+        },
+        {
+          "id": "typo_58",
+          "question": "food wast disposal unit",
+          "expected": [
+            "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person"
+          ]
+        }
+      ]
+    },
+    "per_query": [
+      {
+        "id": "lookup_name_1",
+        "category": "product_lookup_name",
+        "question": "What is the \"15 Marine Grade\"?",
+        "expected": [
+          "15-marine-grade"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_name_2",
+        "category": "product_lookup_name",
+        "question": "What is the \"Abwasser Platform Chimney\"?",
+        "expected": [
+          "abwasser-platform-chimney"
+        ],
+        "retrieved_top10": [
+          "railing-island-chimney",
+          "rockstar-chimney",
+          "tune-c-wall-mounted-chimney",
+          "carysil-rockstar-90cm-kitchen-chimney-black",
+          "carysil-rockstar-90cm-kitchen-chimney-silver",
+          "carysil-rockstar-60cm-kitchen-chimney-black",
+          "carysil-rockstar-60cm-kitchen-chimney-silver",
+          "smart-wall-mounted-chimney"
+        ],
+        "scores_top10": [
+          0.611243517882178,
+          0.5659504971622276,
+          0.5000217407935359,
+          0.491474510763674,
+          0.491474510763674,
+          0.4892151070576778,
+          0.4892151070576778,
+          0.48337833533819063
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_name_3",
+        "category": "product_lookup_name",
+        "question": "What is the \"ALA 01504, ALA 01504\"?",
+        "expected": [
+          "ala-01504"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_name_4",
+        "category": "product_lookup_name",
+        "question": "What is the \"BIH 01 Smart Induction\"?",
+        "expected": [
+          "bih-01-smart-induction"
+        ],
+        "retrieved_top10": [
+          "ala-01509",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-yellow-gold-pvd-finish",
+          "carysil-ss-round-waste-coupling-pvd-yellow-gold",
+          "carysil-ss-round-waste-coupling-pvd-rose-gold",
+          "quadrate-knurling-03",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-rose-gold-pvd-finish",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-ss-round-waste-coupling-pvd-matt-black",
+          "carysil-german-design-ss-sink",
+          "american-design-adb3322"
+        ],
+        "scores_top10": [
+          0.21965347773073496,
+          0.19945022463798667,
+          0.19518391062782015,
+          0.18612953433116575,
+          0.17265169322490814,
+          0.1597653383156481,
+          0.1597653383156481,
+          0.1559840589761745,
+          0.15553792384041054,
+          0.14759927817576635
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_name_5",
+        "category": "product_lookup_name",
+        "question": "What is the \"Chopping Board for Kitchen\"?",
+        "expected": [
+          "carysil-20mm-chopping-board-for-kitchen"
+        ],
+        "retrieved_top10": [
+          "carysil-20mm-chopping-board-for-kitchen",
+          "linear-combi-oven-microwave",
+          "rustic-classic-microwave",
+          "matrix-combi-microwave",
+          "linear-microwave",
+          "linear-25-microwave",
+          "linear-34-microwave"
+        ],
+        "scores_top10": [
+          0.6678061681255894,
+          0.24047235371090903,
+          0.23939456108841317,
+          0.22142002327203625,
+          0.2051779119617414,
+          0.19829278002424677,
+          0.19182111669653268
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_name_6",
+        "category": "product_lookup_name",
+        "question": "What is the \"Food Waste Disposer for Home Sink\"?",
+        "expected": [
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person"
+        ],
+        "retrieved_top10": [
+          "carysil-d100-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100l-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-jazz-double-bowl-with-drainer-kitchen-sink",
+          "carysil-d150-jazz-one-and-half-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-enigma-double-bowl-with-drainer-kitchen-sink",
+          "carysil-d200l-enigma-double-bowl-with-drainer-kitchen-sink",
+          "carysil-cgdb-3322-double-bowl-kitchen-sink",
+          "carysil-fold-mat-roll-up-dish-drying-rack-for-kitchen-sink-multipurpose-stainless-steel-drainer-heat-resistant-anti-slip-anti-rust-space-saving-drying-foldable-mat-38-6x2-6x1-4-cm",
+          "carysil-fold-mat-roll-up-dish-drying-rack-for-kitchen-sink-multipurpose-stainless-steel-drainer-heat-resistant-anti-slip-anti-rust-space-saving-drying-foldable-mat-36-8x2-6x1-4-cm",
+          "carysil-fold-mat-roll-up-dish-drying-rack-for-kitchen-sink-multipurpose-stainless-steel-drainer-heat-resistant-anti-slip-anti-rust-space-saving-drying-foldable-mat-37-8x2-6x1-4-cm"
+        ],
+        "scores_top10": [
+          0.48426190018656967,
+          0.4793947587954457,
+          0.4775457613306535,
+          0.4770463067972093,
+          0.4733640001336339,
+          0.46914931947884964,
+          0.46066900384468645,
+          0.45278309650018456,
+          0.4525040679438339,
+          0.4518684389434513
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_id_7",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id american-design-adb3322.",
+        "expected": [
+          "american-design-adb3322"
+        ],
+        "retrieved_top10": [
+          "eclipse-matt-gas-hob-90-cm",
+          "carysil-2-slice-bread-toaster",
+          "carysil-vogue-ss-single-bowl-with-drainboard-sink-40x20x8-inches-glossy",
+          "carysil-lb3322-tango-double-bowl-kitchen-sink",
+          "carysil-lbu-3322-tango-double-bowl-kitchen-sink",
+          "carysil-u-3322-tango-double-bowl-kitchen-sink",
+          "carysil-brazzo-4-burner-78-cm-square-pan-support",
+          "carysil-brazzo-4-burner-60-cm-square-pan-support",
+          "carysil-vogue-pro-ss-drainboard-kitchen-sink-36x18x8-inches-gloss",
+          "carysil-u-250r-tango-double-bowl-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.35973206526468626,
+          0.28701559096110185,
+          0.28557114088107416,
+          0.2847794041694991,
+          0.28467575172312554,
+          0.2836743250794258,
+          0.2812062967542712,
+          0.27798537248330435,
+          0.2699812111275335,
+          0.26972980209296926
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_id_8",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id arbor-ceiling-chimney.",
+        "expected": [
+          "arbor-ceiling-chimney"
+        ],
+        "retrieved_top10": [
+          "carysil-vista-90cm-vertical-slant-kitchen-chimney",
+          "carysil-moonwalk-ss-60-cf",
+          "carysil-vista-60cm-vertical-slant-kitchen-chimney",
+          "carysil-mint-60cm-t-shape-kitchen-chimney",
+          "carysil-rome-90cm-curved-kitchen-chimney",
+          "carysil-rome-60cm-curved-kitchen-chimney",
+          "harmony-sd-780-workstation",
+          "quadrate-knurling-2",
+          "soap-dispenser-matt-black"
+        ],
+        "scores_top10": [
+          0.4403694786072755,
+          0.43961920254575815,
+          0.43571033690637195,
+          0.41347473745635,
+          0.3968433193787019,
+          0.39551321650181603,
+          0.2694149441938012,
+          0.1987836418361112,
+          0.1798110514034561
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_id_9",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id ala-01506.",
+        "expected": [
+          "ala-01506"
+        ],
+        "retrieved_top10": [
+          "ss-workstation-610",
+          "carysil-11-in-1-electric-pressure-cooker",
+          "carysil-15-bottle-wine-chiller-free-standing"
+        ],
+        "scores_top10": [
+          0.29654892950198075,
+          0.260975731436778,
+          0.18530484262763103
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_id_10",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id carysil-bravo-78cm-built-in-glass-hob-3-brass-burner.",
+        "expected": [
+          "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner"
+        ],
+        "retrieved_top10": [
+          "carysil-alpha04-kitchen-faucet-pull-out-sprayer-solid-brass-180-swivel-spout-2-function-spray-ceramic-cartridge-stainless-steel-hoses-easy-installation-premium-packaging",
+          "carysil-alpha03-modern-single-handle-kitchen-sink-faucet-matte-black",
+          "carysil-ala-pro-1504-kitchen-faucet-nera",
+          "carysil-ala-pro-1512-pull-out-faucet-matt-black",
+          "carysil-ala-1512-brass-kitchen-faucet-with-pull-out-spout-sprayer-and-single-handle-pull-down-kitchen-sink-faucet"
+        ],
+        "scores_top10": [
+          0.4590087581862532,
+          0.4189639091491699,
+          0.3812502168118722,
+          0.3347141641719169,
+          0.31371036171913147
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "lookup_id_11",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-rose-gold-pvd-finish.",
+        "expected": [
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-rose-gold-pvd-finish"
+        ],
+        "retrieved_top10": [
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-rose-gold-pvd-finish",
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-yellow-gold-pvd-finish",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-yellow-gold-pvd-finish",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-rose-gold-pvd-finish",
+          "carysil-round-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-square-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-ss-square-waste-coupling-pvd-rose-gold",
+          "carysil-ss-square-waste-coupling-pvd-yellow-gold",
+          "food-waste-disposer-1-2-hp-heavy-duty",
+          "drying-channel-500"
+        ],
+        "scores_top10": [
+          0.7079131044071736,
+          0.693273663520813,
+          0.634097001904429,
+          0.6170282224383132,
+          0.6170282224383132,
+          0.6148750415518867,
+          0.6116155848961414,
+          0.5948170181999825,
+          0.5807597887063163,
+          0.571584429050421
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "lookup_id_12",
+        "category": "product_lookup_id",
+        "question": "Tell me about the product with id carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family.",
+        "expected": [
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family"
+        ],
+        "retrieved_top10": [
+          "food-waste-disposer-1-2-hp-heavy-duty",
+          "food-waste-disposer-3-4-hp-heavy-duty",
+          "carysil-cg2b-3322-double-bowl-kitchen-sink",
+          "carysil-wire-grid-for-kitchen-sink-304-grade-stainless-steel-metal-dish-drying-rack-self-draining-prevents-sliding-kitchen-sink-accessories-35-5x54-7x2-96-cm",
+          "carysil-wire-grid-for-kitchen-sink-304-grade-stainless-steel-metal-dish-drying-rack-self-draining-prevents-sliding-kitchen-sink-accessories-32-6x46-6x2-96-cm",
+          "carysil-2522-tango-single-bowl-kitchen-sink",
+          "carysil-wire-grid-for-kitchen-sink-304-grade-stainless-steel-metal-dish-drying-rack-self-draining-prevents-sliding-kitchen-sink-accessories-33-2x68-2x2-96-cm",
+          "carysil-13322-tango-single-bowl-kitchen-sink",
+          "carysil-quartz-tip-toe-db-ultra-double-bowl-kitchen-sink-34x20x8-inches-cream",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-cream"
+        ],
+        "scores_top10": [
+          0.5934432279867132,
+          0.5624171681850262,
+          0.3469462254803707,
+          0.28819338749687007,
+          0.28673924724694855,
+          0.28139571284132425,
+          0.2801885997911816,
+          0.2743940622336809,
+          0.18474228356916633,
+          0.1783111138158402
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_13",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the built-in Automatic Coffee Maker Machine with LCD display?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-11-in-1-electric-pressure-cooker",
+          "carysil-15-bottle-wine-chiller-free-standing",
+          "ss-workstation-610"
+        ],
+        "scores_top10": [
+          0.43073493655116435,
+          0.4116636006030113,
+          0.2101355484410783
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_14",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Rustic Classic Gas Hob 90 cm?",
+        "expected": [
+          "rustic-classic-gas-hob-90-cm"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_15",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Matrix Black Gas Hob 90 cm?",
+        "expected": [
+          "matrix-black-gas-hob-90-cm"
+        ],
+        "retrieved_top10": [
+          "matrix-black-gas-hob-90-cm",
+          "carysil-premium-cigar-humidor-cooler-holds-212-cigars-single-zone-18-22-c-free-standing-led-display-smart-touch-control-3-cedar-shelves-black-glass-door",
+          "carysil-quartz-dolce-uk-double-bowl-34x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-pearl-black",
+          "rockstar-chimney",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-pearl-black",
+          "carysil-quartz-new-beethoven-d-100-ultra-drainboard-34x20x8-inches-pearl-black",
+          "carysil-quartz-new-beethoven-d-100l-ultra-40x20x8-inches-pearl-black",
+          "carysil-ss-square-waste-coupling-pvd-matt-black"
+        ],
+        "scores_top10": [
+          0.6835771361405525,
+          0.4007163284501246,
+          0.3533273005496329,
+          0.35029121930160234,
+          0.3470784194282486,
+          0.3413400526821462,
+          0.34006188273061566,
+          0.333450486248676,
+          0.33223991605759906,
+          0.324706219224269
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "dim_16",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Eclipse Matt Gas Hob 90 cm?",
+        "expected": [
+          "eclipse-matt-gas-hob-90-cm"
+        ],
+        "retrieved_top10": [
+          "linear-gas-oven-90-cm"
+        ],
+        "scores_top10": [
+          0.4792683447279553
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_17",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Vitroceramic Electric Hob 90 cm?",
+        "expected": [
+          "vitroceramic-electric-hob-90-cm"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_18",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Vitroceramic Electric Hob 60 cm?",
+        "expected": [
+          "vitroceramic-electric-hob-60-cm"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_19",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Bravo 78cm Built-in Glass Hob?",
+        "expected": [
+          "carysil-bravo-78cm-built-in-glass-hob-3-brass-burner"
+        ],
+        "retrieved_top10": [
+          "rustic-classic-gas-hob-90-cm",
+          "matrix-black-gas-hob-90-cm",
+          "eclipse-oven-60-cm",
+          "rustic-classic-electric-oven-60-cm",
+          "eclipse-oven-90-cm",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-basalt-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-whisper-grey",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-pearl-black",
+          "rock-chimney"
+        ],
+        "scores_top10": [
+          0.6744217858752407,
+          0.6345004714726278,
+          0.4596232570115908,
+          0.4491079613832345,
+          0.4445992939356006,
+          0.444578303199219,
+          0.4414826368401934,
+          0.4394839107990389,
+          0.43881814150377707,
+          0.42452461877025105
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "dim_20",
+        "category": "attribute_dimension",
+        "question": "What are the dimensions of the Pro 78cm Built-in Glass Hob?",
+        "expected": [
+          "carysil-pro-78cm-built-in-glass-hob-4-brass-burner"
+        ],
+        "retrieved_top10": [
+          "rustic-classic-gas-hob-90-cm",
+          "matrix-black-gas-hob-90-cm",
+          "eclipse-oven-60-cm",
+          "eclipse-oven-90-cm",
+          "rustic-classic-electric-oven-60-cm",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-basalt-grey",
+          "carysil-glass-rinser-for-kitchen-sink-automatic-cup-washer-for-kitchen-sink-304-grade-stainless-steel-5-spray-holes-bar-glass-rinser-and-bottle-rinser-matt-black-finish",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-whisper-grey",
+          "linear-advance-oven-60-cm",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-whisper-grey"
+        ],
+        "scores_top10": [
+          0.637076079845433,
+          0.6270079239006188,
+          0.45445373925843136,
+          0.4384015945431049,
+          0.42696932360072803,
+          0.41965222837614324,
+          0.4078393688393507,
+          0.40718771900984274,
+          0.4047202467918425,
+          0.40363521640930533
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "material_21",
+        "category": "attribute_material",
+        "question": "What material is the Built-In Barbeque made of?",
+        "expected": [
+          "carysil-built-in-barbeque"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "material_22",
+        "category": "attribute_material",
+        "question": "What material is the Built-in Coffee-Maker 02 made of?",
+        "expected": [
+          "built-in-coffee-maker-02"
+        ],
+        "retrieved_top10": [
+          "carysil-blender",
+          "carysil-stand-mixer",
+          "carysil-stand-mixer-black",
+          "carysil-electric-cooking-pot",
+          "built-in-dishwasher-dw-01",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "vitroceramic-electric-hob-90-cm",
+          "built-in-dishwasher-dw-04",
+          "vitroceramic-electric-hob-60-cm",
+          "carysil-food-waste-disposer-3-4-hp-standard-2to6-person"
+        ],
+        "scores_top10": [
+          0.4909891339841763,
+          0.37540534881321563,
+          0.33442684011379487,
+          0.3203655874838145,
+          0.31829950482258174,
+          0.30135666425953445,
+          0.30091849866266873,
+          0.2988683372398748,
+          0.2888590176953647,
+          0.28702256470246634
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "material_23",
+        "category": "attribute_material",
+        "question": "What material is the built-in Automatic Coffee Maker Machine with LCD display made of?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-11-in-1-electric-pressure-cooker",
+          "ss-workstation-610",
+          "carysil-15-bottle-wine-chiller-free-standing"
+        ],
+        "scores_top10": [
+          0.36382575466326084,
+          0.31163110012279804,
+          0.30727457534216684
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "material_24",
+        "category": "attribute_material",
+        "question": "What material is the Built In Dishwasher DW – 04 made of?",
+        "expected": [
+          "built-in-dishwasher-dw-04"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-blender",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-3-4-hp-standard-2to6-person",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-stand-mixer"
+        ],
+        "scores_top10": [
+          0.7177415612725463,
+          0.7091857042840635,
+          0.386256320922838,
+          0.3850812406668598,
+          0.3838839922193443,
+          0.3831582785278782,
+          0.38199898266840804,
+          0.3781518034573177,
+          0.3743071111534463,
+          0.3616247209013277
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "material_25",
+        "category": "attribute_material",
+        "question": "What material is the Free Standing Dishwasher DW – 03 made of?",
+        "expected": [
+          "free-standing-dishwasher-dw-03"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-stand-mixer",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-blender",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person"
+        ],
+        "scores_top10": [
+          0.662938614575233,
+          0.6493244798199284,
+          0.3920177402491066,
+          0.38798896145886475,
+          0.366325397302945,
+          0.3659730444558562,
+          0.3659656069360743,
+          0.36556174549829024,
+          0.36536271182520985,
+          0.36298432416004167
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "material_26",
+        "category": "attribute_material",
+        "question": "What material is the Built In Dishwasher DW – 02 made of?",
+        "expected": [
+          "built-in-dishwasher-dw-02"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-01",
+          "built-in-dishwasher-dw-04",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-3-4-hp-standard-2to6-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person",
+          "carysil-blender",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml"
+        ],
+        "scores_top10": [
+          0.7282649168494505,
+          0.7173577164816255,
+          0.3713273627357163,
+          0.3711197462321143,
+          0.37079503027215654,
+          0.3703300290709688,
+          0.3651214918421817,
+          0.36253975741446887,
+          0.3617108115474925,
+          0.3437663512299566
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "material_27",
+        "category": "attribute_material",
+        "question": "What material is the Linear Electric Oven 90 made of?",
+        "expected": [
+          "linear-electric-oven-90"
+        ],
+        "retrieved_top10": [
+          "legna-extreme-premium-class-double-group-coffee-machine"
+        ],
+        "scores_top10": [
+          0.31902207150727135
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "material_28",
+        "category": "attribute_material",
+        "question": "What material is the Built In Dishwasher DW – 01 made of?",
+        "expected": [
+          "built-in-dishwasher-dw-01"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-01",
+          "built-in-dishwasher-dw-04",
+          "carysil-blender",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-3-4-hp-standard-2to6-person",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-stand-mixer"
+        ],
+        "scores_top10": [
+          0.7481719855852161,
+          0.7237708352872638,
+          0.3713063265705454,
+          0.36919772304317267,
+          0.3688585460186109,
+          0.36681685046747914,
+          0.3645479269452383,
+          0.3623365327910768,
+          0.3580286245277824,
+          0.3467182401754594
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_29",
+        "category": "attribute_price",
+        "question": "What is the price of the built-in Automatic Coffee Maker Machine with LCD display?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-15-bottle-wine-chiller-free-standing",
+          "carysil-11-in-1-electric-pressure-cooker",
+          "ss-workstation-610"
+        ],
+        "scores_top10": [
+          0.3766105921996452,
+          0.35214769503813537,
+          0.26804798257780504
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "price_30",
+        "category": "attribute_price",
+        "question": "What is the price of the Milk Frother 4-in-1?",
+        "expected": [
+          "carysil-milk-frother"
+        ],
+        "retrieved_top10": [
+          "carysil-milk-frother",
+          "carysil-stainless-steel-vegetable-colander-38-4x18x7-5cm",
+          "carysil-stainless-steel-vegetable-colander-36-5x18x7-5cm",
+          "carysil-stainless-steel-vegetable-colander-37-5x18x7-5cm",
+          "abwasser-platform-chimney",
+          "bower-ceiling-hood-chimney",
+          "berlin-chimney-60-cm",
+          "berlin-chimney-90-cm",
+          "carysil-wire-grid-for-kitchen-sink-54-7x35-5x2-96-cm",
+          "carysil-wire-grid-for-kitchen-sink-68-2-33-2-96-cm"
+        ],
+        "scores_top10": [
+          0.5700866162260674,
+          0.24632676186595126,
+          0.2440487912718874,
+          0.2423177239950759,
+          0.16905267451310357,
+          0.1638860558475299,
+          0.1301959138408052,
+          0.12497431412876003,
+          0.11269072400878932,
+          0.11088961783361395
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "price_31",
+        "category": "attribute_price",
+        "question": "What is the price of the Sparkle Portable Compact Countertop Ice Maker?",
+        "expected": [
+          "carysil-sparkle-ice-maker"
+        ],
+        "retrieved_top10": [
+          "rock-chimney",
+          "carysil-kia-fl-60cm-curved-kitchen-chimney",
+          "carysil-kia-fl-90cm-curved-kitchen-chimney",
+          "carysil-kia-fl-75cm-curved-kitchen-chimney",
+          "crysta-plus-chimney",
+          "miracle-chimney-60-cm",
+          "miracle-chimney-90-cm",
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-yellow-gold-pvd-finish",
+          "aspetto-semi-professional-coffee-machine",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-cream"
+        ],
+        "scores_top10": [
+          0.4330255806996388,
+          0.35522690023894965,
+          0.3434611336085478,
+          0.34052997763187265,
+          0.3353667255580326,
+          0.31625417970096503,
+          0.3110494335547631,
+          0.2969191018439431,
+          0.2919458994929931,
+          0.2788444986714128
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "price_32",
+        "category": "attribute_price",
+        "question": "What is the price of the Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery?",
+        "expected": [
+          "carysil-premium-cotton-apron-black"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "price_33",
+        "category": "attribute_price",
+        "question": "What is the price of the Premium 100% Cotton Apron with Front Center Pocket & Brand Embroidery?",
+        "expected": [
+          "carysil-premium-cotton-apron-red"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "price_34",
+        "category": "attribute_price",
+        "question": "What is the price of the Blender?",
+        "expected": [
+          "carysil-blender-juicer-mixer-grinder-smoothie-maker"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "price_35",
+        "category": "attribute_price",
+        "question": "What is the price of the Passilo 90cm Built-in Hob?",
+        "expected": [
+          "carysil-passilo-5-burner-90-cm-built-in-glass-hob"
+        ],
+        "retrieved_top10": [
+          "vista-chimney",
+          "carysil-quartz-new-beethoven-d-100-ultra-drainboard-34x20x8-inches-sand",
+          "carysil-d150-vivaldi-one-and-half-bowl-with-drainer",
+          "carysil-free-standing-cooking-range-fscr-04-62l-electric-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-black",
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-free-standing-cooking-range-fscr-01-62l-gas-oven-4-high-power-italian-sabaf-burners-cast-iron-support-digital-timer-cooking-baking-grilling-roasting-stainless-steel-body-silver",
+          "carysil-49-bottle-wine-chiller-dual-zone",
+          "drying-channel-1000",
+          "free-standing-wine-chiller-54-bottles",
+          "carysil-165-bottle-wine-chiller-dual-zone"
+        ],
+        "scores_top10": [
+          0.3874475706321894,
+          0.3632165138746114,
+          0.34785277688065763,
+          0.32321914849623945,
+          0.3033018058482083,
+          0.3029577280644291,
+          0.29728123223316416,
+          0.29564789818669124,
+          0.285064867448487,
+          0.28283316739897457
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "price_36",
+        "category": "attribute_price",
+        "question": "What is the price of the Passilo 100cm Built-in Hob?",
+        "expected": [
+          "carysil-passilo-4-burner-100-cm-built-in-glass-hob"
+        ],
+        "retrieved_top10": [
+          "carysil-brazzo-4-burner-60-cm-square-pan-support",
+          "carysil-brazzo-4-burner-78-cm-square-pan-support",
+          "eclipse-matt-gas-hob-90-cm",
+          "carysil-vogue-pro-ss-with-drainboard-40x20x9-inches-gloss",
+          "carysil-vogue-ss-single-bowl-with-drainboard-sink-40x20x8-inches-glossy",
+          "carysil-quartz-new-beethoven-d-100l-ultra-40x20x8-inches-sand",
+          "carysil-vogue-pro-ss-drainboard-kitchen-sink-36x20x8-inches-gloss",
+          "carysil-elegance-esg-ultra-single-bowl-ss-kitchen-sink-30x18x8-inches-gloss",
+          "carysil-vogue-pro-ss-with-drainboard-40x20x9-inches-matt",
+          "carysil-quadro-ultra-zero-radius-single-bowl-ss-kitchen-sink-30x18x8-inches-satin"
+        ],
+        "scores_top10": [
+          0.4308110695756009,
+          0.42584902376497635,
+          0.4023319126565583,
+          0.35644010978224216,
+          0.35413012838220514,
+          0.3484773039818032,
+          0.3416744115491248,
+          0.3359570205211855,
+          0.33535463653452935,
+          0.33508292886106106
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "install_37",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil D100L Tip Toe Single Bowl with Drainer Kitchen sink support?",
+        "expected": [
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100b-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100s-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100n-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100l-jazz-single-bowl-with-drainer-kitchen-sink",
+          "carysil-d100l-polo-single-bowl-with-drainer-kitchen-sink-2",
+          "carysil-d100l-polo-single-bowl-with-drainer-kitchen-sink",
+          "carysil-vogue-single-bowl-with-drainer-40x20x9",
+          "carysil-d100-swan-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.7903969523428965,
+          0.7133965408689122,
+          0.7028050422668457,
+          0.7021831274032593,
+          0.6969369234480319,
+          0.6824907863882421,
+          0.6662736336858757,
+          0.6662736336858757,
+          0.651550236067144,
+          0.6510754047542374
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_38",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil Retro Green Sink support?",
+        "expected": [
+          "carysil-retro-green-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-big-bowl-kitchen-sink",
+          "carysil-d150-vivaldi-one-and-half-bowl-with-drainer",
+          "soap-dispenser-chrome",
+          "drying-channel-1000",
+          "carysil-quartz-new-beethoven-d-100-ultra-drainboard-34x20x8-inches-sand",
+          "free-standing-wine-chiller-15-bottles",
+          "vista-chimney",
+          "free-standing-wine-chiller-54-bottles",
+          "built-in-wine-chiller-18-bottles"
+        ],
+        "scores_top10": [
+          0.6587107392086621,
+          0.6544749780386765,
+          0.6254867239336013,
+          0.46414268444269013,
+          0.439897584945684,
+          0.3602730583656384,
+          0.27411573020880065,
+          0.26821550292599317,
+          0.2646790944518066,
+          0.2567311227321789
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "install_39",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil CG2B 3322 Double Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-cg2b-3322-double-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-cgdb-3322-double-bowl-kitchen-sink",
+          "carysil-cg2b-3322-double-bowl-kitchen-sink",
+          "carysil-cg2b-3322-u-double-bowls-two-bowl-kitchen-sink",
+          "carysil-d200-jazz-double-bowl-with-drainer-kitchen-sink",
+          "carysil-cgdb-3318-smart-series-double-bowl-kitchen-sink",
+          "carysil-d200l-enigma-double-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-polo-double-bowl-with-drainer-kitchen-sink",
+          "carysil-n200-jumbo-double-bowl-kitchen-sink",
+          "carysil-d200-enigma-double-bowl-with-drainer-kitchen-sink",
+          "carysil-d200-vivaldi-double-bowl-kitchen-sink-with-drainer"
+        ],
+        "scores_top10": [
+          0.7301658874453624,
+          0.7152002280234475,
+          0.7014508781223031,
+          0.6933427039776929,
+          0.6683005886822208,
+          0.643395470560948,
+          0.6424348823920254,
+          0.639937107574275,
+          0.6357982348144006,
+          0.6340449074480274
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_40",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil Big Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-big-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-cg2b-3322-u-double-bowls-two-bowl-kitchen-sink",
+          "atomic-workstation",
+          "carysil-rege-one-and-half-and-double-bowl-with-drainer-46x20x8",
+          "carysil-rege-one-and-half-and-double-bowl-with-drainer-40x20x8",
+          "carysil-pmq-9-pvd-double-bowl-kitchen-sink",
+          "carysil-micro-radius-r10-one-and-half-bowl-and-double-bowl-45x20x9",
+          "american-design-asb2522",
+          "carysil-micro-radius-r10-one-and-half-bowl-and-double-bowl-13x17x18-6",
+          "american-design-asb2418",
+          "micro-radius-r10-double-bowl-34x17x8"
+        ],
+        "scores_top10": [
+          0.6553409510444508,
+          0.62206432293312,
+          0.6028722826946655,
+          0.5998044967535104,
+          0.5547111961073643,
+          0.5489994825125396,
+          0.5399252081095676,
+          0.5393609906766437,
+          0.5287129440520282,
+          0.5277603235530505
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "install_41",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil 780 Waltz Single Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-780-waltz-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-780-waltz-single-bowl-kitchen-sink",
+          "carysil-780-u-waltz-single-bowl-kitchen-sink",
+          "carysil-680u-waltz-single-bowl-kitchen-sink",
+          "carysil-400n-waltz-single-bowl-kitchen-sink",
+          "carysil-xl-780-smart-series-single-bowl-kitchen-sink",
+          "carysil-680-waltz-single-bowl-kitchen-sink",
+          "carysil-610-waltz-single-bowl-kitchen-sink",
+          "carysil-rege-single-bowl-with-drainer-34x20x8",
+          "carysil-rege-single-bowl-with-drainer-46x20x8",
+          "carysil-rege-single-bowl-with-drainer-40x20x8"
+        ],
+        "scores_top10": [
+          0.7564704288454263,
+          0.7544143131992691,
+          0.7290791546200698,
+          0.695470649273964,
+          0.6790573596954393,
+          0.6755258038326727,
+          0.6725271164714924,
+          0.6700790134237166,
+          0.6696408779499882,
+          0.6667077541351366
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_42",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil N200 Vivaldi Double Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-n200-vivaldi-double-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-d200-vivaldi-double-bowl-kitchen-sink-with-drainer",
+          "carysil-n200-vivaldi-double-bowl-kitchen-sink",
+          "carysil-d200-jazz-double-bowl-with-drainer-kitchen-sink",
+          "carysil-cgdb-3322-double-bowl-kitchen-sink",
+          "carysil-d200l-enigma-double-bowl-with-drainer-kitchen-sink",
+          "carysil-n200-jumbo-double-bowl-kitchen-sink",
+          "carysil-d200-polo-double-bowl-with-drainer-kitchen-sink",
+          "carysil-cg2b-3322-double-bowl-kitchen-sink",
+          "carysil-d200-enigma-double-bowl-with-drainer-kitchen-sink",
+          "carysil-n200-swan-double-bowl-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.7528310270804899,
+          0.7508220524085911,
+          0.7087540452929876,
+          0.6946848216840743,
+          0.680378732613553,
+          0.6751995876312513,
+          0.6714142552469524,
+          0.6692838265219196,
+          0.6626975331750055,
+          0.6584518144669499
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_43",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil N100S Enigma Single Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-n100s-enigma-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-n100s-enigma-single-bowl-kitchen-sink",
+          "carysil-n100n-enigma-single-bowl-kitchen-sink",
+          "carysil-n100m-enigma-single-bowl-kitchen-sink",
+          "carysil-d100-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-680u-waltz-single-bowl-kitchen-sink",
+          "carysil-d100l-enigma-single-bowl-with-drainer-kitchen-sink",
+          "carysil-n100l-enigma-single-bowl-kitchen-sink",
+          "carysil-n100-jumbo-single-bowl-kitchen-sink",
+          "carysil-780-u-waltz-single-bowl-kitchen-sink",
+          "carysil-d150-enigma-single-bowl-with-drainer-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.7343499222785294,
+          0.7291941102618703,
+          0.7205953931098759,
+          0.7190595771563925,
+          0.7188303899067886,
+          0.7179530094833988,
+          0.7151464733219607,
+          0.7122718520326539,
+          0.7080458439629562,
+          0.7066653545698325
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "install_44",
+        "category": "attribute_installation",
+        "question": "What installation type does the Carysil SM530 Smart Series Single Bowl Kitchen Sink support?",
+        "expected": [
+          "carysil-sm530-smart-series-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-sm530-smart-series-single-bowl-kitchen-sink",
+          "carysil-sm430-smart-series-single-bowl-kitchen-sink",
+          "carysil-sm370-smart-series-single-bowl-kitchen-sink",
+          "carysil-780-u-waltz-single-bowl-kitchen-sink",
+          "carysil-680u-waltz-single-bowl-kitchen-sink",
+          "carysil-780-waltz-single-bowl-kitchen-sink",
+          "carysil-d100l-tip-toe-single-bowl-with-drainer-kitchen-sink",
+          "carysil-xl-780-smart-series-single-bowl-kitchen-sink",
+          "carysil-400n-waltz-single-bowl-kitchen-sink",
+          "carysil-bar-single-bowl-kitchen-sink"
+        ],
+        "scores_top10": [
+          0.7410835535949359,
+          0.7091720429575773,
+          0.6990613428221025,
+          0.6876414493232298,
+          0.6846650103126649,
+          0.6833624725688113,
+          0.6614690606204044,
+          0.659827846848849,
+          0.6584971932318099,
+          0.6576705934819121
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_45",
+        "category": "attribute_color",
+        "question": "What colours is the Built-In Barbeque available in?",
+        "expected": [
+          "carysil-built-in-barbeque"
+        ],
+        "retrieved_top10": [
+          "salsa-single-bowl-kitchen-sink",
+          "piccola-semi-professional-coffee-machine",
+          "carysil-multipurpose-304-grade-stainless-steel-rust-resistant-expandable-kitchen-basket-for-straining-vegetables-fruits-and-more-ideal-for-daily-use-easy-to-clean-durable",
+          "teckno-chimney",
+          "aspetto-semi-professional-coffee-machine",
+          "carysil-ss-square-waste-coupling-pvd-yellow-gold",
+          "15-marine-grade",
+          "rustic-classic-gas-hob-90-cm",
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-yellow-gold-pvd-finish",
+          "eclipse-oven-90-cm"
+        ],
+        "scores_top10": [
+          0.3556200418072979,
+          0.3465884912083941,
+          0.33259676895747403,
+          0.3211658011824702,
+          0.3191889619585564,
+          0.3110727945929286,
+          0.3077770609324173,
+          0.29073994485318944,
+          0.28784246110446654,
+          0.2795306588478259
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "color_46",
+        "category": "attribute_color",
+        "question": "What colours is the Built-in Coffee-Maker 02 available in?",
+        "expected": [
+          "built-in-coffee-maker-02"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "grande-caldaiato-double-group-coffee-machine",
+          "cigar-humidor-212"
+        ],
+        "scores_top10": [
+          0.5883274919791786,
+          0.5216564795393169,
+          0.2960258977305129
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "color_47",
+        "category": "attribute_color",
+        "question": "What colours is the built-in Automatic Coffee Maker Machine with LCD display available in?",
+        "expected": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display"
+        ],
+        "retrieved_top10": [
+          "carysil-built-in-automatic-coffee-maker-machine-with-lcd-display",
+          "grande-caldaiato-double-group-coffee-machine",
+          "cigar-humidor-212"
+        ],
+        "scores_top10": [
+          0.6499793916928509,
+          0.4859671005030224,
+          0.2545355097843718
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.3333333333333333
+      },
+      {
+        "id": "color_48",
+        "category": "attribute_color",
+        "question": "What colours is the Built In Dishwasher DW – 04 available in?",
+        "expected": [
+          "built-in-dishwasher-dw-04"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person",
+          "carysil-square-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish"
+        ],
+        "scores_top10": [
+          0.7910726430692653,
+          0.7397102142071214,
+          0.41124891538183106,
+          0.40550029113880137,
+          0.39777472615243137,
+          0.39589324095410316,
+          0.39314868511420764,
+          0.3915535768142755,
+          0.3891161812405397,
+          0.3884732624638214
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_49",
+        "category": "attribute_color",
+        "question": "What colours is the Free Standing Dishwasher DW – 03 available in?",
+        "expected": [
+          "free-standing-dishwasher-dw-03"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml",
+          "carysil-square-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person"
+        ],
+        "scores_top10": [
+          0.7267562908174608,
+          0.6791152762839664,
+          0.43862879486089135,
+          0.42706751823428024,
+          0.39827983358859165,
+          0.3803908909066185,
+          0.37934043387783656,
+          0.3783478930126247,
+          0.3778066562299095,
+          0.37381210171058066
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "color_50",
+        "category": "attribute_color",
+        "question": "What colours is the Built In Dishwasher DW – 02 available in?",
+        "expected": [
+          "built-in-dishwasher-dw-02"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml",
+          "carysil-square-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person"
+        ],
+        "scores_top10": [
+          0.7772114375720744,
+          0.7525315579734428,
+          0.4059135438774094,
+          0.39563574272947777,
+          0.39027888236767816,
+          0.3882644905728736,
+          0.38806440091901107,
+          0.3846223766989225,
+          0.38373450830763756,
+          0.38314342498779297
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "color_51",
+        "category": "attribute_color",
+        "question": "What colours is the Linear Electric Oven 90 available in?",
+        "expected": [
+          "linear-electric-oven-90"
+        ],
+        "retrieved_top10": [
+          "linear-electric-oven-90",
+          "linear-advance-oven-90-cm",
+          "matrix-electric-oven-60-cm",
+          "eclipse-oven-90-cm",
+          "linear-advance-oven-60-cm",
+          "linear-plus-oven-60-cm",
+          "rustic-classic-electric-oven-60-cm",
+          "eclipse-oven-60-cm",
+          "carysil-multipurpose-304-grade-stainless-steel-rust-resistant-expandable-kitchen-basket-for-straining-vegetables-fruits-and-more-ideal-for-daily-use-easy-to-clean-durable",
+          "matrix-black-gas-hob-90-cm"
+        ],
+        "scores_top10": [
+          0.6298170586929914,
+          0.5882123708725644,
+          0.5768115107563924,
+          0.5570777918650838,
+          0.5508464367711378,
+          0.5396000723719894,
+          0.5306570481427827,
+          0.5249931246034392,
+          0.4418012395741968,
+          0.39983044860728545
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 1,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "color_52",
+        "category": "attribute_color",
+        "question": "What colours is the Built In Dishwasher DW – 01 available in?",
+        "expected": [
+          "built-in-dishwasher-dw-01"
+        ],
+        "retrieved_top10": [
+          "built-in-dishwasher-dw-04",
+          "built-in-dishwasher-dw-01",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-air-switch-5to7-person-family",
+          "carysil-square-waste-coupling-for-kitchen-sink-premium-304-grade-stainless-steel-coupling-removable-waste-strainer-for-kitchen-sink-rust-free-corrosion-resistant-matt-black-pvd-finish",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-air-switch-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person",
+          "carysil-food-waste-disposer-3-4-hp-heavy-duty-8to12-person",
+          "carysil-food-waste-disposer-1-2-hp-standard-2to5-person"
+        ],
+        "scores_top10": [
+          0.7835931028470913,
+          0.774857223033927,
+          0.4065699885144829,
+          0.3976390422797951,
+          0.38460931411011556,
+          0.3845611741877364,
+          0.38371118903161183,
+          0.38206723065186154,
+          0.3789111971855271,
+          0.37859453303749024
+        ],
+        "rank_of_first_hit": 2,
+        "recall_at": {
+          "1": 0,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.2
+      },
+      {
+        "id": "paraphrase_53",
+        "category": "semantic_paraphrase",
+        "question": "Do you have anything like the 15 Marine Grade?",
+        "expected": [
+          "15-marine-grade"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "paraphrase_54",
+        "category": "semantic_paraphrase",
+        "question": "I'm interested in learning more about American Design ADB3322 — what's it like?",
+        "expected": [
+          "american-design-adb3322"
+        ],
+        "retrieved_top10": [
+          "linear-34-microwave",
+          "carysil-20mm-chopping-board-for-kitchen",
+          "rustic-classic-microwave",
+          "matrix-combi-microwave",
+          "linear-25-microwave",
+          "linear-microwave",
+          "linear-combi-oven-microwave"
+        ],
+        "scores_top10": [
+          0.13356786170197577,
+          0.1264221515841123,
+          0.12412492936105157,
+          0.09858606325554164,
+          0.09376881457753239,
+          0.08855110888030993,
+          0.0848910386827928
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "paraphrase_55",
+        "category": "semantic_paraphrase",
+        "question": "Can you show me details on American Design ASB1818?",
+        "expected": [
+          "american-design-asb1818"
+        ],
+        "retrieved_top10": [
+          "carysil-2522-tango-single-bowl-kitchen-sink",
+          "carysil-quartz-tip-toe-db-ultra-double-bowl-kitchen-sink-34x20x8-inches-cream",
+          "carysil-13322-tango-single-bowl-kitchen-sink",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-champagne",
+          "carysil-cg2b-3322-double-bowl-kitchen-sink",
+          "food-waste-disposer-3-4-hp-heavy-duty",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-cream",
+          "food-waste-disposer-1-2-hp-heavy-duty",
+          "carysil-wire-grid-for-kitchen-sink-304-grade-stainless-steel-metal-dish-drying-rack-self-draining-prevents-sliding-kitchen-sink-accessories-32-6x46-6x2-96-cm",
+          "carysil-wire-grid-for-kitchen-sink-304-grade-stainless-steel-metal-dish-drying-rack-self-draining-prevents-sliding-kitchen-sink-accessories-35-5x54-7x2-96-cm"
+        ],
+        "scores_top10": [
+          0.3033956624200995,
+          0.3023281430094703,
+          0.2958308059715513,
+          0.2786814208869479,
+          0.27060332333477966,
+          0.2672600111609864,
+          0.2660426475545561,
+          0.25105928651736553,
+          0.2478097294910543,
+          0.24576405296935921
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "typo_56",
+        "category": "semantic_typo",
+        "question": "quarts sinc for kitchen",
+        "expected": [
+          "carysil-13322-tango-single-bowl-kitchen-sink"
+        ],
+        "retrieved_top10": [
+          "carysil-u-250r-tango-double-bowl-kitchen-sink",
+          "carysil-u-3322-tango-double-bowl-kitchen-sink",
+          "carysil-lbu-3322-tango-double-bowl-kitchen-sink",
+          "carysil-lb3322-tango-double-bowl-kitchen-sink",
+          "carysil-250r-tango-double-bowl-kitchen-sink",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-cream",
+          "carysil-joy-ice-maker-silver",
+          "carysil-sparkle-ice-maker",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-nera",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-champagne"
+        ],
+        "scores_top10": [
+          0.37556295090164404,
+          0.3729041622918129,
+          0.37202723359738055,
+          0.3709138189657055,
+          0.36455448933757695,
+          0.3090034430338482,
+          0.2985081196720576,
+          0.2955396581982772,
+          0.2925316168311458,
+          0.2788965736504285
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "typo_57",
+        "category": "semantic_typo",
+        "question": "kichen fawcet reccomendation",
+        "expected": [
+          "ala-01504"
+        ],
+        "retrieved_top10": [
+          "15-marine-grade",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-croma",
+          "carysil-kia-fl-90cm-curved-kitchen-chimney",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-croma",
+          "carysil-kia-fl-60cm-curved-kitchen-chimney",
+          "carysil-kia-fl-75cm-curved-kitchen-chimney",
+          "carysil-multipurpose-304-grade-stainless-steel-rust-resistant-expandable-kitchen-basket-for-straining-vegetables-fruits-and-more-ideal-for-daily-use-easy-to-clean-durable",
+          "carysil-ss-square-waste-coupling-pvd-yellow-gold",
+          "carysil-304-grade-stainless-steel-square-waste-coupling-with-removable-waste-strainer-assembly-corrosion-resistant-efficient-drainage-system-yellow-gold-pvd-finish",
+          "linear-electric-oven-90"
+        ],
+        "scores_top10": [
+          0.2561910472599441,
+          0.2561583304641172,
+          0.24900498238221658,
+          0.2464527559089198,
+          0.2360903831801212,
+          0.2268849569949447,
+          0.2137644780067679,
+          0.20479202072454017,
+          0.20140686652166861,
+          0.19903557581345743
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "typo_58",
+        "category": "semantic_typo",
+        "question": "food wast disposal unit",
+        "expected": [
+          "carysil-food-waste-disposer-1-2-hp-heavy-duty-5to7-person"
+        ],
+        "retrieved_top10": [],
+        "scores_top10": [],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "filter_59",
+        "category": "filtering",
+        "question": "Show me quartz sinks under 20000 rupees.",
+        "expected": [
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-50-ml",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-arena",
+          "carysil-quartz-new-ascend-kitchen-sink-34x20x8-inches-basalt-grey",
+          "carysil-quartz-new-ascend-single-bowl-kitchen-sink-34x20x8-inches-cream",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-basalt-grey",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-cream",
+          "carysil-quartz-neo-salsa-edge-single-bowl-kitchen-sink-17x17x8-inches-arena",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-cream",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-pearl-black",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-arena",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-champagne",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-champagne",
+          "carysil-quartz-tip-toe-db-ultra-double-bowl-kitchen-sink-34x20x8-inches-cream",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-croma",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-champagne",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-croma",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-croma",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-nera",
+          "carysil-quartz-salsa-max-kitchen-sink-21x18x8-inches-nera",
+          "carysil-quartz-magic-salsa-pro-kitchen-sink-18x16x8-inches-nera",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-double-bowl-34x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-cream",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-cream",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-whisper-grey",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-cream",
+          "carysil-quartz-dolce-uk-double-bowl-34x18x8-inches-pearl-black",
+          "carysil-quartz-new-beethoven-d-100-ultra-drainboard-34x20x8-inches-sand",
+          "carysil-quartz-new-beethoven-d-100l-ultra-40x20x8-inches-sand"
+        ],
+        "retrieved_top10": [
+          "carysil-quartz-new-beethoven-d-100-ultra-drainboard-34x20x8-inches-sand",
+          "carysil-quartz-q-320-grande-kitchen-sink-24x18x8-inches-cream",
+          "carysil-quartz-cleaning-kit-for-kitchen-sink-250-ml",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-double-bowl-34x18x8-inches-pearl-black",
+          "carysil-quartz-dolce-uk-kitchen-sink-17x18x8-inches-pearl-black",
+          "carysil-quartz-new-beethoven-d-100l-ultra-40x20x8-inches-sand",
+          "carysil-quartz-dolce-uk-kitchen-sink-21x18x8-inches-pearl-black",
+          "carysil-quartz-big-bowl-plus-single-bowl-kitchen-sink-24x18x8-inches-nera",
+          "carysil-quartz-dolce-uk-kitchen-sink-15x18x8-inches-cream"
+        ],
+        "scores_top10": [
+          0.4697210558500906,
+          0.46181131113249807,
+          0.459610897186679,
+          0.45671108436054775,
+          0.4551203306270579,
+          0.45511851536016823,
+          0.454867582458385,
+          0.4537290089161361,
+          0.4532386199605636,
+          0.44874348435259837
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 0.029411764705882353,
+          "3": 0.08823529411764706,
+          "5": 0.14705882352941177,
+          "10": 0.29411764705882354
+        },
+        "precision_at_5": 1
+      },
+      {
+        "id": "filter_60",
+        "category": "filtering",
+        "question": "I want stainless steel faucets.",
+        "expected": [],
+        "retrieved_top10": [
+          "atomic-workstation",
+          "carysil-bull-stainless-steel",
+          "carysil-german-design-ss-sink",
+          "american-design-asb1818",
+          "american-design-asb2522",
+          "american-design-asb2418",
+          "plumbing-kit-rose-gold",
+          "carysil-stainless-steel-vegetable-colander-for-kitchen-sink-modern-kitchen-strainer-rust-resistant-compact-easy-draining-washing-for-fruits-vegetables-pasta-38-4x18x7-5-cm",
+          "carysil-avenger-24x17x8",
+          "carysil-stainless-steel-vegetable-colander-for-kitchen-sink-modern-kitchen-strainer-rust-resistant-compact-easy-draining-washing-for-fruits-vegetables-pasta-37-5x18x7-5-cm"
+        ],
+        "scores_top10": [
+          0.5822835738147579,
+          0.5728586486834091,
+          0.5575546192394284,
+          0.5493887230571921,
+          0.5327406088334695,
+          0.5172210685077514,
+          0.5150831784283444,
+          0.511398002165643,
+          0.5105827006871497,
+          0.5103432104502988
+        ],
+        "rank_of_first_hit": null,
+        "recall_at": {
+          "1": 0,
+          "3": 0,
+          "5": 0,
+          "10": 0
+        },
+        "precision_at_5": 0
+      },
+      {
+        "id": "compare_61",
+        "category": "comparison",
+        "question": "Compare the American Design ASB2418 and the American Design ASB2522.",
+        "expected": [
+          "american-design-asb2418",
+          "american-design-asb2522"
+        ],
+        "retrieved_top10": [
+          "american-design-asb2418",
+          "american-design-asb2522",
+          "atomic-workstation",
+          "fk",
+          "maximus-mx-35",
+          "carysil-rege-one-and-half-and-double-bowl-with-drainer-46x20x8",
+          "carysil-rege-one-and-half-and-double-bowl-with-drainer-40x20x8",
+          "micro-radius-r10-single-bowl-24x18x9",
+          "carysil-micro-radius-r10-one-and-half-bowl-and-double-bowl-45x20x9",
+          "carysil-micro-radius-r10-one-and-half-bowl-and-double-bowl-13x17x18-6"
+        ],
+        "scores_top10": [
+          0.6354043673099617,
+          0.617013009306667,
+          0.2995730520312663,
+          0.2621100232470026,
+          0.2471536622299706,
+          0.24365829581892773,
+          0.24175713907225838,
+          0.23407709788357212,
+          0.23131802900814824,
+          0.22923489410045284
+        ],
+        "rank_of_first_hit": 1,
+        "recall_at": {
+          "1": 0.5,
+          "3": 1,
+          "5": 1,
+          "10": 1
+        },
+        "precision_at_5": 0.4
+      }
+    ]
+  }
+}

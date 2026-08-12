@@ -10,7 +10,11 @@
     "embed:products": "node --import tsx scripts/generateProductEmbeddings.ts",
     "import:catalog": "node --import tsx scripts/importCatalogProducts.ts",
     "import:dealers": "node --import tsx scripts/importDealers.ts",
-    "import:documents": "node --import tsx scripts/importDocuments.ts"
+    "import:documents": "node --import tsx scripts/importDocuments.ts",
+    "rag:dataset": "node --import tsx eval/generateDataset.ts",
+    "rag:eval:retrieval": "node --import tsx eval/retrievalEval.ts",
+    "rag:eval:generation": "node --import tsx eval/generationEval.ts",
+    "rag:evaluate": "npm run rag:eval:retrieval && npm run rag:eval:generation"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

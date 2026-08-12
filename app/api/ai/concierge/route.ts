@@ -100,6 +100,7 @@ import {
 import { answerInstallationQuery } from "./handlers/installation";
 import { answerArchitectQuery } from "./handlers/architect";
 import { getCategoryRange, getTopLevelRange } from "@/lib/catalogueRange";
+import { logRagEvent } from "@/lib/ragObservability";
 
 const GREETING_PATTERN = /^(hi|hello|hey|hi there|hello there|good\s+(morning|afternoon|evening)|howdy|greetings?|thanks|thank\s+you|ok|okay)\s*[\.\!]?\s*$/i;
 
@@ -1097,6 +1098,7 @@ export async function POST(request: Request) {
     const enhancedQuery = enhanceQuery(pipelineMessage, memory);
     let relevantProducts: Product[] = [];
     let retrievedMatches: import("@/lib/vectorSearch").SimilarProduct[] = [];
+    const pipelineStartedAt = Date.now();
     const skipVectorEmbedding =
       process.env.SKIP_VECTOR_EMBEDDING === "true" || process.env.SKIP_VECTOR_EMBEDDING === "1";
     try {
@@ -1221,10 +1223,12 @@ export async function POST(request: Request) {
     }
 
     // Grounding check: verify the AI message doesn't mention prices not in retrieved products.
+    let groundingIssues: string[] = [];
     if (result.message && retrievedMatches.length > 0) {
       const grounding = verifyGroundedResponse(result.message, { products: retrievedMatches });
       if (!grounding.valid) {
         console.warn("[concierge] grounding issues:", grounding.issues);
+        groundingIssues = grounding.issues;
         result = { ...result, message: grounding.safeResponse };
       }
     }
@@ -1251,6 +1255,22 @@ export async function POST(request: Request) {
         };
       })
       .filter((rec): rec is NonNullable<typeof rec> => rec !== null);
+
+    logRagEvent({
+      stage: "product_recommendation",
+      sessionId: activeSessionId,
+      query: pipelineMessage,
+      retrieved: retrievedMatches.map((m) => ({ id: m.id, similarity: m.similarity })),
+      contextItemCount: relevantProducts.length,
+      answerPreview: result.message ?? "",
+      citations: recommendations.map((r) => r.id),
+      groundingIssues,
+      aiUsed,
+      model: "gpt-4o-mini",
+      embeddingModel: "all-MiniLM-L6-v2",
+      latencyMs: Date.now() - pipelineStartedAt,
+    });
+
     if (((!aiUsed && relevantProducts.length > 0) || recommendedIds.length > 0) && recommendations.length === 0) {
       recommendations.push(
         ...relevantProducts.slice(0, 4).map((p) => ({

@@ -95,4 +95,21 @@ Other API routes: `/api/ai/status`, `/api/ai/track-click`, `/api/cron/decay-lead
 SQL migration is available at `db/products_vector_schema.sql`.
 It creates:
 - `products` table with metadata + `embedding VECTOR(384)`
-- IVFFlat cosine index (`products_embedding_cosine_idx`) for retrieval performance
+
+No ANN index on `embedding` below ~5,000 rows — see
+`db/migrations/2026_08_drop_undersized_ivfflat_indexes.sql`. An IVFFlat index
+this small (hundreds of rows) returns fewer/wrong neighbors than an exact
+sequential scan, which costs only single-digit milliseconds at this size.
+`scripts/importCatalogProducts.ts` / `scripts/importDocuments.ts` only
+(re)build the index once the corpus crosses that threshold.
+
+## RAG evaluation
+
+```bash
+npm run rag:dataset       # regenerate eval/golden-dataset.json from the live DB (no fabricated answers)
+npm run rag:eval:retrieval   # Recall@K / Precision@K / MRR for hybrid vs vector-only retrieval — no server needed
+npm run rag:eval:generation  # end-to-end checks (no-answer, hallucination, injection, citations) — requires `npm run dev` running
+npm run rag:evaluate         # both, in sequence
+```
+
+Reports are written to `eval/retrieval-report.json` and `eval/generation-report.json`.

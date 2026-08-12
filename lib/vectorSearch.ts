@@ -79,7 +79,18 @@ function inferHybridFilters(query: string, base?: Partial<SearchFilters>): Searc
   };
 }
 
-function expandVectorCategories(categories: string[], keywords?: string[]): string[] {
+/**
+ * "Appliance" is the category the intent-detection prompt returns for hobs
+ * (see prompts/registry.json), but hobs are stored under the DB category
+ * "Hob" — a separate value from "Appliance" (see products table category
+ * distribution). Exported so both the vector and FTS branches of
+ * hybridSearch expand it the same way; before this fix only the vector
+ * branch did, so a category-filtered query could simultaneously miss a Hob
+ * product in FTS (excluded by the unexpanded filter) and in vector search
+ * (crippled separately by the undersized-IVFFlat-index bug), producing a
+ * total retrieval miss for e.g. "dimensions of the Rustic Classic Gas Hob".
+ */
+export function expandVectorCategories(categories: string[], keywords?: string[]): string[] {
   const expanded = new Set<string>();
   const normalizedKeywords = (keywords || []).map((keyword) => keyword.toLowerCase());
   for (const category of categories) {
@@ -138,17 +149,21 @@ export async function searchSimilarProducts(
     sqlParams.push(`%${filters.style}%`);
     where.push(`LOWER(COALESCE(style, '')) LIKE LOWER($${sqlParams.length})`);
   }
-  if (typeof filters.minPrice === "number" || typeof filters.maxPrice === "number") {
-    const priceExpr =
-      "NULLIF(REGEXP_REPLACE(COALESCE(price, ''), '[^0-9.]', '', 'g'), '')::numeric";
-    if (typeof filters.minPrice === "number") {
-      sqlParams.push(filters.minPrice);
-      where.push(`${priceExpr} >= $${sqlParams.length}`);
-    }
-    if (typeof filters.maxPrice === "number") {
-      sqlParams.push(filters.maxPrice);
-      where.push(`${priceExpr} <= $${sqlParams.length}`);
-    }
+  // Use the pre-parsed price_min/price_max numeric columns (populated at import
+  // time by scripts/importCatalogProducts.ts), not a regex re-parse of the
+  // display `price` text column: stripping "Rs. 449.00" to non-digits/dots
+  // leaves ".449.00" (two decimal points, from the "Rs." prefix's own period),
+  // which Postgres rejects with `invalid input syntax for type numeric`. That
+  // failure was silently swallowed by hybridSearch's Promise.allSettled, so
+  // every budget-constrained query ("under 20000") silently lost vector
+  // ranking and fell back to keyword-only results.
+  if (typeof filters.minPrice === "number") {
+    sqlParams.push(filters.minPrice);
+    where.push(`price_max >= $${sqlParams.length}`);
+  }
+  if (typeof filters.maxPrice === "number") {
+    sqlParams.push(filters.maxPrice);
+    where.push(`price_min <= $${sqlParams.length}`);
   }
   if (filters.keywords && filters.keywords.length > 0) {
     const keywordClauses: string[] = [];

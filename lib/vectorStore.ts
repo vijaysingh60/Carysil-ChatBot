@@ -31,10 +31,11 @@ CREATE TABLE IF NOT EXISTS products (
   embedding VECTOR(${EMBEDDING_DIMENSION}) NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS products_embedding_cosine_idx
-ON products
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
+-- No ANN index here deliberately: an IVFFlat index this small (hundreds of
+-- rows) is worse than a sequential scan — see
+-- db/migrations/2026_08_drop_undersized_ivfflat_indexes.sql. Re-add one
+-- (sized ~sqrt(row_count), with probes tuned against eval/retrievalEval.ts)
+-- once the catalogue is large enough to need approximate search.
 `;
 
 export async function ensureVectorSchema(): Promise<void> {

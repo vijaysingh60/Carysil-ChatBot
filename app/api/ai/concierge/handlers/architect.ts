@@ -2,6 +2,7 @@ import { getDbPool } from "@/lib/db";
 import { searchDocuments, type DocumentMatch } from "@/lib/documentSearch";
 import { callAIJson } from "@/lib/ai";
 import { getPrompt } from "@/lib/prompts";
+import { verifyNumericClaimsGrounded } from "@/lib/grounding";
 
 export type ArchitectAnswer = {
   message: string;
@@ -187,6 +188,19 @@ export async function answerArchitectQuery(
   const answer = (data.answer ?? "").trim();
   const fallbackAnswer = specRows.length > 0 ? formatSpecRow(specRows[0]) : (preferredDocs[0]?.content ?? "");
   let message_ = aiUsed && answer ? answer : fallbackAnswer;
+
+  // A wrong technical figure can fail a project submission — if the model's
+  // phrasing states a dimension/rating/tolerance not present anywhere in the
+  // specs/docs it was given, prefer the verbatim (unparaphrased, therefore
+  // unfabricatable) source text over the LLM's paraphrase rather than
+  // shipping an invented number.
+  if (aiUsed && answer && message_ === answer) {
+    const numericGrounding = verifyNumericClaimsGrounded(answer, `${productContext}\n${docContext}`);
+    if (!numericGrounding.valid) {
+      console.warn("[architect] numeric grounding failed:", numericGrounding.issues);
+      message_ = fallbackAnswer || answer;
+    }
+  }
 
   // If the model admits the retrieved specs don't cover the ask (e.g. certifications),
   // escalate instead of padding with adjacent eco/marketing FAQ wording.

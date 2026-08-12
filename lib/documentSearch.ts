@@ -1,6 +1,7 @@
 import { createEmbedding, embeddingToSqlVector } from "@/lib/embeddings";
 import { getDbPool } from "@/lib/db";
 import { hashKey, retrievalCache } from "@/lib/cache";
+import { buildTsQuery, ftsRankToSimilarity } from "@/lib/textSearch";
 
 export type DocumentMatch = {
   id: string;
@@ -26,16 +27,6 @@ type DocumentRow = {
 };
 
 type FtsDocumentRow = DocumentRow & { rank: number };
-
-/**
- * Map Postgres ts_rank into a 0–1 score that can clear handlers'
- * RELATED_MATCH_THRESHOLD (~0.38). Typical FAQ ranks land ~0.05–0.4;
- * scale + clamp so strong lexical hits are usable when embeddings are missing.
- */
-function ftsRankToSimilarity(rank: number): number {
-  if (!Number.isFinite(rank) || rank <= 0) return 0;
-  return Math.min(0.95, Math.max(0, rank * 2.5));
-}
 
 function toMatch(row: DocumentRow): DocumentMatch {
   return {
@@ -78,18 +69,12 @@ async function searchByVector(query: string, options: SearchOptions): Promise<Do
 
 async function searchByFts(query: string, options: SearchOptions): Promise<DocumentMatch[]> {
   const limit = options.limit ?? 5;
-  // Alphanumeric tokens only — punctuation like "/" or "?" breaks to_tsquery
-  // or attaches to terms ("sinks?") and kills recall.
-  const tokens = query
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((t) => t.length > 1);
-  const tsQuery = tokens.join(" | ");
+  const tsQuery = buildTsQuery(query);
   if (!tsQuery) return [];
 
   const sqlParams: Array<string | number | string[]> = [tsQuery];
   const where: string[] = [
-    `to_tsvector('simple', title || ' ' || content) @@ to_tsquery('simple', $1)`,
+    `to_tsvector('english', title || ' ' || content) @@ to_tsquery('english', $1)`,
   ];
 
   if (options.documentTypes && options.documentTypes.length > 0) {
@@ -102,7 +87,7 @@ async function searchByFts(query: string, options: SearchOptions): Promise<Docum
   const { rows } = await pool.query<FtsDocumentRow>(
     `
     SELECT id, title, document_type, content, url,
-           ts_rank(to_tsvector('simple', title || ' ' || content), to_tsquery('simple', $1)) AS rank
+           ts_rank(to_tsvector('english', title || ' ' || content), to_tsquery('english', $1)) AS rank
     FROM documents
     WHERE ${where.join(" AND ")}
     ORDER BY rank DESC

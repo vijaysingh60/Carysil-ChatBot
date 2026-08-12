@@ -152,17 +152,27 @@ async function run(): Promise<void> {
     }
   }
 
-  // IVFFlat built on an empty/small table (or with lists >> row_count/1000) misses
-  // true neighbors — rebuild after load so installation FAQ retrieval works.
+  // Below ~5,000 rows an IVFFlat ANN index is a net negative — see the same
+  // fix in scripts/importCatalogProducts.ts for the measured failure mode
+  // (an under-sized index returning far fewer than LIMIT rows, silently
+  // dropping the true nearest neighbor). A sequential scan is exact and
+  // costs single-digit milliseconds at this corpus size.
   if (embedded > 0) {
     const pool = getDbPool();
-    const lists = Math.max(1, Math.ceil(rows.length / 1000));
+    const ANN_INDEX_ROW_THRESHOLD = 5000;
     await pool.query(`DROP INDEX IF EXISTS documents_embedding_cosine_idx`);
-    await pool.query(
-      `CREATE INDEX documents_embedding_cosine_idx ON documents
-       USING ivfflat (embedding vector_cosine_ops) WITH (lists = ${lists})`
-    );
-    console.log(`Rebuilt documents_embedding_cosine_idx (lists=${lists}).`);
+    if (rows.length >= ANN_INDEX_ROW_THRESHOLD) {
+      const lists = Math.max(1, Math.round(Math.sqrt(rows.length)));
+      await pool.query(
+        `CREATE INDEX documents_embedding_cosine_idx ON documents
+         USING ivfflat (embedding vector_cosine_ops) WITH (lists = ${lists})`
+      );
+      console.log(`Rebuilt documents_embedding_cosine_idx (lists=${lists}).`);
+    } else {
+      console.log(
+        `Skipped ANN index (${rows.length} rows < ${ANN_INDEX_ROW_THRESHOLD} threshold) — relying on exact sequential scan.`
+      );
+    }
   }
 
   console.log("Document import completed.");

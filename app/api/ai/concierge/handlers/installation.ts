@@ -1,6 +1,7 @@
 import { searchDocuments, type DocumentMatch } from "@/lib/documentSearch";
 import { callAIJson } from "@/lib/ai";
 import { getPrompt } from "@/lib/prompts";
+import { verifyNumericClaimsGrounded } from "@/lib/grounding";
 
 export type InstallationAnswer = {
   message: string;
@@ -134,6 +135,21 @@ export async function answerInstallationQuery(
     /\b(does not|doesn't)\s+(specify|include|cover|contain)\b/i.test(text) ||
     /\bno confirmed guidance\b/i.test(text)
   ) {
+    return {
+      message: buildEscalationMessage(category),
+      sources: [],
+      matched: false,
+      followups: ["Share my city and phone", "Ask a different question", "Explore products"],
+    };
+  }
+  // Installation guidance with a fabricated measurement/duration/rating is worse
+  // than no answer — escalate instead of shipping a number the FAQ never stated.
+  const numericGrounding = verifyNumericClaimsGrounded(
+    text,
+    strongMatches.map((m) => m.content).join("\n")
+  );
+  if (!numericGrounding.valid) {
+    console.warn("[installation] numeric grounding failed:", numericGrounding.issues);
     return {
       message: buildEscalationMessage(category),
       sources: [],
