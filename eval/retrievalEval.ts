@@ -9,7 +9,7 @@ import type { GoldenCase } from "./types";
  * Retrieval-only evaluation. Calls the SAME lib/hybridSearch.ts and
  * lib/vectorSearch.ts used by the live API route — no mocking — against
  * every applicable case in eval/golden-dataset.json, then computes
- * Recall@K / Precision@K / MRR for both hybrid (vector+FTS) and
+ * Recall@K / Precision@K / MRR for both hybrid (vector+FTS via RRF) and
  * vector-only retrieval so the two can be compared.
  *
  * Usage: node --import tsx eval/retrievalEval.ts [--mode=hybrid|vector] [--out=eval/retrieval-report.json]

@@ -58,31 +58,39 @@ async function searchByFTS(
   return rows.map((row) => ({ ...row, similarity: ftsRankToSimilarity(Number(row.rank)) }));
 }
 
-function mergeResults(
-  vector: SimilarProduct[],
-  fts: SimilarProduct[],
-  limit: number
+/** Standard RRF constant from Cormack et al.; dampens top-rank dominance. */
+const RRF_K = 60;
+
+/**
+ * Reciprocal Rank Fusion: score(d) = Σ 1/(k + rank_i(d)) across result lists.
+ * Products that rank well in both vector and FTS rise to the top; a strong
+ * hit in only one list can still surface, but consensus wins.
+ */
+function reciprocalRankFusion(
+  lists: SimilarProduct[][],
+  limit: number,
+  k: number = RRF_K
 ): SimilarProduct[] {
-  const seen = new Set<string>();
-  const merged: SimilarProduct[] = [];
+  const scores = new Map<string, number>();
+  const byId = new Map<string, SimilarProduct>();
 
-  // FTS results first — exact keyword matches take priority
-  for (const p of fts) {
-    if (!seen.has(p.id)) {
-      merged.push(p);
-      seen.add(p.id);
-    }
+  for (const list of lists) {
+    list.forEach((item, index) => {
+      const rank = index + 1; // 1-indexed
+      scores.set(item.id, (scores.get(item.id) ?? 0) + 1 / (k + rank));
+      if (!byId.has(item.id)) {
+        byId.set(item.id, item);
+      }
+    });
   }
 
-  // Vector results fill remaining slots
-  for (const p of vector) {
-    if (!seen.has(p.id) && merged.length < limit * 2) {
-      merged.push(p);
-      seen.add(p.id);
-    }
-  }
-
-  return merged.slice(0, limit);
+  return [...scores.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([id, rrfScore]) => ({
+      ...byId.get(id)!,
+      similarity: rrfScore,
+    }));
 }
 
 export async function hybridSearch(
@@ -90,10 +98,11 @@ export async function hybridSearch(
   options: SearchOptions = {}
 ): Promise<SimilarProduct[]> {
   const limit = options.limit ?? 5;
+  const candidateLimit = Math.max(limit * 2, 10);
 
   const [vectorResults, ftsResults] = await Promise.allSettled([
     searchSimilarProducts(query, {
-      limit: limit * 2,
+      limit: candidateLimit,
       filters: {
         categories: options.categories,
         material: options.material,
@@ -103,11 +112,11 @@ export async function hybridSearch(
         maxPrice: options.maxPrice,
       },
     }),
-    searchByFTS(query, { ...options, limit }),
+    searchByFTS(query, { ...options, limit: candidateLimit }),
   ]);
 
   const vector = vectorResults.status === "fulfilled" ? vectorResults.value : [];
   const fts = ftsResults.status === "fulfilled" ? ftsResults.value : [];
 
-  return mergeResults(vector, fts, limit);
+  return reciprocalRankFusion([vector, fts], limit);
 }
