@@ -261,22 +261,32 @@ export async function POST(request: Request) {
       }
     };
 
-    if (
-      deferredQuery &&
+    // A phone-shaped reply to our contact ask that isn't a valid Indian mobile (e.g. "4848447474" —
+    // mobiles start with 6-9). Outside the deferred-query flow this used to be dropped silently: nothing was
+    // saved, the bot never said so, and it kept asking for the number the user believed they had given.
+    const attemptedInvalidMobile =
       recentlyAskedForLeadDetails(history) &&
-      !completingDeferred &&
       !hasValidIndianMobileInText(userRawMessage) &&
-      looksLikeDeferredContactCaptureReply(userRawMessage, history, true)
+      !/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(userRawMessage) &&
+      userRawMessage.replace(/\D/g, "").length >= 8;
+    if (
+      (deferredQuery &&
+        recentlyAskedForLeadDetails(history) &&
+        !completingDeferred &&
+        !hasValidIndianMobileInText(userRawMessage) &&
+        looksLikeDeferredContactCaptureReply(userRawMessage, history, true)) ||
+      attemptedInvalidMobile
     ) {
       const partial = extractLeadData(userRawMessage, undefined, history);
       const digits = userRawMessage.replace(/\D/g, "");
-      const wrongOrPlaceholderMobile = digits.length >= 10;
-      if (partial.name) {
+      const wrongOrPlaceholderMobile = digits.length >= 8;
+      const knownName = partial.name || memory?.userName || null;
+      if (knownName) {
         const salesIntentEarly = detectSalesIntent(userRawMessage, undefined, history);
         await updateLeadRecord({
           sessionId: activeSessionId,
           contactInfo: contactInfoForLeadDatabaseUpdate(
-            { name: partial.name },
+            { name: knownName },
             leadSnapshotForWrite,
             true
           ),
@@ -286,7 +296,7 @@ export async function POST(request: Request) {
         });
         leadSnapshotForWrite = await getLeadContactSnapshot(activeSessionId);
       }
-      const nameFrag = partial.name ? `Thanks, ${partial.name}. ` : "";
+      const nameFrag = knownName ? `Thanks, ${knownName}. ` : "";
       const reply = wrongOrPlaceholderMobile
         ? `${nameFrag}That number doesn't look like a valid Indian mobile (10 digits starting with 6, 7, 8, or 9). Please send it again — for example: 9876543210.`
         : `${nameFrag}Please share your 10-digit Indian mobile number (starting with 6–9) so I can show your catalogue recommendations.`;

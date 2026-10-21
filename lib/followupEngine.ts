@@ -629,6 +629,8 @@ function clarificationQuestion(
 /** Assistant copy that asks for name + phone after product suggestions (used for dedupe + lead routing). */
 const NAME_PHONE_CAPTURE_SNIPPET =
   "may I have your name and mobile number";
+/** Same ask once the name is already known — never ask for what we have. */
+const PHONE_ONLY_CAPTURE_SNIPPET = "may I have your mobile number";
 
 export function recentlyAskedNameAndPhoneCapture(history: ConversationMessage[]): boolean {
   return history.slice(-8).some((entry) => {
@@ -639,6 +641,7 @@ export function recentlyAskedNameAndPhoneCapture(history: ConversationMessage[])
       c.includes("could you share your name") ||
       /\byour\s+name\s+and\s+(mobile|phone)\b/.test(c) ||
       /\bname\s+and\s+(mobile|phone)\s+number\b/.test(c) ||
+      /\bcarysil\s+specialist\s+to\s+follow\s+up\b/.test(c) ||
       /\bbefore\s+i\s+share\s+personalised\b/.test(c)
     );
   });
@@ -659,7 +662,8 @@ export function buildContactCaptureFollowupChip(
   ) {
     return null;
   }
-  return `If you'd like a Carysil specialist to follow up with quotes or dealer options, ${NAME_PHONE_CAPTURE_SNIPPET}?`;
+  const ask = contactInfo.name ? PHONE_ONLY_CAPTURE_SNIPPET : NAME_PHONE_CAPTURE_SNIPPET;
+  return `If you'd like a Carysil specialist to follow up with quotes or dealer options, ${ask}?`;
 }
 
 export function userMessageHasPhoneOrEmail(message: string): boolean {
