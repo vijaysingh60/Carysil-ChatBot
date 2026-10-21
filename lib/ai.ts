@@ -1,9 +1,11 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { hashKey, llmJsonCache } from "@/lib/cache";
 
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const anthropic = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   : null;
+
+const MODEL = "claude-haiku-5-5";
 
 export type AIResult = {
   text: string;
@@ -12,41 +14,47 @@ export type AIResult = {
   error?: "quota_exceeded" | "api_error";
 };
 
+/** First text block's content, or "" if the model returned none (e.g. tool-only/refusal). */
+function textFromResponse(message: Anthropic.Message): string {
+  const block = message.content.find((b) => b.type === "text");
+  return block?.type === "text" ? block.text.trim() : "";
+}
+
+/**
+ * Anthropic has no single discriminated "insufficient_quota" field like
+ * OpenAI's — a 429 is the closest signal, plus a credit-balance message on
+ * some 400s. Same two-bucket contract as before: anything else is "api_error".
+ */
+function classifyError(err: unknown): "quota_exceeded" | "api_error" {
+  if (err instanceof Anthropic.RateLimitError) return "quota_exceeded";
+  if (err instanceof Anthropic.APIError && /credit balance/i.test(err.message)) {
+    return "quota_exceeded";
+  }
+  return "api_error";
+}
+
 export async function callAI(
   systemPrompt: string,
   userContent: string,
   placeholderResponse: string
 ): Promise<AIResult> {
-  if (!openai) {
+  if (!anthropic) {
     return { text: placeholderResponse, aiUsed: false };
   }
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
+    const message = await anthropic.messages.create({
+      model: MODEL,
       max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userContent }],
     });
-    const text = completion.choices[0]?.message?.content?.trim();
+    const text = textFromResponse(message);
     return {
       text: text || placeholderResponse,
       aiUsed: true,
     };
   } catch (err: unknown) {
-    const is429 =
-      err &&
-      typeof err === "object" &&
-      "status" in err &&
-      (err as { status?: number }).status === 429;
-    const isQuota =
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      (err as { code?: string }).code === "insufficient_quota";
-    const errorType =
-      is429 || isQuota ? "quota_exceeded" : "api_error";
+    const errorType = classifyError(err);
     console.error("[AI] API call failed:", err);
     return {
       text: placeholderResponse,
@@ -57,44 +65,34 @@ export async function callAI(
 }
 
 /**
- * Structured JSON completion (gpt-4o-mini). Falls back to `fallback` when no key, parse error, or API failure.
+ * Structured JSON completion (claude-haiku-5-5). Falls back to `fallback` when no key, parse error, or API failure.
+ * Relies on the system/user prompt asking for JSON-only output (same contract
+ * as before) rather than a schema-validated format — callers already merge
+ * the parsed result onto `fallback`, so a malformed reply degrades safely.
  */
 export async function callAIJson<T extends Record<string, unknown>>(
   systemPrompt: string,
   userContent: string,
   fallback: T
 ): Promise<{ data: T; aiUsed: boolean; error?: AIResult["error"] }> {
-  if (!openai) {
+  if (!anthropic) {
     return { data: fallback, aiUsed: false };
   }
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
-      response_format: { type: "json_object" },
+    const message = await anthropic.messages.create({
+      model: MODEL,
       max_tokens: 900,
+      system: `${systemPrompt}\n\nRespond with a single valid JSON object only — no markdown, no code fences, no commentary.`,
+      messages: [{ role: "user", content: userContent }],
     });
-    const text = completion.choices[0]?.message?.content?.trim();
+    const text = textFromResponse(message);
     if (!text) {
       return { data: fallback, aiUsed: true };
     }
-    const parsed = JSON.parse(text) as Partial<T>;
+    const parsed = JSON.parse(stripJsonFence(text)) as Partial<T>;
     return { data: { ...fallback, ...parsed } as T, aiUsed: true };
   } catch (err: unknown) {
-    const is429 =
-      err &&
-      typeof err === "object" &&
-      "status" in err &&
-      (err as { status?: number }).status === 429;
-    const isQuota =
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      (err as { code?: string }).code === "insufficient_quota";
-    const errorType = is429 || isQuota ? "quota_exceeded" : "api_error";
+    const errorType = classifyError(err);
     console.error("[AI] JSON API call failed:", err);
     return {
       data: fallback,
@@ -102,6 +100,12 @@ export async function callAIJson<T extends Record<string, unknown>>(
       error: errorType,
     };
   }
+}
+
+/** Strips a ```json ... ``` / ``` ... ``` fence if the model wrapped its JSON in one despite the instruction not to. */
+function stripJsonFence(text: string): string {
+  const fenced = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return fenced ? fenced[1] : text;
 }
 
 /**
