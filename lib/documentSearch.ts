@@ -103,39 +103,52 @@ async function searchByFts(query: string, options: SearchOptions): Promise<Docum
   );
 }
 
-function mergeResults(vector: DocumentMatch[], fts: DocumentMatch[], limit: number): DocumentMatch[] {
-  const seen = new Set<string>();
-  const merged: DocumentMatch[] = [];
+/** Standard RRF constant; same as product hybridSearch. */
+const RRF_K = 60;
 
-  // Vector results first — cosine similarity is the primary grounding signal.
-  // FTS fillers keep their mapped similarity so handlers can accept strong
-  // lexical hits when embeddings are missing or weak.
-  for (const doc of vector) {
-    if (!seen.has(doc.id)) {
-      merged.push(doc);
-      seen.add(doc.id);
-    }
-  }
-  for (const doc of fts) {
-    if (!seen.has(doc.id) && merged.length < limit * 2) {
-      merged.push(doc);
-      seen.add(doc.id);
-    }
+/**
+ * Reciprocal Rank Fusion across vector + FTS document rankings.
+ * score(d) = Σ 1/(k + rank_i(d))
+ */
+function reciprocalRankFusion(
+  lists: DocumentMatch[][],
+  limit: number,
+  k: number = RRF_K
+): DocumentMatch[] {
+  const scores = new Map<string, number>();
+  const byId = new Map<string, DocumentMatch>();
+
+  for (const list of lists) {
+    list.forEach((item, index) => {
+      const rank = index + 1;
+      scores.set(item.id, (scores.get(item.id) ?? 0) + 1 / (k + rank));
+      if (!byId.has(item.id)) {
+        byId.set(item.id, item);
+      }
+    });
   }
 
-  return merged.slice(0, limit);
+  return [...scores.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([id, rrfScore]) => ({
+      ...byId.get(id)!,
+      similarity: rrfScore,
+    }));
 }
 
 /**
  * Hybrid vector + full-text search over the `documents` knowledge base
  * (FAQs, guides, spec sheets — see document_type). Mirrors the products
- * hybridSearch/vectorSearch pattern in lib/hybridSearch.ts + lib/vectorSearch.ts.
+ * hybridSearch/vectorSearch pattern in lib/hybridSearch.ts + lib/vectorSearch.ts,
+ * including Reciprocal Rank Fusion for merging.
  */
 export async function searchDocuments(
   query: string,
   options: SearchOptions = {}
 ): Promise<DocumentMatch[]> {
   const limit = options.limit ?? 5;
+  const candidateLimit = Math.max(limit * 2, 10);
 
   const cacheKey = hashKey(
     `doc|${query.trim().toLowerCase()}|${limit}|${(options.documentTypes ?? []).join(",")}`
@@ -144,14 +157,14 @@ export async function searchDocuments(
   if (cached) return cached;
 
   const [vectorResults, ftsResults] = await Promise.allSettled([
-    searchByVector(query, { ...options, limit: limit * 2 }),
-    searchByFts(query, { ...options, limit }),
+    searchByVector(query, { ...options, limit: candidateLimit }),
+    searchByFts(query, { ...options, limit: candidateLimit }),
   ]);
 
   const vector = vectorResults.status === "fulfilled" ? vectorResults.value : [];
   const fts = ftsResults.status === "fulfilled" ? ftsResults.value : [];
 
-  const merged = mergeResults(vector, fts, limit);
+  const merged = reciprocalRankFusion([vector, fts], limit);
   retrievalCache.set(cacheKey, merged);
   return merged;
 }
