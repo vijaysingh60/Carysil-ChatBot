@@ -128,7 +128,7 @@ function reciprocalRankFusion(
     });
   }
 
-  return [...scores.entries()]
+  return Array.from(scores.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
     .map(([id, rrfScore]) => ({
