@@ -94,3 +94,39 @@ body {
 .animate-chat-button-press {
   animation: chat-button-press 220ms ease-out;
 }
+
+/*
+ * iOS Safari zooms the whole page when a text field with a font smaller than 16px gets focus, which
+ * crops the fixed chat panel off the screen. Keep the chat input at 16px on every touch device
+ * (phones AND tablets — a width breakpoint isn't enough, iPads are wider than Tailwind's `sm`).
+ */
+@media (pointer: coarse) {
+  .chat-textarea {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+}
+
+/*
+ * Chat panel height. `vh` is the tallest the screen ever gets (browser toolbars hidden), so on phones the
+ * panel could hang off the bottom; `dvh` follows the toolbars. The plain `vh` rules are the fallback for
+ * browsers without `dvh`. (While the on-screen keyboard is open ChatWidget sets an inline height instead.)
+ */
+.chat-panel {
+  height: min(670px, calc(100vh - 3rem));
+}
+@media (max-width: 639px) {
+  .chat-panel {
+    height: min(600px, calc(100vh - 7rem));
+  }
+}
+@supports (height: 100dvh) {
+  .chat-panel {
+    height: min(670px, calc(100dvh - 3rem));
+  }
+  @media (max-width: 639px) {
+    .chat-panel {
+      height: min(600px, calc(100dvh - 7rem));
+    }
+  }
+}

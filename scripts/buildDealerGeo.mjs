@@ -55,7 +55,7 @@ const UNSERVED = [
   ["hyderabad", "Telangana"], ["secunderabad", "Telangana"], ["warangal", "Telangana"], ["karimnagar", "Telangana"],
   ["nizamabad", "Telangana"], ["khammam", "Telangana"],
   ["mumbai", "Maharashtra"], ["navi mumbai", "Maharashtra"], ["thane", "Maharashtra"], ["nagpur", "Maharashtra"],
-  ["delhi", "Delhi"], ["new delhi", "Delhi"], ["noida", "Uttar Pradesh"], ["greater noida", "Uttar Pradesh"],
+  ["delhi", "Delhi"], ["new delhi", "Delhi"], ["delhi ncr", "Delhi"], ["ncr", "Delhi"], ["noida", "Uttar Pradesh"], ["greater noida", "Uttar Pradesh"],
   ["gurgaon", "Haryana"], ["gurugram", "Haryana"], ["faridabad", "Haryana"], ["ghaziabad", "Uttar Pradesh"],
   ["bangalore", "Karnataka"], ["bengaluru", "Karnataka"], ["mysore", "Karnataka"], ["mysuru", "Karnataka"],
   ["mangalore", "Karnataka"], ["mangaluru", "Karnataka"], ["hubli", "Karnataka"], ["belgaum", "Karnataka"],

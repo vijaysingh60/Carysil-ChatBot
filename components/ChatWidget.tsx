@@ -38,6 +38,16 @@ const VISITOR_STORAGE_KEY = "askcary_visitor_id";
 const CHAT_MESSAGES_PREFIX = "askcary_chat_messages_v1:";
 const MAX_PERSISTED_MESSAGES = 80;
 
+/**
+ * The API sends suggestions and follow-up questions in the same `followups` list. Short labels
+ * ("Kitchen sinks", "Dealers near me") are tappable suggestions; a full question ("…?") is something to
+ * answer by typing — sending the bot's own question back as the user's message would be nonsense.
+ */
+function isSuggestionChip(text: string): boolean {
+  const t = text.trim();
+  return t.length > 0 && t.length <= 72 && !t.endsWith("?");
+}
+
 function chatStorageKey(sessionId: string): string {
   return `${CHAT_MESSAGES_PREFIX}${sessionId}`;
 }
@@ -120,6 +130,34 @@ const EXAMPLE_PROMPTS = [
   "Where can I buy Carysil in Mumbai?",
 ];
 
+/**
+ * How much of the screen the on-screen keyboard is covering, and the height that's left. `vh` units and
+ * `position: fixed; bottom` are measured against the layout viewport, which on iPhones does NOT shrink when
+ * the keyboard opens — so a fixed panel ends up behind the keyboard or shoved off-screen. The visual
+ * viewport is the part you can actually see; this tracks it. Returns zeros when the keyboard is closed
+ * (and while the user has pinch-zoomed in, so we never fight a deliberate zoom).
+ */
+function useKeyboardInset(active: boolean): { inset: number; visibleHeight: number } {
+  const [state, setState] = useState({ inset: 0, visibleHeight: 0 });
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!active || !vv) return;
+    const update = () => {
+      const inset = Math.round(window.innerHeight - (vv.offsetTop + vv.height));
+      const keyboardOpen = inset > 80 && vv.scale < 1.05; // small insets are just browser toolbars
+      setState(keyboardOpen ? { inset, visibleHeight: Math.round(vv.height) } : { inset: 0, visibleHeight: 0 });
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, [active]);
+  return state;
+}
+
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [rendered, setRendered] = useState(false);
@@ -136,6 +174,7 @@ export function ChatWidget() {
   const skipPersistRef = useRef(true);
 
   const canSend = input.trim().length > 0 && !loading;
+  const keyboard = useKeyboardInset(rendered);
 
   const scrollChatToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
     const node = listRef.current;
@@ -409,9 +448,15 @@ export function ChatWidget() {
       {/* Chat window */}
       {rendered && (
         <div
-          className={`fixed bottom-6 right-6 z-[9998] flex w-[430px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-gray-800/80 bg-[#14161A] shadow-2xl shadow-black/60 h-[min(670px,calc(100vh-3rem))] max-sm:h-[min(600px,calc(100vh-7rem))] ${
+          className={`fixed bottom-6 right-6 z-[9998] flex w-[430px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-gray-800/80 bg-[#14161A] shadow-2xl shadow-black/60 chat-panel ${
             closing ? "animate-chat-pop-out pointer-events-none" : "animate-chat-pop-in"
           }`}
+          // Keyboard open: dock just above it and use the space that's actually visible.
+          style={
+            keyboard.inset > 0
+              ? { bottom: keyboard.inset + 8, height: Math.min(600, keyboard.visibleHeight - 16) }
+              : undefined
+          }
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-white/5 bg-[#14161A] px-4 py-3">
@@ -517,14 +562,23 @@ export function ChatWidget() {
                   )}
                   {m.role === "assistant" && m.followups && m.followups.length > 0 && (
                     <div className="mt-2.5 flex flex-col gap-2">
-                      {m.followups.map((q) => (
-                        <div
-                          key={q}
-                          className="rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-3.5 py-2.5 text-xs sm:text-sm text-gray-100"
-                        >
-                          {q}
-                        </div>
-                      ))}
+                      {m.followups.map((q) =>
+                        isSuggestionChip(q) ? (
+                          <button
+                            key={q}
+                            type="button"
+                            disabled={loading}
+                            onClick={() => void send(q)}
+                            className="w-full cursor-pointer rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-3.5 py-2.5 text-left text-xs sm:text-sm text-gray-100 transition-colors hover:bg-white/10 active:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--carysil-red)] disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {q}
+                          </button>
+                        ) : (
+                          <p key={q} className="text-xs sm:text-sm text-gray-200">
+                            {q}
+                          </p>
+                        )
+                      )}
                     </div>
                   )}
                   {m.role === "assistant" && m.meta?.error === "quota_exceeded" && (
@@ -592,7 +646,7 @@ export function ChatWidget() {
                   }}
                   placeholder="Message..."
                   rows={1}
-                  className="min-h-10 max-h-48 flex-1 resize-none overflow-y-auto whitespace-pre-wrap break-words bg-transparent border-none py-2 text-xs leading-[1.45] text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 sm:text-sm sm:leading-5"
+                  className="chat-textarea min-h-10 max-h-48 flex-1 resize-none overflow-y-auto whitespace-pre-wrap break-words bg-transparent border-none py-2 text-xs leading-[1.45] text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 sm:text-sm sm:leading-5"
                 />
                 <button
                   type="submit"

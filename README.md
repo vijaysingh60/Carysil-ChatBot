@@ -8,7 +8,7 @@ A Next.js prototype demonstrating AI-powered features for **Carysil (carysil.com
 - Local JSON data in `/data` (source dataset)
 - PostgreSQL + `pgvector` for semantic product retrieval
 - Python Flask embedding service with Sentence Transformers (`all-MiniLM-L6-v2`)
-- **OpenAI API** (optional); works with placeholder responses if `OPENAI_API_KEY` is not set
+- **Claude API** (optional); works with placeholder responses if `ANTHROPIC_API_KEY` is not set
 
 ## Run locally
 
@@ -20,7 +20,7 @@ cp .env.local.example .env.local
 Set in `.env.local`:
 - `DATABASE_URL` (PostgreSQL with `pgvector` extension enabled)
 - `EMBEDDING_API_URL` (defaults to `http://127.0.0.1:5001`)
-- `OPENAI_API_KEY` (optional but recommended)
+- `ANTHROPIC_API_KEY` (optional but recommended)
 
 Start embedding service:
 
@@ -86,7 +86,7 @@ Other API routes: `/api/ai/status`, `/api/ai/track-click`, `/api/cron/decay-lead
 
 ## Environment
 
-- **`OPENAI_API_KEY`** — If set, API routes call OpenAI (`gpt-4o-mini`) for natural recommendation responses.
+- **`ANTHROPIC_API_KEY`** — If set, API routes call Claude (`claude-haiku-5-5`) for intent detection and natural recommendation responses.
 - **`DATABASE_URL`** — Required for product vector retrieval.
 - **`EMBEDDING_API_URL`** — URL for sentence-transformer embedding service (default `http://127.0.0.1:5001`).
 

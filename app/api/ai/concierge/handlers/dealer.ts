@@ -164,7 +164,7 @@ const unservedCoords = new Map<string, LatLon>(); // display → coordinates
 for (const [raw, coord] of Object.entries(dealerGeo.unserved)) {
   const key = normText(raw);
   if (cityNames.has(key) || stateNames.has(key)) continue;
-  const display = key.replace(/\b\w/g, (c) => c.toUpperCase());
+  const display = key.replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\bNcr\b/, "NCR");
   unservedNames.set(key, display);
   if (coord) unservedCoords.set(display, coord);
 }
@@ -345,7 +345,9 @@ export function findDealers(
 
   // The user named a real city/state we have no dealers in ("dealers in Hyderabad near Madhapur").
   // That is a definite "none here" — do NOT go looking for the locality elsewhere in the country.
-  if (unservedHits.length > 0 && cities.size === 0 && !state) {
+  // A served state alongside doesn't change that: "Mumbai, Maharashtra" is still Mumbai, not "any Maharashtra
+  // dealer whose address happens to say Mumbai". Only a served CITY makes the unserved words mere locality text.
+  if (unservedHits.length > 0 && cities.size === 0) {
     const unservedPlace = unservedHits[0].display;
     const coord = unservedCoords.get(unservedPlace);
     const nearbyCities = coord ? nearestDealerCities(coord) : [];
