@@ -1,0 +1,1159 @@
+{
+ "generated": "2026-10-21",
+ "served": {
+  "Bhavnagar|Gujarat": [
+   21.772,
+   72.142
+  ],
+  "Gandhidham|Gujarat": [
+   23.072,
+   70.132
+  ],
+  "Dhoraji|Gujarat": [
+   21.735,
+   70.449
+  ],
+  "Rajkot|Gujarat": [
+   22.305,
+   70.803
+  ],
+  "Mundra|Gujarat": [
+   22.839,
+   69.725
+  ],
+  "Jamnagar|Gujarat": [
+   22.473,
+   70.055
+  ],
+  "Morbi|Gujarat": [
+   22.818,
+   70.835
+  ],
+  "Rajula|Gujarat": [
+   21.039,
+   71.444
+  ],
+  "Jetpur|Gujarat": [
+   21.754,
+   70.619
+  ],
+  "Una|Gujarat": [
+   20.82,
+   71.039
+  ],
+  "Talala|Gujarat": [
+   21.056,
+   70.53
+  ],
+  "Junagadh|Gujarat": [
+   21.522,
+   70.458
+  ],
+  "Bhuj|Gujarat": [
+   23.247,
+   69.668
+  ],
+  "Veraval|Gujarat": [
+   20.91,
+   70.365
+  ],
+  "Botad|Gujarat": [
+   22.169,
+   71.668
+  ],
+  "Ranavav|Gujarat": [
+   21.686,
+   69.744
+  ],
+  "Adipur|Gujarat": [
+   23.073,
+   70.091
+  ],
+  "Porbandar|Gujarat": [
+   21.641,
+   69.611
+  ],
+  "Upleta|Gujarat": [
+   21.743,
+   70.282
+  ],
+  "Amreli|Gujarat": [
+   21.601,
+   71.217
+  ],
+  "Keshod|Gujarat": [
+   21.301,
+   70.252
+  ],
+  "Mahuva|Gujarat": [
+   21.091,
+   71.762
+  ],
+  "Himmatnagar|Gujarat": [
+   23.592,
+   72.96
+  ],
+  "Mehsana|Gujarat": [
+   23.606,
+   72.404
+  ],
+  "Palanpur|Gujarat": [
+   24.171,
+   72.437
+  ],
+  "Ahmedabad|Gujarat": [
+   23.022,
+   72.58
+  ],
+  "Unjha|Gujarat": [
+   23.804,
+   72.391
+  ],
+  "Deesa|Gujarat": [
+   24.259,
+   72.18
+  ],
+  "Siddhpur|Gujarat": [
+   23.919,
+   72.374
+  ],
+  "Visnagar|Gujarat": [
+   23.698,
+   72.551
+  ],
+  "Kalol|Gujarat": [
+   23.245,
+   72.497
+  ],
+  "Gandhinagar|Gujarat": [
+   23.223,
+   72.649
+  ],
+  "Patan|Gujarat": [
+   23.851,
+   72.113
+  ],
+  "Baroda|Gujarat": [
+   22.297,
+   73.194
+  ],
+  "Modasa|Gujarat": [
+   23.463,
+   73.299
+  ],
+  "Dahod|Gujarat": [
+   22.836,
+   74.256
+  ],
+  "Anand|Gujarat": [
+   22.559,
+   72.963
+  ],
+  "Nadiad|Gujarat": [
+   22.69,
+   72.871
+  ],
+  "Godhra|Gujarat": [
+   22.779,
+   73.625
+  ],
+  "Vapi|Gujarat": [
+   20.372,
+   72.917
+  ],
+  "Valsad|Gujarat": [
+   20.607,
+   72.927
+  ],
+  "Bardoli|Gujarat": [
+   21.122,
+   73.114
+  ],
+  "Navsari|Gujarat": [
+   20.952,
+   72.932
+  ],
+  "Surat|Gujarat": [
+   21.209,
+   72.832
+  ],
+  "Vyara|Gujarat": [
+   21.112,
+   73.396
+  ],
+  "Chikhli|Gujarat": [
+   20.758,
+   73.06
+  ],
+  "Bharuch|Gujarat": [
+   21.708,
+   72.996
+  ],
+  "Silvassa|Dadra and Nagar Haveli and Daman and Diu": [
+   20.274,
+   73.005
+  ],
+  "Sachin|Gujarat": [
+   21.085,
+   72.88
+  ],
+  "Ankleshwar|Gujarat": [
+   21.629,
+   72.995
+  ],
+  "Kamrej|Gujarat": [
+   21.28,
+   72.948
+  ],
+  "Sayan|Gujarat": [
+   21.318,
+   72.886
+  ],
+  "Pardi|Gujarat": [
+   20.512,
+   72.941
+  ],
+  "Pune|Maharashtra": [
+   18.521,
+   73.855
+  ],
+  "Baramati|Maharashtra": [
+   18.148,
+   74.573
+  ],
+  "Phaltan|Maharashtra": [
+   17.991,
+   74.43
+  ],
+  "Ahmadnagar|Maharashtra": [
+   19.093,
+   74.749
+  ],
+  "Aurangabad|Maharashtra": [
+   19.877,
+   75.339
+  ],
+  "Jalna|Maharashtra": [
+   19.919,
+   75.871
+  ],
+  "Parbhani|Maharashtra": [
+   19.29,
+   76.603
+  ],
+  "Majalgaon|Maharashtra": [
+   19.155,
+   76.21
+  ],
+  "Beed|Maharashtra": [
+   18.99,
+   75.754
+  ],
+  "Nanded|Maharashtra": [
+   19.094,
+   77.483
+  ],
+  "Parli|Maharashtra": [
+   18.849,
+   76.53
+  ],
+  "Latur|Maharashtra": [
+   18.398,
+   76.563
+  ],
+  "Solapur|Maharashtra": [
+   17.67,
+   75.901
+  ],
+  "Sangli|Maharashtra": [
+   16.85,
+   74.595
+  ],
+  "Kolhapur|Maharashtra": [
+   16.703,
+   74.241
+  ],
+  "Ichalkaranji|Maharashtra": [
+   16.696,
+   74.456
+  ],
+  "Sindhudurg|Maharashtra": [
+   16.136,
+   73.652
+  ],
+  "Supa|Maharashtra": [
+   18.96,
+   74.534
+  ],
+  "Junnar|Maharashtra": [
+   19.209,
+   73.877
+  ],
+  "Nashik|Maharashtra": [
+   20.011,
+   73.79
+  ],
+  "Jalgaon|Maharashtra": [
+   21.01,
+   75.57
+  ],
+  "Satara|Maharashtra": [
+   17.688,
+   74.004
+  ],
+  "Karad|Maharashtra": [
+   17.285,
+   74.182
+  ],
+  "Shirpur|Maharashtra": [
+   20.431,
+   76.186
+  ],
+  "Sangamner|Maharashtra": [
+   19.566,
+   74.211
+  ],
+  "Dhule|Maharashtra": [
+   20.898,
+   74.773
+  ],
+  "Manchar|Maharashtra": [
+   19.003,
+   73.943
+  ],
+  "Shirur|Maharashtra": [
+   18.827,
+   74.373
+  ],
+  "Shahada|Maharashtra": [
+   21.541,
+   74.472
+  ],
+  "Indore|Madhya Pradesh": [
+   22.72,
+   75.868
+  ],
+  "Narsinghpur|Madhya Pradesh": [
+   22.935,
+   79.087
+  ],
+  "Ratlam|Madhya Pradesh": [
+   23.331,
+   75.036
+  ],
+  "Ujjain|Madhya Pradesh": [
+   23.189,
+   75.772
+  ],
+  "Neemuch|Madhya Pradesh": [
+   24.465,
+   74.869
+  ],
+  "Khilchipur|Madhya Pradesh": [
+   24.039,
+   76.578
+  ],
+  "Agar Malwa|Madhya Pradesh": [
+   23.935,
+   76.145
+  ],
+  "Barwani|Madhya Pradesh": [
+   22.033,
+   74.898
+  ],
+  "Jabalpur|Madhya Pradesh": [
+   23.17,
+   79.932
+  ],
+  "Satna|Madhya Pradesh": [
+   24.575,
+   80.833
+  ],
+  "Guna|Madhya Pradesh": [
+   24.648,
+   77.316
+  ],
+  "Dabra|Madhya Pradesh": [
+   25.882,
+   78.331
+  ],
+  "Mandsaur|Madhya Pradesh": [
+   24.068,
+   75.074
+  ],
+  "Gwalior|Madhya Pradesh": [
+   26.204,
+   78.157
+  ],
+  "Dhar|Madhya Pradesh": [
+   22.597,
+   75.307
+  ],
+  "Khargone|Madhya Pradesh": [
+   21.826,
+   75.614
+  ],
+  "Nagda|Madhya Pradesh": [
+   23.458,
+   75.419
+  ],
+  "Shamgarh|Madhya Pradesh": [
+   24.188,
+   75.638
+  ],
+  "Burhanpur|Madhya Pradesh": [
+   21.312,
+   76.229
+  ],
+  "Dhamnod|Madhya Pradesh": [
+   22.21,
+   75.472
+  ],
+  "Shajapur|Madhya Pradesh": [
+   23.417,
+   76.607
+  ],
+  "Rewa|Madhya Pradesh": [
+   24.536,
+   81.293
+  ],
+  "Khandwa|Madhya Pradesh": [
+   21.82,
+   76.356
+  ],
+  "Shivpuri|Madhya Pradesh": [
+   25.424,
+   77.655
+  ],
+  "Seoni|Madhya Pradesh": [
+   22.091,
+   79.551
+  ],
+  "Jaora|Madhya Pradesh": [
+   23.638,
+   75.128
+  ],
+  "Dewas|Madhya Pradesh": [
+   22.964,
+   76.055
+  ],
+  "Bhopal|Madhya Pradesh": [
+   23.258,
+   77.402
+  ],
+  "Betul|Madhya Pradesh": [
+   21.88,
+   77.875
+  ],
+  "Ashta|Madhya Pradesh": [
+   23.02,
+   76.722
+  ],
+  "Narmdapuram|Madhya Pradesh": [
+   22.755,
+   77.72
+  ],
+  "Ashok Nagar|Madhya Pradesh": [
+   24.579,
+   77.728
+  ],
+  "Pipariya|Madhya Pradesh": [
+   22.759,
+   78.353
+  ],
+  "Balaghat|Madhya Pradesh": [
+   21.861,
+   80.324
+  ],
+  "Chhindwara|Madhya Pradesh": [
+   22.058,
+   78.939
+  ],
+  "Itarsi|Madhya Pradesh": [
+   22.612,
+   77.763
+  ],
+  "Ganj Basoda|Madhya Pradesh": [
+   23.846,
+   77.945
+  ],
+  "Katni|Madhya Pradesh": [
+   23.834,
+   80.392
+  ],
+  "Jagdalpur|Chhattisgarh": [
+   19.087,
+   82.024
+  ],
+  "Raipur|Chhattisgarh": [
+   21.238,
+   81.634
+  ],
+  "Durg|Chhattisgarh": [
+   21.19,
+   81.285
+  ],
+  "Raigarh|Chhattisgarh": [
+   21.898,
+   83.397
+  ],
+  "Bilaspur|Chhattisgarh": [
+   22.079,
+   82.148
+  ],
+  "Korba|Chhattisgarh": [
+   22.355,
+   82.711
+  ],
+  "Bopal|Gujarat": [
+   23.039,
+   72.459
+  ],
+  "Kanker|Chhattisgarh": [
+   20.269,
+   81.493
+  ],
+  "Bhilai|Chhattisgarh": [
+   21.212,
+   81.373
+  ],
+  "Mahasamund|Chhattisgarh": [
+   21.192,
+   82.489
+  ],
+  "Arang|Chhattisgarh": [
+   21.199,
+   81.966
+  ],
+  "Rajnandgaon|Chhattisgarh": [
+   21.096,
+   81.029
+  ],
+  "Saripali|Chhattisgarh": [
+   21.586,
+   83.078
+  ],
+  "Kondagaon|Chhattisgarh": [
+   19.589,
+   81.663
+  ],
+  "Ranchi|Jharkhand": [
+   23.37,
+   85.325
+  ],
+  "Jamshedpur|Jharkhand": [
+   22.802,
+   86.203
+  ],
+  "Hazaribagh|Jharkhand": [
+   23.992,
+   85.362
+  ],
+  "Dhanbad|Jharkhand": [
+   23.795,
+   86.431
+  ],
+  "Lohardaga|Jharkhand": [
+   23.477,
+   84.699
+  ],
+  "Sambalpur|Odisha": [
+   21.471,
+   83.976
+  ],
+  "Jharsuguda|Odisha": [
+   21.802,
+   83.971
+  ],
+  "Rourkela|Odisha": [
+   22.231,
+   84.868
+  ],
+  "Bhawanipatna|Odisha": [
+   19.91,
+   83.168
+  ],
+  "Bargarh|Odisha": [
+   21.232,
+   83.565
+  ],
+  "Hajipur|Bihar": [
+   25.691,
+   85.209
+  ],
+  "Madhubani|Bihar": [
+   26.35,
+   86.23
+  ],
+  "Motihari|Bihar": [
+   26.651,
+   84.911
+  ],
+  "Patna|Bihar": [
+   25.609,
+   85.124
+  ],
+  "Gaya|Bihar": [
+   24.796,
+   85.008
+  ],
+  "Supaul|Bihar": [
+   26.277,
+   86.796
+  ],
+  "Purnea|Bihar": [
+   25.777,
+   87.473
+  ],
+  "Begusarai|Bihar": [
+   25.414,
+   86.135
+  ],
+  "Muzaffarpur|Bihar": [
+   26.118,
+   85.386
+  ],
+  "Darbhanga|Bihar": [
+   26.157,
+   85.9
+  ],
+  "Nawada|Bihar": [
+   24.817,
+   85.518
+  ],
+  "Bhagalpur|Bihar": [
+   25.249,
+   86.983
+  ],
+  "Jamui|Bihar": [
+   24.756,
+   86.301
+  ],
+  "Kishanganj|Bihar": [
+   26.101,
+   87.951
+  ],
+  "Sheohar|Bihar": [
+   26.493,
+   85.272
+  ],
+  "Khagaria|Bihar": [
+   25.493,
+   86.698
+  ],
+  "Bihar Sharif|Bihar": [
+   25.194,
+   85.521
+  ],
+  "Siliguri|West Bengal": [
+   26.716,
+   88.431
+  ],
+  "Jaigaon|West Bengal": [
+   26.855,
+   89.377
+  ],
+  "Gangtok|Sikkim": [
+   27.329,
+   88.612
+  ],
+  "Darjeeling|West Bengal": [
+   27.038,
+   88.263
+  ],
+  "Cooch Behar|West Bengal": [
+   26.322,
+   89.459
+  ],
+  "Kalimpong|West Bengal": [
+   27.07,
+   88.472
+  ],
+  "Alipurduar|West Bengal": [
+   26.485,
+   89.525
+  ],
+  "Tufanganj|West Bengal": [
+   26.314,
+   89.667
+  ],
+  "Ranipool|Sikkim": [
+   27.294,
+   88.59
+  ],
+  "Raiganj|West Bengal": [
+   25.627,
+   88.132
+  ],
+  "Kolkata|West Bengal": [
+   22.573,
+   88.364
+  ],
+  "Howrah|West Bengal": [
+   22.574,
+   88.325
+  ],
+  "Contai|West Bengal": [
+   21.781,
+   87.745
+  ],
+  "Asansol|West Bengal": [
+   23.687,
+   86.975
+  ],
+  "Midnapore|West Bengal": [
+   22.421,
+   87.327
+  ],
+  "Bhubaneswar|Odisha": [
+   20.26,
+   85.839
+  ],
+  "Jatani|Odisha": [
+   20.162,
+   85.705
+  ],
+  "Cuttack|Odisha": [
+   20.469,
+   85.879
+  ],
+  "Berhampur|Odisha": [
+   19.31,
+   84.797
+  ],
+  "Parlekhamundi|Odisha": [
+   18.781,
+   84.089
+  ],
+  "Balasore|Odisha": [
+   21.502,
+   86.922
+  ],
+  "Baripada|Odisha": [
+   21.934,
+   86.731
+  ],
+  "Angul|Odisha": [
+   21.103,
+   84.954
+  ]
+ },
+ "unserved": {
+  "hyderabad": [
+   17.361,
+   78.474
+  ],
+  "secunderabad": [
+   17.434,
+   78.501
+  ],
+  "warangal": [
+   17.982,
+   79.597
+  ],
+  "karimnagar": [
+   18.435,
+   79.133
+  ],
+  "nizamabad": [
+   18.673,
+   78.098
+  ],
+  "khammam": [
+   17.247,
+   80.15
+  ],
+  "mumbai": [
+   19.055,
+   72.869
+  ],
+  "navi mumbai": [
+   19.031,
+   73.02
+  ],
+  "thane": [
+   19.194,
+   72.97
+  ],
+  "nagpur": [
+   21.15,
+   79.082
+  ],
+  "delhi": [
+   28.666,
+   77.217
+  ],
+  "new delhi": [
+   28.614,
+   77.209
+  ],
+  "noida": [
+   28.571,
+   77.327
+  ],
+  "greater noida": [
+   28.467,
+   77.514
+  ],
+  "gurgaon": [
+   28.465,
+   77.03
+  ],
+  "gurugram": [
+   28.465,
+   77.03
+  ],
+  "faridabad": [
+   28.403,
+   77.311
+  ],
+  "ghaziabad": [
+   28.671,
+   77.412
+  ],
+  "bangalore": [
+   12.977,
+   77.59
+  ],
+  "bengaluru": [
+   12.977,
+   77.59
+  ],
+  "mysore": [
+   12.305,
+   76.655
+  ],
+  "mysuru": [
+   12.305,
+   76.655
+  ],
+  "mangalore": [
+   12.87,
+   74.843
+  ],
+  "mangaluru": [
+   12.87,
+   74.843
+  ],
+  "hubli": [
+   15.352,
+   75.138
+  ],
+  "belgaum": [
+   15.857,
+   74.507
+  ],
+  "belagavi": [
+   15.857,
+   74.507
+  ],
+  "chennai": [
+   13.08,
+   80.281
+  ],
+  "coimbatore": [
+   11.002,
+   76.963
+  ],
+  "madurai": [
+   9.926,
+   78.114
+  ],
+  "salem": [
+   11.655,
+   78.158
+  ],
+  "trichy": [
+   10.807,
+   78.688
+  ],
+  "tiruchirappalli": [
+   10.807,
+   78.688
+  ],
+  "kochi": [
+   9.968,
+   76.244
+  ],
+  "cochin": [
+   9.968,
+   76.244
+  ],
+  "ernakulam": [
+   9.984,
+   76.274
+  ],
+  "thiruvananthapuram": [
+   8.488,
+   76.948
+  ],
+  "trivandrum": [
+   8.488,
+   76.948
+  ],
+  "kozhikode": [
+   11.245,
+   75.775
+  ],
+  "calicut": [
+   11.245,
+   75.775
+  ],
+  "thrissur": [
+   10.479,
+   76.274
+  ],
+  "visakhapatnam": [
+   17.694,
+   83.292
+  ],
+  "vizag": [
+   17.694,
+   83.292
+  ],
+  "vijayawada": [
+   16.512,
+   80.616
+  ],
+  "guntur": [
+   16.292,
+   80.454
+  ],
+  "tirupati": [
+   13.632,
+   79.423
+  ],
+  "nellore": [
+   14.449,
+   79.987
+  ],
+  "rajahmundry": [
+   17.005,
+   81.78
+  ],
+  "jaipur": [
+   26.915,
+   75.819
+  ],
+  "jodhpur": [
+   26.297,
+   73.035
+  ],
+  "udaipur": [
+   24.579,
+   73.686
+  ],
+  "kota": [
+   25.174,
+   75.857
+  ],
+  "ajmer": [
+   26.469,
+   74.639
+  ],
+  "bikaner": [
+   28.016,
+   73.317
+  ],
+  "lucknow": [
+   26.838,
+   80.935
+  ],
+  "kanpur": [
+   26.461,
+   80.322
+  ],
+  "varanasi": [
+   25.336,
+   83.008
+  ],
+  "agra": [
+   27.175,
+   78.01
+  ],
+  "allahabad": [
+   25.438,
+   81.834
+  ],
+  "prayagraj": [
+   25.438,
+   81.834
+  ],
+  "meerut": [
+   28.996,
+   77.706
+  ],
+  "dehradun": [
+   30.326,
+   78.044
+  ],
+  "haridwar": [
+   29.938,
+   78.145
+  ],
+  "chandigarh": [
+   30.733,
+   76.78
+  ],
+  "mohali": [
+   30.691,
+   76.711
+  ],
+  "ludhiana": [
+   30.909,
+   75.852
+  ],
+  "amritsar": [
+   31.636,
+   74.879
+  ],
+  "jalandhar": [
+   31.332,
+   75.577
+  ],
+  "patiala": [
+   30.33,
+   76.401
+  ],
+  "shimla": [
+   31.104,
+   77.171
+  ],
+  "jammu": [
+   32.719,
+   74.858
+  ],
+  "srinagar": [
+   34.075,
+   74.82
+  ],
+  "guwahati": [
+   26.181,
+   91.754
+  ],
+  "dibrugarh": [
+   27.484,
+   94.902
+  ],
+  "shillong": [
+   25.576,
+   91.883
+  ],
+  "imphal": [
+   24.799,
+   93.936
+  ],
+  "agartala": [
+   23.831,
+   91.282
+  ],
+  "aizawl": [
+   23.728,
+   92.718
+  ],
+  "kohima": [
+   25.662,
+   94.102
+  ],
+  "itanagar": [
+   27.098,
+   93.624
+  ],
+  "panaji": [
+   15.499,
+   73.828
+  ],
+  "goa": [
+   15.499,
+   73.828
+  ],
+  "puducherry": [
+   11.934,
+   79.831
+  ],
+  "pondicherry": [
+   11.934,
+   79.831
+  ],
+  "telangana": [
+   17.85,
+   79.115
+  ],
+  "karnataka": [
+   14.956,
+   75.79
+  ],
+  "tamil nadu": [
+   11.332,
+   78.61
+  ],
+  "kerala": [
+   10.353,
+   76.512
+  ],
+  "andhra pradesh": [
+   15.924,
+   80.186
+  ],
+  "rajasthan": [
+   26.811,
+   73.768
+  ],
+  "uttar pradesh": [
+   27.13,
+   80.86
+  ],
+  "punjab": [
+   30.929,
+   75.5
+  ],
+  "haryana": [
+   29,
+   76
+  ],
+  "uttarakhand": [
+   30.042,
+   79.09
+  ],
+  "himachal pradesh": [
+   31.929,
+   77.183
+  ],
+  "jammu and kashmir": [
+   33.665,
+   75.163
+  ],
+  "assam": [
+   26.407,
+   93.255
+  ],
+  "meghalaya": [
+   25.538,
+   91.3
+  ],
+  "manipur": [
+   24.721,
+   93.923
+  ],
+  "tripura": [
+   23.775,
+   91.703
+  ],
+  "mizoram": [
+   23.215,
+   92.869
+  ],
+  "nagaland": [
+   26.163,
+   94.588
+  ],
+  "arunachal pradesh": [
+   28.094,
+   94.592
+  ],
+  "ladakh": [
+   33.946,
+   77.657
+  ]
+ }
+}

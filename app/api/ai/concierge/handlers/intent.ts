@@ -1,6 +1,6 @@
 import type { IntentResult, ProductCategory } from "@/lib/concierge";
 import type { ConversationMessage } from "@/lib/followupEngine";
-import { normalizeLoc, knownDealerStates } from "./dealer";
+import { normalizeLoc, knownDealerStates, resolveNearestDealerFollowup } from "./dealer";
 
 export const NOT_A_DEALER_CITY_REPLY =
   /\b(explore\s+(?:the\s+)?full\s+range|full\s+range(?:\s+of)?|show\s+(?:me\s+)?(?:the\s+)?full\s+range)\b/i;
@@ -221,6 +221,20 @@ export function resolveFollowupIntent(
   history: ConversationMessage[]
 ): IntentResult | null {
   if (history.length === 0) return null;
+
+  // "ok show me near ones" / "yes" (to "show the closest dealers?") → nearest dealers to the place already discussed.
+  const nearestPlace = resolveNearestDealerFollowup(message, history);
+  if (nearestPlace) {
+    return {
+      categories: [],
+      asking_clarification: false,
+      clarification_message: null,
+      dealer_intent: true,
+      location: nearestPlace,
+      nearest: true,
+      filters: {},
+    };
+  }
 
   if (hasRecentExplicitDealerLocationAsk(history) && isLikelyLocationReply(message)) {
     if (inferProductContextFromText(message)) return null;

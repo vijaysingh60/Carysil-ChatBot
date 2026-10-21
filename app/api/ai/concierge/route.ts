@@ -61,7 +61,8 @@ import type { ConversationState } from "@/types/conversationState";
 import {
   type Dealer,
   allDealers,
-  filterDealersByLocation,
+  findDealers,
+  dealerCoverageSummary,
   formatLocation,
   dealerFollowupQuestion,
   inferDealerLocationFromMessage,
@@ -914,21 +915,47 @@ export async function POST(request: Request) {
 
     // Step 2: Dealer intent — filter dealers by location and return
     if (intent.dealer_intent && intent.location && (intent.location.city || intent.location.state)) {
-      const dealers = filterDealersByLocation(intent.location);
-      const bestDealer = pickBestDealer(dealers, intent.categories?.[0] ?? salesIntent.category ?? null);
-      const locationLabel = formatLocation(intent.location);
-      const resultMessage =
-        dealers.length > 0
-          ? `Here are Carysil dealers in ${locationLabel}. You can call or email them for availability and pricing.`
-          : `We don't have a listed dealer in ${locationLabel} yet. Try a nearby city or contact us at carysil.com/reach-us.`;
-      const cityShort = intent.location.city?.trim() || null;
+      // Locality-aware: ranks dealers whose address matches the area the user named
+      // ("near Palasia in Indore") ahead of the rest of the city.
+      const lookup = findDealers(intent.location, userRawMessage, { nearest: intent.nearest });
+      const dealers = lookup.dealers;
+      // Dealers from a *different* city (the "nearest ones" answer) are shown on request only —
+      // never auto-assigned, so a Hyderabad lead isn't silently routed to a dealer 300 km away.
+      const showingNearbyCities = Boolean(intent.nearest && lookup.unservedPlace && dealers.length > 0);
+      const bestDealer = showingNearbyCities
+        ? null
+        : pickBestDealer(dealers, intent.categories?.[0] ?? salesIntent.category ?? null);
+      const resolvedCity = lookup.cities[0] ?? null;
+      const locationLabel = resolvedCity ?? lookup.state ?? lookup.unservedPlace ?? formatLocation(intent.location);
+      const parentPlace = resolvedCity ?? lookup.unservedPlace ?? null;
+      const areaPlace = lookup.areaLabel
+        ? `${lookup.areaLabel}${parentPlace ? `, ${parentPlace}` : ""}`
+        : null;
+      const nearbyList = (lookup.nearbyCities ?? [])
+        .map((n) => `${n.city} (~${n.km} km)`)
+        .join(", ")
+        .replace(/, ([^,]*)$/, " and $1");
+      const resultMessage = showingNearbyCities
+        ? `We don't have a dealer in ${locationLabel} yet. The closest Carysil dealers are in ${nearbyList}. Distances are in a straight line, so by road it will be longer. You can call or email them for availability and pricing.`
+        : dealers.length === 0
+          ? `We don't have a listed dealer in ${areaPlace ?? locationLabel} yet. Our dealers are currently in ${dealerCoverageSummary()}. You can also reach our team at carysil.com/reach-us.`
+          : lookup.areaMatchCount > 0
+            ? `Here are Carysil dealers near ${areaPlace ?? locationLabel}. The closest matches are listed first — you can call or email them for availability and pricing.`
+            : lookup.areaLabel
+              ? `I couldn't find a dealer listed specifically near ${lookup.areaLabel}, so here are Carysil dealers in ${locationLabel}. You can call or email them for availability and pricing.`
+              : `Here are Carysil dealers in ${locationLabel}. You can call or email them for availability and pricing.`;
+      const cityShort = resolvedCity ?? lookup.unservedPlace ?? intent.location.city?.trim() ?? null;
       const postDealerFollowup = dealerFollowupQuestion({
         dealerCount: dealers.length,
         cityShort,
         locationLabel,
         allIndia: false,
+        offerNearestTo:
+          !intent.nearest && lookup.unservedPlace && (lookup.nearbyCities?.length ?? 0) > 0
+            ? lookup.unservedPlace
+            : undefined,
       });
-      const cityForLead = contactInfo.city || intent.location.city || intent.location.state;
+      const cityForLead = contactInfo.city || resolvedCity || intent.location.city || intent.location.state;
       await updateLeadRecord({
         sessionId: activeSessionId,
         contactInfo: contactInfoForLeadDatabaseUpdate(

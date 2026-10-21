@@ -29,6 +29,8 @@ export type IntentResult = {
   dealer_intent?: boolean;
   /** When dealer_intent is true: city and/or state if mentioned. */
   location?: { city?: string; state?: string };
+  /** Follow-up like "show me the nearest ones": list the dealers closest to `location` even if it has none. */
+  nearest?: boolean;
 };
 
 function extractSizeFilter(message: string): string | undefined {

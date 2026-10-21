@@ -19,6 +19,7 @@ type Dealer = {
   products_supported: string[];
   contact_email: string;
   phone: string;
+  address?: string;
 };
 
 type ChatMessage = {
@@ -469,6 +470,11 @@ export function ChatWidget() {
                         >
                           <p className="font-medium text-gray-100 text-xs sm:text-sm">{dealer.name}</p>
                           <p className="text-[11px] text-gray-400 mt-0.5 sm:text-xs">{dealer.city}, {dealer.state}</p>
+                          {dealer.address && (
+                            <p className="text-[11px] text-gray-400 mt-0.5 sm:text-xs line-clamp-2" title={dealer.address}>
+                              {dealer.address}
+                            </p>
+                          )}
                           <p className="text-[11px] text-gray-300 mt-1 sm:text-xs">{dealer.phone}</p>
                           {dealer.contact_email && (
                             <a
