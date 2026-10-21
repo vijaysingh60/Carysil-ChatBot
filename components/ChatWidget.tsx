@@ -470,12 +470,14 @@ export function ChatWidget() {
                           <p className="font-medium text-gray-100 text-xs sm:text-sm">{dealer.name}</p>
                           <p className="text-[11px] text-gray-400 mt-0.5 sm:text-xs">{dealer.city}, {dealer.state}</p>
                           <p className="text-[11px] text-gray-300 mt-1 sm:text-xs">{dealer.phone}</p>
-                          <a
-                            href={`mailto:${dealer.contact_email}`}
-                            className="text-[11px] text-[var(--carysil-red)] font-medium hover:underline sm:text-xs"
-                          >
-                            {dealer.contact_email}
-                          </a>
+                          {dealer.contact_email && (
+                            <a
+                              href={`mailto:${dealer.contact_email}`}
+                              className="text-[11px] text-[var(--carysil-red)] font-medium hover:underline sm:text-xs"
+                            >
+                              {dealer.contact_email}
+                            </a>
+                          )}
                         </div>
                       ))}
                     </div>
