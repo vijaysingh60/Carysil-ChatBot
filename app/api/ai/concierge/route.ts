@@ -1237,10 +1237,12 @@ async function handleConcierge(request: Request): Promise<Response> {
     const skipVectorEmbedding =
       process.env.SKIP_VECTOR_EMBEDDING === "true" || process.env.SKIP_VECTOR_EMBEDDING === "1";
     try {
-      if (skipVectorEmbedding) {
-        relevantProducts = [];
-      } else {
+      {
+        // SKIP_VECTOR_EMBEDDING used to mean "no search at all": the product list was just the first rows of the
+        // category, which is why shoppers asking for double-bowl sinks got whatever sink happened to be first. It now
+        // means "no embedding service": keyword (full-text) search with the same filters still runs.
         const hybridMatches = await hybridSearch(enhancedQuery, {
+          skipVector: skipVectorEmbedding,
           limit: 5,
           categories: getSearchCategories(pipelineMessage, recommendationIntent),
           material: recommendationIntent.filters?.material,

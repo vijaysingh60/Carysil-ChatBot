@@ -9,6 +9,8 @@ type SearchOptions = {
   style?: string;
   keywords?: string[];
   size?: string;
+  /** Keyword (full-text) search only: don't call the embedding service. */
+  skipVector?: boolean;
   minPrice?: number;
   maxPrice?: number;
 };
@@ -127,7 +129,9 @@ async function runHybridSearch(query: string, options: SearchOptions): Promise<S
   const candidateLimit = Math.max(limit * 2, 10);
 
   const [vectorResults, ftsResults] = await Promise.allSettled([
-    searchSimilarProducts(query, {
+    options.skipVector
+      ? Promise.resolve([] as SimilarProduct[])
+      : searchSimilarProducts(query, {
       limit: candidateLimit,
       filters: {
         categories: options.categories,

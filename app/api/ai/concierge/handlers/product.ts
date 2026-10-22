@@ -170,9 +170,9 @@ export async function filterByIntent(intent: IntentResult): Promise<Product[]> {
       return true;
     });
   }
-  if (keywordList.length > 0 && intent.categories.length === 1 && intent.categories[0] === "Faucet") {
-    // Faucet preferences (mounting, pull-out, finish) are facts on the product, so narrow on them; if that leaves
-    // nothing, keep the whole category rather than report "no match".
+  if (keywordList.length > 0 && intent.categories.length === 1 && intent.categories[0] !== "Appliance") {
+    // Preferences such as mounting, pull-out, finish, "double bowl" or "quartz" are facts in the product text, so
+    // narrow on them; if that leaves nothing, keep the whole category rather than report "no match".
     const narrowed = list.filter((p) => keywordList.every((k) => productMatchesKeyword(p, k)));
     if (narrowed.length > 0) list = narrowed;
   }
