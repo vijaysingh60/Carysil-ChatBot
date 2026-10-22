@@ -89,7 +89,7 @@ Other API routes: `/api/ai/status`, `/api/ai/track-click`, `/api/cron/decay-lead
 - **`ANTHROPIC_API_KEY`** — If set, API routes call Claude (`claude-haiku-5-5`) for intent detection and natural recommendation responses.
 - **`DATABASE_URL`** — Required for product vector retrieval.
 - **`EMBEDDING_API_URL`** — URL for sentence-transformer embedding service (default `http://127.0.0.1:5001`). Optional at runtime: if it is down or slow (>5 s) chat falls back to keyword search.
-- **`DASHBOARD_PASSWORD`** (+ optional **`DASHBOARD_USER`**, default `admin`) — Login for `/dashboard`, which lists leads and chat transcripts. **Required in production**: without it `/dashboard` returns 503 (it never falls back to public). Local development without it stays open.
+- **`DASHBOARD_PASSWORD`** (+ optional **`DASHBOARD_USER`**, default `admin`) — Optional login for `/dashboard`, which lists leads and chat transcripts. **Unset = the dashboard is open to anyone with the URL.** Set it in the environment (e.g. Vercel) to require a login.
 - **`CRON_SECRET`** — Shared secret for `/api/cron/decay-leads` (`Authorization: Bearer <secret>`). Without it the endpoint only runs in local development.
 - **`DATABASE_POOL_MAX`** — Max Postgres connections per server instance (default 10; 3 on Vercel, where every instance has its own pool).
 

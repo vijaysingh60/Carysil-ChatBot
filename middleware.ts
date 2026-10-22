@@ -11,22 +11,14 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 /**
- * /dashboard lists customer leads (names, phone numbers, emails) and full chat transcripts, so it must not be
- * public. HTTP Basic auth: DASHBOARD_PASSWORD (required) and DASHBOARD_USER (optional, default "admin").
+ * Optional login for /dashboard, which lists customer leads (names, phone numbers, emails) and chat transcripts.
  *
- * It FAILS CLOSED: in production with no DASHBOARD_PASSWORD the dashboard is unavailable (503) instead of
- * open. Local development without a password stays open for convenience.
+ * With no DASHBOARD_PASSWORD set the dashboard is OPEN to anyone who has the URL. Set DASHBOARD_PASSWORD (and
+ * optionally DASHBOARD_USER, default "admin") in the environment to require HTTP Basic auth — no code change needed.
  */
 function dashboardGate(request: NextRequest): NextResponse | null {
   const password = process.env.DASHBOARD_PASSWORD;
-  if (!password) {
-    return process.env.NODE_ENV === "production"
-      ? new NextResponse("Dashboard disabled: set DASHBOARD_PASSWORD (and optionally DASHBOARD_USER) to enable it.", {
-          status: 503,
-          headers: { "Cache-Control": "no-store" },
-        })
-      : null;
-  }
+  if (!password) return null;
   const user = process.env.DASHBOARD_USER || "admin";
   const header = request.headers.get("authorization") ?? "";
   if (header.startsWith("Basic ")) {
