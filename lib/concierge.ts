@@ -1,5 +1,6 @@
 import { callAI, parseJsonLoose } from "@/lib/ai";
 import { getPrompt } from "@/lib/prompts";
+import { APPLIANCE_ANY_PATTERN, APPLIANCE_SUBTYPE_PATTERN } from "@/lib/applianceTerms";
 import { describeCategoryRange, formatRangeList, getTopLevelRange } from "@/lib/catalogueRange";
 
 /** Catalogue categories in products.json */
@@ -127,7 +128,7 @@ function inferCategoriesFromMessage(message: string): ProductCategory[] {
   if (/\b(disposer|disposers|food\s*waste|waste\s+disposers?|water\s+disposers?|garbage\s*disposal)\b/.test(lower))
     inferred.push("Disposer");
   if (/\b(accessory|accessories|waste coupling)\b/.test(lower)) inferred.push("Accessory");
-  if (/\b(hob|burner|burners|chimney|dishwasher|appliance|appliances)\b/.test(lower)) inferred.push("Appliance");
+  if (APPLIANCE_ANY_PATTERN.test(lower)) inferred.push("Appliance");
   if (/\b(combo|combos)\b/.test(lower)) inferred.push("Combo");
   return Array.from(new Set(inferred));
 }
@@ -162,8 +163,10 @@ function isVagueCategoryQuery(message: string, categories: ProductCategory[]): b
     }
   }
   if (categories[0] === "Appliance") {
+    // Naming a specific appliance (coffee machine, wine chiller, oven…) is enough to show products.
+    if (APPLIANCE_SUBTYPE_PATTERN.test(lower)) return false;
     if (
-      /\b(hob|hobs|chimney|chimneys|dishwasher|dishwashers|burner|burners|gas|induction|cooking\s*range|built[- ]?in|freestanding|\b(60|75|90)\s*cm\b)\b/i.test(
+      /\b(gas|induction|built[- ]?in|freestanding|\b(60|75|90)\s*cm\b)\b/i.test(
         lower
       )
     ) {

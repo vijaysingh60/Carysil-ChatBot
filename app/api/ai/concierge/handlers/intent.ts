@@ -1,5 +1,6 @@
 import type { IntentResult, ProductCategory } from "@/lib/concierge";
 import type { ConversationMessage } from "@/lib/followupEngine";
+import { APPLIANCE_SUBTYPE_PATTERN } from "@/lib/applianceTerms";
 import { normalizeLoc, knownDealerStates, resolveNearestDealerFollowup } from "./dealer";
 
 export const NOT_A_DEALER_CITY_REPLY =
@@ -25,7 +26,7 @@ export function inferProductContextFromText(
   if (/\b(hob|hobs|burner|burners)\b/.test(lower)) return { category: "Appliance", keywords: ["hob"] };
   if (/\b(chimney|chimneys)\b/.test(lower)) return { category: "Appliance", keywords: ["chimney"] };
   if (/\b(dishwasher|dishwashers)\b/.test(lower)) return { category: "Appliance", keywords: ["dishwasher"] };
-  if (/\b(appliance|appliances)\b/.test(lower)) return { category: "Appliance" };
+  if (/\b(appliance|appliances)\b/.test(lower) || APPLIANCE_SUBTYPE_PATTERN.test(lower)) return { category: "Appliance" };
   if (/\b(full|modular|complete|entire|new)\s+kitchen\b|\bkitchen\s+(makeover|package|setup|project)\b/i.test(lower))
     return { category: "Combo", keywords: ["kitchen"] };
   return null;
