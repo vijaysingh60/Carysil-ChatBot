@@ -135,7 +135,9 @@ export async function searchSimilarProducts(
   const queryEmbedding = await createEmbedding(query);
   const vectorParam = embeddingToSqlVector(queryEmbedding);
   const sqlParams: Array<string | number | string[]> = [vectorParam];
-  const where: string[] = [];
+  // Inactive (retired / hidden) products must never be recommended. Keyword search and the catalogue listing
+  // already filter on this; semantic search didn't, so deactivating a product left it showing up here.
+  const where: string[] = ["is_active = true"];
 
   if (filters.categories && filters.categories.length > 0) {
     sqlParams.push(expandVectorCategories(filters.categories, filters.keywords));
