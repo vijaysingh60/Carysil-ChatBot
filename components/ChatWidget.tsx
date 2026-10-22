@@ -90,7 +90,7 @@ const WELCOME: ChatMessage = {
   id: "welcome",
   role: "assistant",
   content:
-    "Hi there 👋\nYou are now speaking with AskCary. How can I help?",
+    "Hi, I'm AskCary, your Carysil assistant 👋\nAsk me about:\n• Products: sinks, faucets, hobs and more\n• Dealers and stores near you\n• Help choosing the right one for your kitchen\n\nWhat are you looking for today?",
   meta: undefined,
 };
 
@@ -519,7 +519,7 @@ export function ChatWidget({ embedded = false }: { embedded?: boolean }) {
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm whitespace-pre-wrap ${
+                  className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-sm sm:text-[15px] whitespace-pre-wrap ${
                     m.role === "user"
                       ? "bg-[var(--carysil-red)] text-white shadow-lg shadow-[var(--carysil-red)]/40"
                       : "bg-[#2c2d31] text-gray-100 border border-white/5 shadow-md"
@@ -533,18 +533,18 @@ export function ChatWidget({ embedded = false }: { embedded?: boolean }) {
                           key={dealer.id}
                           className="rounded-lg border border-white/5 bg-[#14161A] text-black p-3 text-left"
                         >
-                          <p className="font-medium text-gray-100 text-xs sm:text-sm">{dealer.name}</p>
-                          <p className="text-[11px] text-gray-400 mt-0.5 sm:text-xs">{dealer.city}, {dealer.state}</p>
+                          <p className="font-medium text-gray-100 text-sm sm:text-[15px]">{dealer.name}</p>
+                          <p className="text-xs text-gray-400 mt-0.5 sm:text-[13px]">{dealer.city}, {dealer.state}</p>
                           {dealer.address && (
-                            <p className="text-[11px] text-gray-400 mt-0.5 sm:text-xs line-clamp-2" title={dealer.address}>
+                            <p className="text-xs text-gray-400 mt-0.5 sm:text-[13px] line-clamp-2" title={dealer.address}>
                               {dealer.address}
                             </p>
                           )}
-                          <p className="text-[11px] text-gray-300 mt-1 sm:text-xs">{dealer.phone}</p>
+                          <p className="text-xs text-gray-300 mt-1 sm:text-[13px]">{dealer.phone}</p>
                           {dealer.contact_email && (
                             <a
                               href={`mailto:${dealer.contact_email}`}
-                              className="text-[11px] text-[var(--carysil-red)] font-medium hover:underline sm:text-xs"
+                              className="text-xs text-[var(--carysil-red)] font-medium hover:underline sm:text-[13px]"
                             >
                               {dealer.contact_email}
                             </a>
@@ -572,9 +572,9 @@ export function ChatWidget({ embedded = false }: { embedded?: boolean }) {
                             />
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-gray-100 text-xs sm:text-sm line-clamp-2">{rec.name}</p>
-                            {rec.price && <p className="mt-0.5 text-xs text-gray-400">{rec.price}</p>}
-                            <span className="text-xs text-[var(--carysil-red)] font-medium">View →</span>
+                            <p className="font-medium text-gray-100 text-sm sm:text-[15px] line-clamp-2">{rec.name}</p>
+                            {rec.price && <p className="mt-0.5 text-[13px] text-gray-400">{rec.price}</p>}
+                            <span className="text-[13px] text-[var(--carysil-red)] font-medium">View →</span>
                           </div>
                         </a>
                       ))}
@@ -589,12 +589,12 @@ export function ChatWidget({ embedded = false }: { embedded?: boolean }) {
                             type="button"
                             disabled={loading}
                             onClick={() => void send(q)}
-                            className="w-full cursor-pointer rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-3.5 py-2.5 text-left text-xs sm:text-sm text-gray-100 transition-colors hover:bg-white/10 active:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--carysil-red)] disabled:cursor-not-allowed disabled:opacity-60"
+                            className="w-full cursor-pointer rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-3.5 py-2.5 text-left text-sm sm:text-[15px] text-gray-100 transition-colors hover:bg-white/10 active:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--carysil-red)] disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {q}
                           </button>
                         ) : (
-                          <p key={q} className="text-xs sm:text-sm text-gray-200">
+                          <p key={q} className="text-sm sm:text-[15px] text-gray-200">
                             {q}
                           </p>
                         )
@@ -606,13 +606,13 @@ export function ChatWidget({ embedded = false }: { embedded?: boolean }) {
                       type="button"
                       disabled={loading}
                       onClick={() => void send(m.meta?.retryText ?? "")}
-                      className="mt-2.5 w-full cursor-pointer rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-3.5 py-2 text-left text-xs sm:text-sm text-gray-100 transition-colors hover:bg-white/10 active:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--carysil-red)] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="mt-2.5 w-full cursor-pointer rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-3.5 py-2 text-left text-sm sm:text-[15px] text-gray-100 transition-colors hover:bg-white/10 active:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--carysil-red)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Try again
                     </button>
                   )}
                   {m.role === "assistant" && m.meta?.error === "quota_exceeded" && (
-                    <p className="mt-2 text-xs sm:text-sm text-red-600">Service temporarily limited. Please try again later.</p>
+                    <p className="mt-2 text-sm sm:text-[15px] text-red-600">Service temporarily limited. Please try again later.</p>
                   )}
                 </div>
               </div>
@@ -676,7 +676,7 @@ export function ChatWidget({ embedded = false }: { embedded?: boolean }) {
                   }}
                   placeholder="Message..."
                   rows={1}
-                  className="chat-textarea min-h-10 max-h-48 flex-1 resize-none overflow-y-auto whitespace-pre-wrap break-words bg-transparent border-none py-2 text-xs leading-[1.45] text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 sm:text-sm sm:leading-5"
+                  className="chat-textarea min-h-10 max-h-48 flex-1 resize-none overflow-y-auto whitespace-pre-wrap break-words bg-transparent border-none py-2 text-sm leading-[1.45] text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 sm:text-[15px] sm:leading-[22px]"
                 />
                 <button
                   type="submit"
