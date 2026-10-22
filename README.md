@@ -100,6 +100,20 @@ Other API routes: `/api/ai/status`, `/api/ai/track-click`, `/api/cron/decay-lead
 - The chat endpoint is rate-limited per IP (120/min — deliberately loose because many mobile users share an IP) and caps message length at 1,500 characters. The limiter is in-memory per instance — put a shared store behind `lib/rateLimit.ts` for a hard global cap.
 - Schema setup (`ensureLeadSchema`) records a fingerprint in `app_schema_state` and takes a database lock, so it runs once per DDL change instead of on every cold start.
 
+## Fixing missing product embeddings
+
+Semantic search needs `products.embedding`; a database loaded without them silently falls back to keyword-only
+search. Check with `SELECT count(*) FROM products WHERE is_active AND embedding IS NULL;`, then fill the gaps:
+
+```bash
+DATABASE_URL='<target db>' EMBEDDING_API_URL='<embedding service>' npm run backfill:embeddings -- --dry-run
+DATABASE_URL='<target db>' EMBEDDING_API_URL='<embedding service>' npm run backfill:embeddings
+```
+
+It only writes the `embedding` column of rows that lack one, so it is safe to re-run. **Do not use
+`npm run embed:products` on a live database** — it upserts rows from the old `data/products.json` and overwrites
+current product data.
+
 ## Vector schema
 
 SQL migration is available at `db/products_vector_schema.sql`.

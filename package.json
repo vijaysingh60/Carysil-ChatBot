@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "embed:products": "node --import tsx scripts/generateProductEmbeddings.ts",
+    "backfill:embeddings": "node --import tsx scripts/backfillEmbeddings.ts",
     "import:catalog": "node --import tsx scripts/importCatalogProducts.ts",
     "import:dealers": "node --import tsx scripts/importDealers.ts",
     "import:documents": "node --import tsx scripts/importDocuments.ts",
