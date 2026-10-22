@@ -17,6 +17,13 @@ export function inferProductContextFromText(
   text: string
 ): { category: ProductCategory; keywords?: string[] } | null {
   const lower = text.toLowerCase();
+  // Named accessories first: several say "sink" ("dish drying rack for kitchen sink") and would be read as sinks.
+  if (
+    /\b(colanders?|soap\s+dispensers?|chopping\s+boards?|glass\s+rinsers?|floor\s+grids?|wire\s+grids?|drying\s+(?:channels?|racks?)|fold(?:ing|able)?\s+mats?|flexible\s+baskets?|plumbing\s+kits?|waste\s*couplings?|strainers?)\b/.test(
+      lower
+    )
+  )
+    return { category: "Accessory" };
   if (/\b(faucet|faucets|tap|taps)\b/.test(lower)) return { category: "Faucet" };
   if (/\b(sink|sinks)\b/.test(lower)) return { category: "Sink" };
   if (/\b(disposer|disposers|food\s*waste|waste\s+disposers?|water\s+disposers?|garbage\s*disposal)\b/.test(lower))
@@ -24,7 +31,14 @@ export function inferProductContextFromText(
   if (/\b(accessory|accessories|waste\s*coupling)\b/.test(lower)) return { category: "Accessory" };
   if (/\b(combo|combos)\b/.test(lower)) return { category: "Combo" };
   if (/\b(hob|hobs|burner|burners)\b/.test(lower)) return { category: "Appliance", keywords: ["hob"] };
-  if (/\b(chimney|chimneys)\b/.test(lower)) return { category: "Appliance", keywords: ["chimney"] };
+  if (/\b(chimney|chimneys)\b/.test(lower)) {
+    // Type qualifiers are real constraints on chimneys (island / wall mount / ceiling), not just flavour text.
+    const keywords = ["chimney"];
+    if (/\bisland\b/.test(lower)) keywords.push("island");
+    if (/\bwall[\s-]*mount(?:ed)?\b/.test(lower)) keywords.push("wall mount");
+    if (/\bceiling\b/.test(lower)) keywords.push("ceiling");
+    return { category: "Appliance", keywords };
+  }
   if (/\b(dishwasher|dishwashers)\b/.test(lower)) return { category: "Appliance", keywords: ["dishwasher"] };
   if (/\b(appliance|appliances)\b/.test(lower) || APPLIANCE_SUBTYPE_PATTERN.test(lower)) return { category: "Appliance" };
   if (/\b(full|modular|complete|entire|new)\s+kitchen\b|\bkitchen\s+(makeover|package|setup|project)\b/i.test(lower))
@@ -104,6 +118,35 @@ export function isOpenEndedFollowup(message: string): boolean {
   return /^(any|anything|any\s+one|any\s+of\s+them|any\s+(?:size|type|style|budget|finish|colour|color)|no\s+(?:size|type|style|budget|finish|colour|color)\s+preference|no\s+preference|no\s+preferences|does(?:n'?t)?\s+matter|show\s+me|show\s+options|show\s+some|yes|yeah|yep|ok|okay|whatever|whatever\s+is\s+best|you\s+choose|recommend|recommend\s+some|best\s+one|explore\s+(?:the\s+)?full\s+range)(?:\s+(sink|sinks|faucet|faucets|tap|taps|hob|hobs|chimney|chimneys|dishwasher|dishwashers|disposer|disposers|combo|combos|accessory|accessories|appliance|appliances))?[\.\!]*$/i.test(
     message.trim()
   );
+}
+
+/**
+ * A reply that only says "carry on" ("show me options", "no preference", "any") — it names nothing to search for.
+ * Looser than isOpenEndedFollowup, which is anchored to a fixed phrase list.
+ */
+export function isContinuationReply(message: string): boolean {
+  const text = message.trim();
+  if (isOpenEndedFollowup(text)) return true;
+  if (text.length > 60) return false;
+  return (
+    /^(?:just\s+|ok(?:ay)?\s+|please\s+)*(?:show|give|list)\s+(?:me\s+)?(?:the\s+|some\s+|all\s+|a\s+few\s+)?(?:options?|them|some|all|more|everything)\b/i.test(text) ||
+    /^(?:no|any|none|not\s+sure)\b[\w\s,.'-]{0,30}\b(?:preference|matter|fine|idea)\b/i.test(text)
+  );
+}
+
+/**
+ * The shopper's most recent real request ("apron sink", "soap dispenser", "wall mounted faucet"), skipping bare
+ * continuation replies. After a clarifying question the next reply is usually "no preference", and without this the
+ * specific thing they asked for — which is only in that earlier message — is lost, so they get generic products.
+ */
+export function lastSubstantiveUserRequest(history: ConversationMessage[]): string | null {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].role !== "user") continue;
+    const text = history[i].content.trim();
+    if (text.length < 3 || isContinuationReply(text)) continue;
+    return text;
+  }
+  return null;
 }
 
 export function inferFollowupProductFilters(

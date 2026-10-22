@@ -1,4 +1,4 @@
-import { searchSimilarProducts, expandVectorCategories, keywordClause, type SimilarProduct } from "@/lib/vectorSearch";
+import { searchSimilarProducts, expandVectorCategories, keywordClause, applianceSizeClause, type SimilarProduct } from "@/lib/vectorSearch";
 import { getDbPool } from "@/lib/db";
 import { buildTsQuery, ftsRankToSimilarity } from "@/lib/textSearch";
 
@@ -8,6 +8,7 @@ type SearchOptions = {
   material?: string;
   style?: string;
   keywords?: string[];
+  size?: string;
   minPrice?: number;
   maxPrice?: number;
 };
@@ -38,6 +39,11 @@ async function searchByFTS(
   }
   // Same keyword constraints as the vector branch. Without them a "deck-mount" request would still pull in
   // wall-mounted faucets through FTS — they match the word "mount" just as well.
+  const sizeClause = applianceSizeClause(options.size, options.categories, (value) => {
+    params.push(value);
+    return `$${params.length}`;
+  });
+  if (sizeClause) where.push(sizeClause);
   for (const keyword of options.keywords ?? []) {
     const clause = keywordClause(keyword, (value) => {
       params.push(value);
@@ -108,11 +114,12 @@ export async function hybridSearch(
   options: SearchOptions = {}
 ): Promise<SimilarProduct[]> {
   const strict = await runHybridSearch(query, options);
-  if (strict.length > 0 || !options.keywords || options.keywords.length === 0) return strict;
+  const hasConstraints = Boolean(options.size) || (options.keywords?.length ?? 0) > 0;
+  if (strict.length > 0 || !hasConstraints) return strict;
 
-  // Keyword constraints are a ranking aid, not a promise that the catalogue literally says those words. If they
-  // wipe out every candidate, search the category again without them rather than tell the shopper we have nothing.
-  return runHybridSearch(query, { ...options, keywords: undefined });
+  // Keyword and size constraints are a ranking aid, not a promise that the catalogue literally says those words. If
+  // they wipe out every candidate, search the category again without them rather than tell the shopper we have nothing.
+  return runHybridSearch(query, { ...options, keywords: undefined, size: undefined });
 }
 
 async function runHybridSearch(query: string, options: SearchOptions): Promise<SimilarProduct[]> {
@@ -127,6 +134,7 @@ async function runHybridSearch(query: string, options: SearchOptions): Promise<S
         material: options.material,
         style: options.style,
         keywords: options.keywords,
+        size: options.size,
         minPrice: options.minPrice,
         maxPrice: options.maxPrice,
       },

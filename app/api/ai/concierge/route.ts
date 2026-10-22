@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callAI, parseJsonLoose, MODEL } from "@/lib/ai";
 import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 import { dropChipsWithNoProducts } from "@/lib/chipAvailability";
+import { gateByRequestedTerms } from "@/lib/relevanceGate";
 import { planClarificationWithGPT, planSmallTalkResponse } from "@/lib/conciergeDialogPlanner";
 import { detectIntent, mentionsOutOfCatalogueProduct, CATEGORIES, type ProductCategory } from "@/lib/concierge";
 import {
@@ -86,6 +87,9 @@ import {
   resolveFollowupIntent,
   looksLikeDisplayComplaint,
   looksLikeRangeOverviewQuery,
+  isContinuationReply,
+  lastSubstantiveUserRequest,
+  inferFollowupProductFilters,
 } from "./handlers/intent";
 import {
   userProvidedLeadSignals,
@@ -555,7 +559,23 @@ async function handleConcierge(request: Request): Promise<Response> {
 
     // Step 1: Detect intent (categories + optional clarification)
     const historyIntent = resolveFollowupIntent(userRawMessage, history);
-    const intent = historyIntent || (await speculativeIntent) || (await detectIntent(pipelineMessage));
+    let intent = historyIntent || (await speculativeIntent) || (await detectIntent(pipelineMessage));
+    // A bare "no preference" / "show me options" reply: the product it refers to is in the shopper's earlier request.
+    // resolveFollowupIntent can only recognise a few product words, and otherwise falls back to whatever product word
+    // the assistant used in its own sentence ("a colander for your sink" → Sink). Classify the earlier request itself.
+    const earlierRequest = isContinuationReply(userRawMessage) ? lastSubstantiveUserRequest(history) : null;
+    if (earlierRequest && !intent.dealer_intent && !inferProductContextFromText(earlierRequest)) {
+      const earlierIntent = await detectIntent(earlierRequest);
+      if (!earlierIntent.dealer_intent && earlierIntent.categories.length > 0) {
+        intent = {
+          ...intent,
+          categories: earlierIntent.categories,
+          asking_clarification: false,
+          clarification_message: null,
+          filters: { ...earlierIntent.filters, ...intent.filters },
+        };
+      }
+    }
     // "I can't see the products" — resolveFollowupIntent already recovers the last
     // product category so this re-runs retrieval instead of re-clarifying; this flag
     // just lets the eventual response acknowledge the complaint when it succeeds.
@@ -1191,8 +1211,26 @@ async function handleConcierge(request: Request): Promise<Response> {
 
     // Step 3: hybrid retrieval (vector + FTS) for recommendations.
     // Query is enhanced with conversation state context before retrieval.
-    const recommendationIntent = enrichProductIntent(pipelineMessage, intent);
-    const enhancedQuery = enhanceQuery(pipelineMessage, memory);
+    // After a clarifying question the reply is often just "no preference" / "show me options". Search on the earlier
+    // request it answers ("apron sink", "wall mounted faucet") so that detail isn't lost.
+    const inheritedRequest = isContinuationReply(pipelineMessage) ? lastSubstantiveUserRequest(history) : null;
+    const retrievalMessage = inheritedRequest ? `${inheritedRequest} ${pipelineMessage}` : pipelineMessage;
+    let recommendationIntent = enrichProductIntent(retrievalMessage, intent);
+    if (inheritedRequest && recommendationIntent.categories.length === 1) {
+      const inheritedFilters = inferFollowupProductFilters(inheritedRequest, {
+        category: recommendationIntent.categories[0] as ProductCategory,
+      });
+      if (inheritedFilters?.keywords?.length) {
+        const existing = Array.isArray(recommendationIntent.filters?.keywords)
+          ? (recommendationIntent.filters.keywords as string[])
+          : [];
+        recommendationIntent = {
+          ...recommendationIntent,
+          filters: { ...recommendationIntent.filters, keywords: Array.from(new Set([...existing, ...inheritedFilters.keywords])) },
+        };
+      }
+    }
+    const enhancedQuery = enhanceQuery(retrievalMessage, memory);
     let relevantProducts: Product[] = [];
     let retrievedMatches: import("@/lib/vectorSearch").SimilarProduct[] = [];
     const pipelineStartedAt = Date.now();
@@ -1208,6 +1246,7 @@ async function handleConcierge(request: Request): Promise<Response> {
           material: recommendationIntent.filters?.material,
           style: recommendationIntent.filters?.style,
           keywords: recommendationIntent.filters?.keywords,
+          size: recommendationIntent.filters?.size ? String(recommendationIntent.filters.size) : undefined,
         });
         retrievedMatches = hybridMatches;
         relevantProducts = hybridMatches.map((row) => ({
@@ -1378,6 +1417,16 @@ async function handleConcierge(request: Request): Promise<Response> {
           description: p.description,
         }))
       );
+    }
+
+    // Drop padding: if the shopper named something specific ("island", "barbecue", "warming drawer") and only some of
+    // the picks contain it, the rest are filler (see lib/relevanceGate.ts).
+    if (recommendations.length > 1) {
+      const textById = new Map(
+        relevantProducts.map((p) => [p.id, `${p.name} ${p.description ?? ""} ${p.material ?? ""} ${p.facet_text ?? ""}`])
+      );
+      const gated = gateByRequestedTerms(recommendations, textById, retrievalMessage);
+      if (gated.length !== recommendations.length) recommendations.splice(0, recommendations.length, ...gated);
     }
 
     // Guard against the bug where the model returns `recommended_ids: []` (a

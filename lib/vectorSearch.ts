@@ -23,6 +23,8 @@ type SearchFilters = {
   material?: string;
   style?: string;
   keywords?: string[];
+  /** e.g. "60 cm". Only applied to appliances/hobs, whose sizes are written in cm. */
+  size?: string;
   maxPrice?: number;
   minPrice?: number;
 };
@@ -94,6 +96,22 @@ export function keywordClause(keyword: string, addParam: (value: string) => stri
   return kw === "wall" ? `(${mounting} = 'wall' OR ${textMatch})` : `(${textMatch})`;
 }
 
+/**
+ * SQL for a "60 cm" request on appliances/hobs, matched against the product text ("Chimney 60 CM", "Width: 60 cm").
+ * Returns null for anything else (sinks are sized in mm/inches, so a cm match would wrongly exclude them).
+ */
+export function applianceSizeClause(
+  size: string | undefined,
+  categories: string[] | undefined,
+  addParam: (value: string) => string
+): string | null {
+  const cm = size ? /(\d{2,3})\s*(?:cm|centimet)/i.exec(size)?.[1] : undefined;
+  if (!cm || !categories?.length) return null;
+  if (!categories.every((c) => c === "Appliance" || c === "Hob" || c === "Combo")) return null;
+  const placeholder = addParam(`(^|[^0-9.])${cm}\\s*(cm|centimet)`);
+  return `(name || ' ' || COALESCE(description, '') || ' ' || COALESCE(search_text, '')) ~* ${placeholder}`;
+}
+
 function inferHybridFilters(query: string, base?: Partial<SearchFilters>): SearchFilters {
   const normalized = query.toLowerCase();
   const material = MATERIAL_WORDS.find((m) => normalized.includes(m)) || base?.material;
@@ -160,6 +178,7 @@ export async function searchSimilarProducts(
       filters.style ?? "",
       (filters.categories ?? []).join(","),
       (filters.keywords ?? []).join(","),
+      filters.size ?? "",
       filters.minPrice ?? "",
       filters.maxPrice ?? "",
     ].join("|")
@@ -202,6 +221,11 @@ export async function searchSimilarProducts(
     sqlParams.push(filters.maxPrice);
     where.push(`price_min <= $${sqlParams.length}`);
   }
+  const sizeClause = applianceSizeClause(filters.size, filters.categories, (value) => {
+    sqlParams.push(value);
+    return `$${sqlParams.length}`;
+  });
+  if (sizeClause) where.push(sizeClause);
   if (filters.keywords && filters.keywords.length > 0) {
     const keywordClauses: string[] = [];
     for (const keyword of filters.keywords) {

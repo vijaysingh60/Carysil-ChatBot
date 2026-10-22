@@ -1,5 +1,5 @@
 import { getDbPool } from "../lib/db";
-import { createEmbedding, embeddingToSqlVector } from "../lib/embeddings";
+import { embeddingToSqlVector } from "../lib/embeddings";
 import { deriveFacets, facetText, type Facets } from "../lib/catalogFacets";
 
 /**
@@ -7,9 +7,10 @@ import { deriveFacets, facetText, type Facets } from "../lib/catalogFacets";
  *
  * What it does
  *   - Matches each visible Sanity product to an existing row (by id = slug, by the slug inside the old URL, or by
- *     normalised name) and refreshes it: name, description, material, features, canonical carysil.com URL, and the
+ *     normalised name) and refreshes it: name, features, canonical carysil.com URL, and the
  *     structured facts in lib/catalogFacets.ts (faucet mounting, pull-out spray, finishes) that the scraped data
- *     never had. This is what lets "deck-mount faucets" find faucets instead of dead-ending.
+ *     never had. This is what lets "deck-mount faucets" find faucets instead of dead-ending. Existing descriptions,
+ *     materials and sizes are kept (Sanity's are added as feature text); they are only filled in when empty.
  *   - Inserts Sanity products the chatbot has never heard of (with embeddings).
  *   - Reports active chatbot rows that no longer exist in Sanity. It only deactivates them with --deactivate-missing.
  *
@@ -144,7 +145,12 @@ function planRow(p: SanityProduct, existing: DbRow | undefined): PlannedRow {
   const attributes = (p.attributes ?? []).filter((a) => a?.label && a?.value);
   const sanityMaterial =
     p.material?.trim() || attributes.find((a) => /^material$/i.test(a.label!.trim()))?.value?.trim() || null;
-  const description = p.description?.trim() ? decodeEntities(p.description) : (existing?.description ?? null);
+  // Additive, never destructive: for an existing row keep its description. Sanity's `description` is often a spec
+  // blurb ("Sink Size: … | Bowl Size: …") rather than marketing copy, and replacing the old text with it removed words
+  // like "quartz" and "double bowl" that keyword search and the model's pitch rely on. Sanity's text is still kept —
+  // as a feature line below — and is only used as the description when the row has none.
+  const sanityDescription = p.description?.trim() ? decodeEntities(p.description) : null;
+  const description = existing?.description?.trim() ? existing.description : sanityDescription;
 
   const facets = deriveFacets({
     category,
@@ -158,12 +164,19 @@ function planRow(p: SanityProduct, existing: DbRow | undefined): PlannedRow {
   const features = [
     ...attributes.map((a) => `${a.label!.trim()}: ${decodeEntities(a.value!)}`),
     ...(p.specs ?? []).map((s) => decodeEntities(s)),
+    ...(sanityDescription && sanityDescription !== description ? [`Details: ${sanityDescription.slice(0, 400)}`] : []),
     ...(text ? [text] : []),
   ];
 
-  const material = sanityMaterial ?? existing?.material ?? null;
+  // Existing material wins: Sanity's `material` is sometimes a body finish ("Matt black" on a stainless chimney).
+  // Faucets are the exception — the scraped value there was a finish ("Chrome"), while Sanity's Material attribute
+  // is the real metal (Brass, Zinc…).
+  const material =
+    category === "Faucet"
+      ? (attributes.find((a) => /^material$/i.test(a.label!.trim()))?.value?.trim() ?? existing?.material ?? null)
+      : (existing?.material?.trim() || sanityMaterial || null);
   const style = existing?.style ?? null;
-  const size = p.size?.trim() || existing?.size || null;
+  const size = existing?.size?.trim() || p.size?.trim() || null;
 
   const specifications: Record<string, unknown> = {
     ...(existing?.specifications ?? {}),
@@ -204,17 +217,32 @@ function planRow(p: SanityProduct, existing: DbRow | undefined): PlannedRow {
   };
 }
 
+/**
+ * Embeds one text with the embedding service directly. A bulk sync can't use lib/embeddings.ts as-is: it gives up after
+ * 5 s and then refuses to call the service for 20 s, which a slow Render instance trips constantly. Here a call may
+ * take up to 60 s and is retried with a growing pause.
+ */
 async function embedWithRetry(text: string): Promise<number[]> {
-  // lib/embeddings.ts skips the service for 20 s after any failure (e.g. a slow Render wake-up), so wait it out.
-  for (let attempt = 1; attempt <= 4; attempt++) {
+  const baseUrl = process.env.EMBEDDING_API_URL || "http://127.0.0.1:5001";
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 6; attempt++) {
     try {
-      return await createEmbedding(text);
+      const response = await fetch(`${baseUrl}/embed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      if (!response.ok) throw new Error(`Embedding API ${response.status}`);
+      const payload = (await response.json()) as { embedding?: number[] };
+      if (!Array.isArray(payload.embedding) || payload.embedding.length !== 384) throw new Error("bad embedding");
+      return payload.embedding;
     } catch (error) {
-      if (attempt === 4) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 21_000));
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 5_000));
     }
   }
-  throw new Error("unreachable");
+  throw lastError;
 }
 
 async function run(): Promise<void> {
