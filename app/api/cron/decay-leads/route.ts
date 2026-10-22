@@ -3,8 +3,8 @@ import { decayAllRecentLeads } from "@/services/leadScoringService";
 
 /**
  * Nightly cron that recomputes time-decayed lead scores. Designed for Vercel
- * Cron + a shared secret in the `Authorization` header; when no secret is
- * configured the endpoint runs in dev-friendly open mode.
+ * Cron + a shared secret in the `Authorization` header (CRON_SECRET). Without a secret it only runs in
+ * local development; in production it refuses to run.
  *
  * Schedule example (`vercel.json`):
  *   { "crons": [{ "path": "/api/cron/decay-leads", "schedule": "0 19 * * *" }] }
@@ -13,7 +13,9 @@ export const dynamic = "force-dynamic";
 
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET?.trim();
-  if (!secret) return true;
+  // No secret configured: open only for local development. In production this fails closed — otherwise
+  // anyone could trigger the (database-heavy) recompute, and set how far back it looks via ?days=.
+  if (!secret) return process.env.NODE_ENV !== "production";
   const header = request.headers.get("authorization") || "";
   return header === `Bearer ${secret}`;
 }

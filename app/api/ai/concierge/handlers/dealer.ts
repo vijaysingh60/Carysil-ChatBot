@@ -253,20 +253,38 @@ function matchNameAt(
 }
 
 /** Splits free text into the pieces that can name a place; drops the "I want a sink dealer" lead-in. */
-function locationPieces(message: string, location?: { city?: string; state?: string }): string[] {
-  const pieces: string[] = [];
+type LocationPiece = {
+  text: string;
+  /** May leftover words in this piece be read as a locality ("Palasia")? */
+  allowArea: boolean;
+};
+
+/**
+ * Splits free text into the pieces that can name a place; drops the "I want a sink dealer" lead-in.
+ * Cities and states are looked for in every piece, but leftover words only count as a LOCALITY when they
+ * come after "near/in/at/from…", from the intent's own city/state fields, or from a short bare reply like
+ * "Old Palasia, Indore". Otherwise any verb in a longer sentence ("do you DELIVER to Pune") would be
+ * mistaken for a neighbourhood.
+ */
+function locationPieces(message: string, location?: { city?: string; state?: string }): LocationPiece[] {
+  const pieces: LocationPiece[] = [];
   const clauses = message.toLowerCase().replace(/\./g, "").split(/[,;?!\n]+/);
   for (const clause of clauses) {
     const parts = clause.split(/\b(?:near|nearby|around|close to|next to|in|at|from|beside|opposite|opp|behind|within)\b/);
-    // parts[0] precedes any location preposition (chat filler); only keep it for a bare "old palasia" style clause.
-    if (parts.length > 1) pieces.push(...parts.slice(1));
-    else pieces.push(parts[0]);
+    if (parts.length > 1) {
+      // parts[0] precedes the preposition (chat filler); what follows it names a place.
+      for (const part of parts.slice(1)) pieces.push({ text: part, allowArea: true });
+    } else {
+      const wordCount = normText(parts[0]).split(" ").filter(Boolean).length;
+      pieces.push({ text: parts[0], allowArea: wordCount <= 4 });
+    }
   }
   // The intent step often stuffs the area into city ("Old Palasia, Indore"), so read those fields too.
   for (const field of [location?.city, location?.state]) {
-    if (field) pieces.push(...field.toLowerCase().replace(/\./g, "").split(/[,;]+/));
+    if (!field) continue;
+    for (const part of field.toLowerCase().replace(/\./g, "").split(/[,;]+/)) pieces.push({ text: part, allowArea: true });
   }
-  return pieces.map((p) => normText(p)).filter(Boolean);
+  return pieces.map((p) => ({ ...p, text: normText(p.text) })).filter((p) => p.text.length > 0);
 }
 
 export type DealerLookup = {
@@ -309,7 +327,7 @@ function resolvePlaces(location: { city?: string; state?: string } | undefined, 
   const unservedHits: { display: string; tokens: string[] }[] = [];
 
   for (const piece of locationPieces(message, location)) {
-    const tokens = piece.split(" ");
+    const tokens = piece.text.split(" ");
     const consumed = new Array<boolean>(tokens.length).fill(false);
     for (let i = 0; i < tokens.length; i++) {
       if (consumed[i]) continue;
@@ -331,7 +349,7 @@ function resolvePlaces(location: { city?: string; state?: string } | undefined, 
       i += hit.length - 1;
     }
     const leftover = tokens.filter((t, i) => !consumed[i] && !NON_PLACE_WORDS.has(t));
-    if (leftover.length > 0) areaPhrases.push(leftover);
+    if (piece.allowArea && leftover.length > 0) areaPhrases.push(leftover);
   }
   return { cities, state, areaPhrases, unservedHits };
 }

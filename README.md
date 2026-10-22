@@ -88,7 +88,17 @@ Other API routes: `/api/ai/status`, `/api/ai/track-click`, `/api/cron/decay-lead
 
 - **`ANTHROPIC_API_KEY`** — If set, API routes call Claude (`claude-haiku-5-5`) for intent detection and natural recommendation responses.
 - **`DATABASE_URL`** — Required for product vector retrieval.
-- **`EMBEDDING_API_URL`** — URL for sentence-transformer embedding service (default `http://127.0.0.1:5001`).
+- **`EMBEDDING_API_URL`** — URL for sentence-transformer embedding service (default `http://127.0.0.1:5001`). Optional at runtime: if it is down or slow (>5 s) chat falls back to keyword search.
+- **`DASHBOARD_PASSWORD`** (+ optional **`DASHBOARD_USER`**, default `admin`) — Login for `/dashboard`, which lists leads and chat transcripts. **Required in production**: without it `/dashboard` returns 503 (it never falls back to public). Local development without it stays open.
+- **`CRON_SECRET`** — Shared secret for `/api/cron/decay-leads` (`Authorization: Bearer <secret>`). Without it the endpoint only runs in local development.
+- **`DATABASE_POOL_MAX`** — Max Postgres connections per server instance (default 10; 3 on Vercel, where every instance has its own pool).
+
+## Production notes (Vercel)
+
+- `vercel.json` pins functions to `hnd1` (Tokyo) to sit next to the Supabase database (`ap-northeast-1`); every chat turn makes dozens of queries, so a cross-ocean hop per query is what made production slow. Change it if the database moves.
+- The chat route sets `maxDuration = 60` and answers with a friendly message after 50 s rather than being cut off. Every dependency has a timeout (database 8 s connect / 20 s query, embeddings 5 s, Claude 12 s) and a short "recently failed" cooldown, so a stalled service degrades the answer instead of hanging the request.
+- The chat endpoint is rate-limited per IP (120/min — deliberately loose because many mobile users share an IP) and caps message length at 1,500 characters. The limiter is in-memory per instance — put a shared store behind `lib/rateLimit.ts` for a hard global cap.
+- Schema setup (`ensureLeadSchema`) records a fingerprint in `app_schema_state` and takes a database lock, so it runs once per DDL change instead of on every cold start.
 
 ## Vector schema
 

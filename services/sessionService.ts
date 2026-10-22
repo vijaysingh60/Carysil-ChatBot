@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { getDbPool } from "@/lib/db";
 import { enqueue, registerHandler } from "@/lib/eventBus";
 import type { ChatEventType, ChatRole } from "@/types/lead";
@@ -330,31 +330,109 @@ ON analytics_events (event_type, created_at DESC);
 `;
 
 let schemaReady = false;
+let schemaInFlight: Promise<boolean> | null = null;
 
-export async function ensureLeadSchema(): Promise<boolean> {
-  if (schemaReady) return true;
+/** Fingerprint of everything the bootstrap would run — changes whenever the DDL above is edited. */
+const SCHEMA_FINGERPRINT = createHash("sha1")
+  .update(CREATE_LEAD_GENERATION_SCHEMA_SQL)
+  .update(CREATE_FIN_UPGRADE_SQL)
+  .update(CREATE_DEALER_PRODUCTS_SQL)
+  .digest("hex");
+const SCHEMA_STATE_ID = "lead_generation";
+const SCHEMA_LOCK_KEY = 7_420_001; // arbitrary app-wide advisory-lock id
+
+async function schemaFingerprintCurrent(): Promise<boolean> {
   try {
-    const pool = getDbPool();
-    await pool.query(CREATE_LEAD_GENERATION_SCHEMA_SQL);
-    // Best-effort fin-upgrade DDL. Failure here must not block the base flow.
-    try {
-      await pool.query(CREATE_FIN_UPGRADE_SQL);
-    } catch (upgradeError) {
-      console.error("[tracking] fin-upgrade DDL skipped", upgradeError);
+    const { rows } = await getDbPool().query<{ fingerprint: string }>(
+      "SELECT fingerprint FROM app_schema_state WHERE id = $1",
+      [SCHEMA_STATE_ID]
+    );
+    return rows[0]?.fingerprint === SCHEMA_FINGERPRINT;
+  } catch {
+    return false; // table doesn't exist yet → first run on this database
+  }
+}
+
+/** Runs the DDL. Returns true only if every part succeeded (so the fingerprint may be recorded). */
+async function applySchema(): Promise<boolean> {
+  const pool = getDbPool();
+  let complete = true;
+  await pool.query(CREATE_LEAD_GENERATION_SCHEMA_SQL);
+  // Best-effort fin-upgrade DDL. Failure here must not block the base flow.
+  try {
+    await pool.query(CREATE_FIN_UPGRADE_SQL);
+  } catch (upgradeError) {
+    complete = false;
+    console.error("[tracking] fin-upgrade DDL skipped", upgradeError);
+  }
+  // Isolated: depends on `products`, which may not exist yet on a fresh
+  // environment until the catalogue import scripts have run.
+  try {
+    await pool.query(CREATE_DEALER_PRODUCTS_SQL);
+  } catch (dealerProductsError) {
+    complete = false;
+    console.error("[tracking] dealer_products DDL skipped", dealerProductsError);
+  }
+  return complete;
+}
+
+async function runEnsureLeadSchema(): Promise<boolean> {
+  try {
+    // Fast path (every request after the first deploy of this DDL): one cheap SELECT, no locks.
+    // The bootstrap used to re-run ~20 ALTER TABLEs on `leads`/`chat_sessions` on EVERY cold start; on a
+    // serverless host several instances start together, queue behind each other's table locks, and with
+    // no timeouts the user just sees a hang.
+    if (await schemaFingerprintCurrent()) {
+      schemaReady = true;
+      return true;
     }
-    // Isolated: depends on `products`, which may not exist yet on a fresh
-    // environment until the catalogue import scripts have run.
+    // Only one instance applies the DDL; the rest wait for its fingerprint instead of piling more locks on.
+    const client = await getDbPool().connect();
+    let gotLock = false;
     try {
-      await pool.query(CREATE_DEALER_PRODUCTS_SQL);
-    } catch (dealerProductsError) {
-      console.error("[tracking] dealer_products DDL skipped", dealerProductsError);
+      const lock = await client.query<{ got: boolean }>("SELECT pg_try_advisory_lock($1) AS got", [SCHEMA_LOCK_KEY]);
+      gotLock = Boolean(lock.rows[0]?.got);
+      if (!gotLock) {
+        for (let i = 0; i < 20; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          if (await schemaFingerprintCurrent()) {
+            schemaReady = true;
+            return true;
+          }
+        }
+        // The other instance is taking too long (or died) — carry on and apply it ourselves.
+      }
+      const complete = await applySchema();
+      if (complete) {
+        await client.query(
+          `CREATE TABLE IF NOT EXISTS app_schema_state (
+             id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`
+        );
+        await client.query(
+          `INSERT INTO app_schema_state (id, fingerprint) VALUES ($1, $2)
+           ON CONFLICT (id) DO UPDATE SET fingerprint = EXCLUDED.fingerprint, applied_at = NOW()`,
+          [SCHEMA_STATE_ID, SCHEMA_FINGERPRINT]
+        );
+      }
+      schemaReady = true;
+      return true;
+    } finally {
+      if (gotLock) await client.query("SELECT pg_advisory_unlock($1)", [SCHEMA_LOCK_KEY]).catch(() => {});
+      client.release();
     }
-    schemaReady = true;
-    return true;
   } catch (error) {
     console.error("[tracking] lead schema unavailable", error);
     return false;
   }
+}
+
+export async function ensureLeadSchema(): Promise<boolean> {
+  if (schemaReady) return true;
+  // Share one attempt between concurrent callers in this process (each used to run the full DDL itself).
+  schemaInFlight ??= runEnsureLeadSchema().finally(() => {
+    schemaInFlight = null;
+  });
+  return schemaInFlight;
 }
 
 export async function createSession(options?: {

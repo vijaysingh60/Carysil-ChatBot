@@ -1,11 +1,29 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { hashKey, llmJsonCache } from "@/lib/cache";
 
+// The SDK's defaults are a 10-minute timeout and 2 retries — a single stalled connection would hold a chat
+// request for minutes. Haiku answers in 1-5 s, so a call that isn't back in 12 s is better replaced by the
+// fallback text than awaited.
 const anthropic = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 12_000, maxRetries: 1 })
   : null;
 
-const MODEL = "claude-haiku-5-5";
+/**
+ * A chat turn makes several AI calls in a row. If Claude's API has just timed out or errored (connection
+ * trouble, 5xx/overloaded), every remaining call in the turn would wait out its own timeout too — so skip
+ * Claude briefly and let the fallback answers (keyword search, canned wording) serve the turn right away.
+ * Quota/auth/bad-request errors don't trip this: those fail instantly anyway.
+ */
+const AI_COOLDOWN_MS = 15_000;
+let aiUnavailableUntil = 0;
+function noteAiFailure(err: unknown): void {
+  if (err instanceof Anthropic.APIConnectionError || err instanceof Anthropic.InternalServerError) {
+    aiUnavailableUntil = Date.now() + AI_COOLDOWN_MS;
+  }
+}
+const aiCoolingDown = () => Date.now() < aiUnavailableUntil;
+
+export const MODEL = "claude-haiku-5-5";
 
 export type AIResult = {
   text: string;
@@ -41,6 +59,9 @@ export async function callAI(
   if (!anthropic) {
     return { text: placeholderResponse, aiUsed: false };
   }
+  if (aiCoolingDown()) {
+    return { text: placeholderResponse, aiUsed: false, error: "api_error" };
+  }
   try {
     const message = await anthropic.messages.create({
       model: MODEL,
@@ -54,6 +75,7 @@ export async function callAI(
       aiUsed: true,
     };
   } catch (err: unknown) {
+    noteAiFailure(err);
     const errorType = classifyError(err);
     console.error("[AI] API call failed:", err);
     return {
@@ -78,6 +100,9 @@ export async function callAIJson<T extends Record<string, unknown>>(
   if (!anthropic) {
     return { data: fallback, aiUsed: false };
   }
+  if (aiCoolingDown()) {
+    return { data: fallback, aiUsed: false, error: "api_error" };
+  }
   try {
     const message = await anthropic.messages.create({
       model: MODEL,
@@ -89,9 +114,11 @@ export async function callAIJson<T extends Record<string, unknown>>(
     if (!text) {
       return { data: fallback, aiUsed: true };
     }
-    const parsed = JSON.parse(stripJsonFence(text)) as Partial<T>;
+    const parsed = parseJsonLoose<Partial<T>>(text);
+    if (!parsed) throw new Error("Model reply contained no JSON object");
     return { data: { ...fallback, ...parsed } as T, aiUsed: true };
   } catch (err: unknown) {
+    noteAiFailure(err);
     const errorType = classifyError(err);
     console.error("[AI] JSON API call failed:", err);
     return {
@@ -102,10 +129,26 @@ export async function callAIJson<T extends Record<string, unknown>>(
   }
 }
 
-/** Strips a ```json ... ``` / ``` ... ``` fence if the model wrapped its JSON in one despite the instruction not to. */
-function stripJsonFence(text: string): string {
-  const fenced = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-  return fenced ? fenced[1] : text;
+/**
+ * Reads a JSON object out of a model reply, tolerating the usual wrappers: a ```json fence, or a sentence
+ * before/after the object ("Here is the JSON: {...}"). Returns null if there is no parseable object.
+ */
+export function parseJsonLoose<T = Record<string, unknown>>(text: string): T | null {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const candidate = fenced ? fenced[1].trim() : trimmed;
+  try {
+    return JSON.parse(candidate) as T;
+  } catch {
+    const first = candidate.indexOf("{");
+    const last = candidate.lastIndexOf("}");
+    if (first === -1 || last <= first) return null;
+    try {
+      return JSON.parse(candidate.slice(first, last + 1)) as T;
+    } catch {
+      return null;
+    }
+  }
 }
 
 /**

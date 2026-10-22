@@ -26,7 +26,7 @@ type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  meta?: { aiUsed?: boolean; error?: string };
+  meta?: { aiUsed?: boolean; error?: string; retryText?: string };
   recommendations?: Recommendation[];
   dealers?: Dealer[];
   reasoning?: string | null;
@@ -228,7 +228,7 @@ export function ChatWidget() {
     const text = messageText.trim();
     if (!text) return;
     const history = messages
-      .filter((message) => message.id !== "welcome")
+      .filter((message) => message.id !== "welcome" && !message.meta?.retryText)
       .slice(-8)
       .map((message) => {
         let content = message.content;
@@ -247,9 +247,11 @@ export function ChatWidget() {
     setInput("");
     setLoading(true);
 
+    let failureText: string | null = null;
     try {
       const res = await fetch("/api/ai/concierge", {
         method: "POST",
+        signal: AbortSignal.timeout(65_000), // the server answers or gives up well before this
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
@@ -260,8 +262,12 @@ export function ChatWidget() {
           deviceType: window.innerWidth < 768 ? "mobile" : "desktop",
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Request failed");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // 400 (message too long) and 429 (too many messages) carry wording meant for the user.
+        if ((res.status === 400 || res.status === 429) && typeof data.error === "string") failureText = data.error;
+        throw new Error(data.error || "Request failed");
+      }
       if (typeof data.sessionId === "string" && data.sessionId) {
         setSessionId(data.sessionId);
         window.localStorage.setItem(SESSION_STORAGE_KEY, data.sessionId);
@@ -328,8 +334,8 @@ export function ChatWidget() {
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "Something went wrong. Please try again.",
-          meta: { aiUsed: false, error: "api_error" },
+          content: failureText ?? "Sorry, I couldn't get a reply just now. This is usually brief — please try again.",
+          meta: { aiUsed: false, error: "api_error", retryText: failureText ? undefined : text },
         },
       ]);
     } finally {
@@ -580,6 +586,16 @@ export function ChatWidget() {
                         )
                       )}
                     </div>
+                  )}
+                  {m.role === "assistant" && m.meta?.retryText && (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => void send(m.meta?.retryText ?? "")}
+                      className="mt-2.5 w-full cursor-pointer rounded-2xl border border-[var(--carysil-red)]/70 bg-transparent px-3.5 py-2 text-left text-xs sm:text-sm text-gray-100 transition-colors hover:bg-white/10 active:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--carysil-red)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Try again
+                    </button>
                   )}
                   {m.role === "assistant" && m.meta?.error === "quota_exceeded" && (
                     <p className="mt-2 text-xs sm:text-sm text-red-600">Service temporarily limited. Please try again later.</p>

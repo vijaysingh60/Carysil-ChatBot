@@ -10,7 +10,29 @@ function normalizeKey(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/**
+ * The embedding service is a separate server (Render) that can be asleep, restarting or overloaded. Product
+ * search doesn't need it to answer — keyword search runs alongside (lib/hybridSearch.ts) — so don't let it
+ * hold a chat request hostage: give up after a few seconds (long enough for the ~4 s wake-up after idle),
+ * and after a failure skip it for a short while so every request doesn't pay the full timeout.
+ */
+const EMBED_TIMEOUT_MS = 5_000;
+const EMBED_COOLDOWN_MS = 20_000;
+let embedUnavailableUntil = 0;
+
 async function fetchEmbedding(text: string): Promise<number[]> {
+  if (Date.now() < embedUnavailableUntil) {
+    throw new Error("Embedding service skipped: it failed a moment ago");
+  }
+  try {
+    return await requestEmbedding(text);
+  } catch (error) {
+    embedUnavailableUntil = Date.now() + EMBED_COOLDOWN_MS;
+    throw error;
+  }
+}
+
+async function requestEmbedding(text: string): Promise<number[]> {
   const baseUrl = process.env.EMBEDDING_API_URL || "http://127.0.0.1:5001";
   const response = await fetch(`${baseUrl}/embed`, {
     method: "POST",
@@ -19,6 +41,7 @@ async function fetchEmbedding(text: string): Promise<number[]> {
     },
     body: JSON.stringify({ text }),
     cache: "no-store",
+    signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
   });
 
   if (!response.ok) {

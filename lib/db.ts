@@ -45,9 +45,19 @@ function buildPoolConfig(): PoolConfig {
     config.ssl = { rejectUnauthorized: false };
   }
 
+  // pg's defaults wait forever for a connection and for a query — one stalled database call then hangs the
+  // whole chat request until the host kills it ("Something went wrong"). Fail fast instead.
+  config.connectionTimeoutMillis = 8_000;
+  config.query_timeout = 20_000; // client-side only, so it also works through Supabase's pooler
+  config.idleTimeoutMillis = 10_000; // serverless: give idle connections back quickly
+
+  // Every serverless instance has its own pool. The default of 10 × many concurrent instances exhausts the
+  // database pooler ("max clients reached"), so keep it small on Vercel; override with DATABASE_POOL_MAX.
   const max = Number(process.env.DATABASE_POOL_MAX);
   if (Number.isFinite(max) && max > 0) {
     config.max = max;
+  } else if (process.env.VERCEL) {
+    config.max = 3;
   }
 
   return config;

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { callAI } from "@/lib/ai";
+import { callAI, parseJsonLoose, MODEL } from "@/lib/ai";
+import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 import { planClarificationWithGPT, planSmallTalkResponse } from "@/lib/conciergeDialogPlanner";
 import { detectIntent, mentionsOutOfCatalogueProduct, CATEGORIES, type ProductCategory } from "@/lib/concierge";
 import {
@@ -118,7 +119,7 @@ function sanitizeHistory(rawHistory: unknown): ConversationMessage[] {
     .map((entry) => {
       if (!entry || typeof entry !== "object") return null;
       const role = (entry as { role?: unknown }).role;
-      const content = String((entry as { content?: unknown }).content || "").trim();
+      const content = String((entry as { content?: unknown }).content || "").trim().slice(0, 2000);
       if ((role !== "user" && role !== "assistant") || !content) return null;
       return { role, content } as ConversationMessage;
     })
@@ -148,10 +149,62 @@ function recentAssistantMentionedBudget(history: ConversationMessage[]): boolean
   return /\bbudget\b|\bprice\b|\bcost\b/i.test(blob);
 }
 
+/** Vercel: let the full pipeline (several AI calls + search + writes) run up to a minute instead of the 10 s default. */
+export const maxDuration = 60;
+
+const MAX_MESSAGE_CHARS = 1500;
+/** Under maxDuration, so WE answer with a friendly message instead of the host cutting the request off. */
+const TURN_DEADLINE_MS = 50_000;
+// Per IP. Deliberately generous: many Indian mobile users share one public IP (carrier-grade NAT), so a tight
+// cap would lock out real customers. A script hammering the endpoint sends far more than this.
+const RATE_LIMIT_PER_MINUTE = 120;
+
 export async function POST(request: Request) {
+  const ip = clientIp(request);
+  if (ip !== "unknown") {
+    const limit = checkRateLimit(`chat:${ip}`, RATE_LIMIT_PER_MINUTE, 60_000);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: "You're sending messages very quickly — please wait a few seconds and try again." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } }
+      );
+    }
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<Response>((resolve) => {
+    timer = setTimeout(
+      () =>
+        resolve(
+          NextResponse.json({
+            result: "Sorry, that is taking longer than expected. Please send your message again in a moment.",
+            recommendations: [],
+            dealers: [],
+            reasoning: null,
+            aiUsed: false,
+            error: "timeout",
+            followups: [],
+          })
+        ),
+      TURN_DEADLINE_MS
+    );
+  });
+  try {
+    return await Promise.race([handleConcierge(request), deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function handleConcierge(request: Request): Promise<Response> {
   try {
     const body = await request.json();
     const userRawMessage = String(body?.message || "").trim();
+    if (userRawMessage.length > MAX_MESSAGE_CHARS) {
+      return NextResponse.json(
+        { error: `That message is a bit long — please keep it under ${MAX_MESSAGE_CHARS} characters.` },
+        { status: 400 }
+      );
+    }
     const history = sanitizeHistory(body?.history);
     const incomingVisitorId =
       typeof body?.visitorId === "string" && body.visitorId.trim().length > 0
@@ -230,6 +283,12 @@ export async function POST(request: Request) {
       declinesRefinement: false,
       confidence: null,
     };
+    // detectIntent needs only the message, not the memory update, so start it now and let the two AI calls
+    // overlap (they ran strictly one after the other: ~1 s per turn). Turns answered by rules, or that return
+    // early below, simply never use it.
+    const speculativeIntent = resolveFollowupIntent(userRawMessage, history)
+      ? null
+      : detectIntent(pipelineMessage).catch(() => null);
     try {
       const ingest = await ingestUserTurn(activeSessionId, userRawMessage, history);
       memory = ingest.memory;
@@ -495,7 +554,7 @@ export async function POST(request: Request) {
 
     // Step 1: Detect intent (categories + optional clarification)
     const historyIntent = resolveFollowupIntent(userRawMessage, history);
-    const intent = historyIntent || (await detectIntent(pipelineMessage));
+    const intent = historyIntent || (await speculativeIntent) || (await detectIntent(pipelineMessage));
     // "I can't see the products" — resolveFollowupIntent already recovers the last
     // product category so this re-runs retrieval instead of re-clarifying; this flag
     // just lets the eventual response acknowledge the complaint when it succeeds.
@@ -1234,15 +1293,11 @@ export async function POST(request: Request) {
       followup_question?: string;
     };
 
-    let parsed: ConciergeResponse | null = null;
-    const raw = text.replace(/```json?\s*|\s*```/g, "").trim();
-    try {
-      parsed = JSON.parse(raw) as ConciergeResponse;
-    } catch {
-      parsed = null;
-    }
+    const parsed = parseJsonLoose<ConciergeResponse>(text);
 
-    const fallbackMessage = aiUsed ? text : "Here are some options that might suit you.";
+    // Unparseable reply: show it only if it reads as plain language — never a half-formed JSON blob.
+    const fallbackMessage =
+      aiUsed && !text.includes("{") ? text : "Here are some options that might suit you.";
     let result: ConciergeResponse;
     if (!parsed) {
       result = {
@@ -1303,7 +1358,7 @@ export async function POST(request: Request) {
       citations: recommendations.map((r) => r.id),
       groundingIssues,
       aiUsed,
-      model: "gpt-4o-mini",
+      model: MODEL,
       embeddingModel: "all-MiniLM-L6-v2",
       latencyMs: Date.now() - pipelineStartedAt,
     });

@@ -1,4 +1,4 @@
-import { callAI } from "@/lib/ai";
+import { callAI, parseJsonLoose } from "@/lib/ai";
 import { getPrompt } from "@/lib/prompts";
 import { describeCategoryRange, formatRangeList, getTopLevelRange } from "@/lib/catalogueRange";
 
@@ -187,9 +187,9 @@ export async function detectIntent(userMessage: string): Promise<IntentResult> {
     INTENT_PLACEHOLDER
   );
 
-  const raw = text.replace(/```json?\s*|\s*```/g, "").trim();
   try {
-    const parsed = JSON.parse(raw) as IntentResult;
+    const parsed = parseJsonLoose<IntentResult>(text);
+    if (!parsed) throw new Error("Intent reply was not JSON");
     if (!Array.isArray(parsed.categories)) parsed.categories = [];
     parsed.categories = parsed.categories.filter((c) =>
       CATEGORIES.includes(c as ProductCategory)
