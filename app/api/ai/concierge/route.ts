@@ -395,7 +395,9 @@ async function handleConcierge(request: Request): Promise<Response> {
             userMessageHasPhoneOrEmail(userRawMessage)
         )
       : userProvidedLeadSignals(userRawMessage, contactFromUserMessageOnly);
-    if (recentlyAskedForLeadDetails(history) && hasContactInfo(earlyContactInfo) && leadSignalsOk) {
+    // The contact ask must be one of the last few messages. Looking 8 back meant that once a phone number or city had
+    // appeared, every later short reply ("Ok", "So", "No") counted as the shopper submitting their details.
+    if (recentlyAskedForLeadDetails(history.slice(-3)) && hasContactInfo(earlyContactInfo) && leadSignalsOk) {
       const salesIntent = detectSalesIntent(userRawMessage, undefined, history);
       await updateLeadRecord({
         sessionId: activeSessionId,
@@ -1816,7 +1818,7 @@ export async function POST(request: Request) {
   const response = await handleConciergePost(request);
   try {
     if (!(response.headers.get("content-type") ?? "").includes("application/json")) return response;
-    const data = (await response.clone().json()) as { followups?: unknown };
+    const data = (await response.clone().json()) as { followups?: unknown; result?: unknown };
     if (!Array.isArray(data.followups) || data.followups.length === 0) return response;
 
     const body = (await requestForContext.json().catch(() => ({}))) as { message?: unknown; history?: unknown };
@@ -1825,7 +1827,7 @@ export async function POST(request: Request) {
       : [];
     const contextText = [...recentTurns, String(body.message ?? "")].join(" \n ");
 
-    const kept = await dropChipsWithNoProducts(data.followups as string[], contextText);
+    const kept = await dropChipsWithNoProducts(data.followups as string[], contextText, String(data.result ?? ""));
     if (kept.length === data.followups.length) return response;
 
     const headers = new Headers(response.headers);

@@ -237,6 +237,43 @@ export function dealerCoverageSummary(): string {
     .join(", ");
 }
 
+/**
+ * Location chips to offer when asking "which city or state?", built from where we actually have dealers: the busiest
+ * state first, each with its biggest city ("Ahmedabad, Gujarat"). The model used to invent these, and offered cities
+ * such as Bengaluru and Delhi NCR that have no dealers and could only lead to "we don't have a dealer there".
+ */
+export function dealerLocationChips(limit = 5): string[] {
+  const byState = new Map<string, Map<string, number>>();
+  for (const d of allDealers) {
+    const cities = byState.get(d.state) ?? new Map<string, number>();
+    cities.set(d.city, (cities.get(d.city) ?? 0) + 1);
+    byState.set(d.state, cities);
+  }
+  const chips = Array.from(byState.entries())
+    .map(([state, cities]) => {
+      const total = Array.from(cities.values()).reduce((a, b) => a + b, 0);
+      const [topCity] = Array.from(cities.entries()).sort((a, b) => b[1] - a[1])[0];
+      return { state, topCity, total };
+    })
+    .filter((s) => !s.state.startsWith("Dadra")) // a union-territory name makes an odd chip; the state is still searchable
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit)
+    .map((s) => `${s.topCity}, ${s.state}`);
+  return [...chips, "Show dealers across India"];
+}
+
+/**
+ * Would tapping this location chip lead to dealers? true = we have dealers there, false = a real place we don't cover,
+ * null = not recognisably a place. "Across India" style chips are always fine.
+ */
+export function dealerChipVerdict(chip: string): boolean | null {
+  if (/\b(across|all|entire|whole)\s+india\b|\bnationwide\b|\bfull\s+range\b/i.test(chip)) return true;
+  const found = findDealers(undefined, chip);
+  if (found.cities.length > 0 || found.state) return found.dealers.length > 0;
+  if (found.unservedPlace) return false;
+  return null;
+}
+
 /** Longest city/state name starting at tokens[start], so "cooch behar" beats "cooch". */
 function matchNameAt(
   tokens: string[],

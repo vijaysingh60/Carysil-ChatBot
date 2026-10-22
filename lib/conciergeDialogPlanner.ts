@@ -1,6 +1,7 @@
 import { callAIJson } from "@/lib/ai";
 import { getPrompt } from "@/lib/prompts";
 import type { IntentResult } from "@/lib/concierge";
+import { dealerLocationChips } from "@/app/api/ai/concierge/handlers/dealer";
 
 export type ClarificationPlannerInput = {
   mode: "pre_catalogue" | "intent_clarification";
@@ -109,11 +110,10 @@ export async function planClarificationWithGPT(
 
   const message = sanitizeMessage(data.assistant_message, openingFallback);
   const rawFollowups = sanitizeChips(data.suggestion_chips, chipFallback);
-  const followups = stripDealerChipsUnlessIntent(
-    rawFollowups,
-    Boolean(input.intent.dealer_intent),
-    chipFallback
-  );
+  // Asking where the shopper is: offer places we really have dealers in, not whatever cities the model thinks of.
+  const followups = input.intent.dealer_intent
+    ? dealerLocationChips()
+    : stripDealerChipsUnlessIntent(rawFollowups, false, chipFallback);
 
   return {
     message,

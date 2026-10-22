@@ -1,4 +1,5 @@
 import { fetchAllActiveProducts, productMatchesKeyword, type Product } from "@/app/api/ai/concierge/handlers/product";
+import { dealerChipVerdict } from "@/app/api/ai/concierge/handlers/dealer";
 
 /**
  * Suggestion chips ("Deck-mount faucets", "Built-in ovens"…) are written by the model and by static lists, so nothing
@@ -102,9 +103,30 @@ function chipHasProducts(chip: string, contextScope: Scope, products: Product[])
   return null;
 }
 
+/** A reply that is asking where the shopper is — its chips are places, not products. Deliberately narrow: a product
+ * reply that merely mentions a dealer must keep its product chips. */
+const DEALER_CONTEXT = /\b(which\s+(?:city|state)|what\s+city|city\s+or\s+state|your\s+(?:city|state)|pincode|where\s+are\s+you)\b/i;
+/** Words that mean a chip is an instruction or question, not a bare place name. */
+const NOT_A_BARE_PLACE = /\b(show|find|see|more|all|any|other|nearest|nearby|closest|dealers?|help|yes|no|ok|please|talk|call|contact|products?|sinks?|faucets?|options?|range|connect|me|my|the|to|of|for)\b/i;
+
+function locationChipVerdict(chip: string): boolean | null {
+  const verdict = dealerChipVerdict(chip);
+  if (verdict !== null) return verdict;
+  // Not a place we know either way. A bare, place-shaped chip ("Chandigarh") in a dealer reply is a dead end too.
+  const bare = /^[A-Za-z][A-Za-z .'-]*(,\s*[A-Za-z][A-Za-z .'-]*)?$/.test(chip.trim()) && chip.trim().split(/\s+/).length <= 4;
+  return bare && !NOT_A_BARE_PLACE.test(chip) ? false : null;
+}
+
 /** `contextText` is the shopper's latest message plus the last few turns; it tells bare chips like "Chrome finish" which family they belong to. */
-export async function dropChipsWithNoProducts(chips: string[], contextText: string): Promise<string[]> {
+export async function dropChipsWithNoProducts(chips: string[], contextText: string, replyText = ""): Promise<string[]> {
   if (chips.length === 0) return chips;
+
+  // Dealer / "where are you?" reply: the chips are places. Check them against where dealers actually are.
+  if (DEALER_CONTEXT.test(replyText)) {
+    const kept = chips.filter((chip) => typeof chip !== "string" || locationChipVerdict(chip) !== false);
+    return kept;
+  }
+
   let products: Product[];
   try {
     products = await fetchAllActiveProducts();

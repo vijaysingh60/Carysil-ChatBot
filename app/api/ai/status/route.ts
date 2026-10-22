@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
  * Bump when shipping a behaviour change, so `curl <site>/api/ai/status` shows which build is actually live.
  * (Added when a deploy of the catalogue-search fixes was suspected not to have gone out.)
  */
-const BUILD = "2026-10-22-catalog-search-fixes-2";
+const BUILD = "2026-10-23-dealer-chips-and-lead-fixes";
 
 export const dynamic = "force-dynamic";
 

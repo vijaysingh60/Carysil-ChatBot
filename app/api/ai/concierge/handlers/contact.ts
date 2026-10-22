@@ -3,8 +3,13 @@ import type { ConversationMessage } from "@/lib/followupEngine";
 import { extractLeadData, recentlyAskedForLeadDetails } from "@/lib/followupEngine";
 import { isLikelyLocationReply } from "./intent";
 
+/** Replies that answer a question but give nothing: never a name or a city. */
+const FILLER_REPLY =
+  /^(?:ok(?:ay)?|so|no|nope|nah|yes|yeah|yep|yup|sure|fine|hmm+|hm+|huh|hi|hello|hey|thanks?|thank\s+you|cool|nice|great|alright|right|k|kk|what|why|how|maybe|later|not\s+now|never\s*mind|go\s+on|continue)[\s.!?,]*$/i;
+
 export function userProvidedLeadSignals(message: string, contactFromMessageOnly: ContactInfo): boolean {
   const trimmed = message.trim();
+  if (FILLER_REPLY.test(trimmed)) return false;
   if (/\b[6-9]\d{9}\b/.test(trimmed) || /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i.test(trimmed)) return true;
   if (contactFromMessageOnly.phone || contactFromMessageOnly.email) return true;
   if (contactFromMessageOnly.city && trimmed.length <= 80) {
@@ -24,13 +29,17 @@ export function userProvidedLeadSignals(message: string, contactFromMessageOnly:
 }
 
 export function recentlyOfferedDealerConnect(history: ConversationMessage[]): boolean {
-  return history
-    .slice(-4)
-    .some(
-      (msg) =>
-        msg.role === "assistant" &&
-        /\b(connect you|dealer near|carysil dealer|team can assist|would you like me to connect)\b/i.test(msg.content)
-    );
+  const recent = history.slice(-4);
+  // "Would you like me to show the closest Carysil dealers to X?" offers to LIST dealers (resolveNearestDealerFollowup
+  // answers it). When that is the latest thing we said, a "yes" must not be read as agreeing to be connected — even
+  // though an earlier line of the same chat ("I'll find a Carysil dealer…") would otherwise match below.
+  const lastAssistant = [...recent].reverse().find((msg) => msg.role === "assistant");
+  if (lastAssistant && /closest\s+Carysil\s+dealers/i.test(lastAssistant.content)) return false;
+  return recent.some(
+    (msg) =>
+      msg.role === "assistant" &&
+      /\b(connect you|dealer near|carysil dealer|team can assist|would you like me to connect)\b/i.test(msg.content)
+  );
 }
 
 export function isAffirmativeLeadReply(message: string): boolean {
