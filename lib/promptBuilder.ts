@@ -24,6 +24,8 @@ export type ConciseProduct = {
   size?: string | null;
   price?: string | null;
   description?: string | null;
+  /** Structured facts (mounting, pull-out, finishes) — authoritative for matching the shopper's request. */
+  facet_text?: string | null;
 };
 
 export type BuiltPrompt = {
@@ -81,6 +83,7 @@ export function toConciseProduct(input: ConciseProduct): {
   size: string;
   price: string;
   pitch: string;
+  facts: string;
 } {
   return {
     id: input.id,
@@ -90,6 +93,7 @@ export function toConciseProduct(input: ConciseProduct): {
     size: input.size ?? "",
     price: input.price ?? "",
     pitch: input.description ? trimSentence(input.description, 120) : "",
+    facts: input.facet_text ?? "",
   };
 }
 
@@ -99,7 +103,7 @@ function formatProducts(products: ConciseProduct[]): string {
     .slice(0, 5)
     .map((product, index) => {
       const c = toConciseProduct(product);
-      return `${index + 1}. ${c.id} | ${c.name} | ${c.category} | ${c.material}${c.size ? ` | ${c.size}` : ""}${c.price ? ` | ${c.price}` : ""} | ${c.pitch}`;
+      return `${index + 1}. ${c.id} | ${c.name} | ${c.category} | ${c.material}${c.size ? ` | ${c.size}` : ""}${c.price ? ` | ${c.price}` : ""} | ${c.pitch}${c.facts ? ` | FACTS: ${c.facts}` : ""}`;
     })
     .join("\n");
 }

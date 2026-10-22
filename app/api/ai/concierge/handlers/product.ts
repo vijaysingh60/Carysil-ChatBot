@@ -16,6 +16,9 @@ export type Product = {
   image_url?: string;
   url?: string;
   collection?: string;
+  /** Structured facts from the Sanity sync (mounting, pull-out, finishes) — see lib/catalogFacets.ts. */
+  facet_text?: string;
+  mounting?: "deck" | "wall";
 };
 
 type ProductRow = {
@@ -31,6 +34,11 @@ type ProductRow = {
   image_url: string | null;
   specifications: Record<string, unknown> | null;
 };
+
+function facetMounting(specs: Record<string, unknown>): "deck" | "wall" | undefined {
+  const facets = specs.facets as { mounting?: unknown } | undefined;
+  return facets?.mounting === "deck" || facets?.mounting === "wall" ? facets.mounting : undefined;
+}
 
 function rowToProduct(row: ProductRow): Product {
   const specs = row.specifications ?? {};
@@ -48,6 +56,8 @@ function rowToProduct(row: ProductRow): Product {
     image_url: row.image_url ?? undefined,
     url: row.url ?? undefined,
     collection: Array.isArray(collections) ? String(collections[0]) : undefined,
+    facet_text: typeof specs.facet_text === "string" && specs.facet_text ? specs.facet_text : undefined,
+    mounting: facetMounting(specs),
   };
 }
 
@@ -107,6 +117,22 @@ function extractCmFromText(s: string): string | null {
   return m ? `${m[1]}cm` : null;
 }
 
+/** Pseudo-keywords describing a kind of preference ("budget", "size"…) rather than a word in a product. */
+const NON_FILTERING_KEYWORDS = new Set(["budget", "context", "size", "finish", "spout", "price"]);
+
+/**
+ * In-memory twin of `keywordClause` in lib/vectorSearch.ts, for the fallback list and the chip filter. Hyphen-
+ * insensitive, mounting-aware ("deck" is the default install, so no product text says it).
+ */
+export function productMatchesKeyword(p: Product, keyword: string): boolean {
+  const kw = keyword.trim().toLowerCase().replace(/-/g, " ");
+  if (!kw || NON_FILTERING_KEYWORDS.has(kw)) return true;
+  if (kw === "deck") return p.mounting ? p.mounting === "deck" : !/\bwall\b/i.test(p.name);
+  const text = `${p.name} ${p.description ?? ""} ${p.material ?? ""} ${p.facet_text ?? ""}`.toLowerCase().replace(/-/g, " ");
+  if (kw === "wall") return p.mounting === "wall" || /\bwall\b/.test(text);
+  return text.includes(kw);
+}
+
 export async function filterByIntent(intent: IntentResult): Promise<Product[]> {
   const allProducts = await fetchAllActiveProducts();
   if (!intent.categories?.length) {
@@ -143,6 +169,12 @@ export async function filterByIntent(intent: IntentResult): Promise<Product[]> {
       if (wantsHob && !wantsCookingRange && /\b(cooking\s*range|freestanding\s*range|standing\s*range)\b/.test(h)) return false;
       return true;
     });
+  }
+  if (keywordList.length > 0 && intent.categories.length === 1 && intent.categories[0] === "Faucet") {
+    // Faucet preferences (mounting, pull-out, finish) are facts on the product, so narrow on them; if that leaves
+    // nothing, keep the whole category rather than report "no match".
+    const narrowed = list.filter((p) => keywordList.every((k) => productMatchesKeyword(p, k)));
+    if (narrowed.length > 0) list = narrowed;
   }
   if (f?.material) {
     const m = f.material.toLowerCase();

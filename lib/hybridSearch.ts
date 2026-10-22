@@ -1,4 +1,4 @@
-import { searchSimilarProducts, expandVectorCategories, type SimilarProduct } from "@/lib/vectorSearch";
+import { searchSimilarProducts, expandVectorCategories, keywordClause, type SimilarProduct } from "@/lib/vectorSearch";
 import { getDbPool } from "@/lib/db";
 import { buildTsQuery, ftsRankToSimilarity } from "@/lib/textSearch";
 
@@ -36,6 +36,15 @@ async function searchByFTS(
     params.push(`%${options.material}%`);
     where.push(`LOWER(COALESCE(material, '')) LIKE LOWER($${params.length})`);
   }
+  // Same keyword constraints as the vector branch. Without them a "deck-mount" request would still pull in
+  // wall-mounted faucets through FTS — they match the word "mount" just as well.
+  for (const keyword of options.keywords ?? []) {
+    const clause = keywordClause(keyword, (value) => {
+      params.push(value);
+      return `$${params.length}`;
+    });
+    if (clause) where.push(clause);
+  }
   if (typeof options.minPrice === "number") {
     params.push(options.minPrice);
     where.push(`price_min >= $${params.length}`);
@@ -48,6 +57,7 @@ async function searchByFTS(
   params.push(options.limit ?? 5);
   const { rows } = await pool.query<SimilarProduct & { rank: number }>(
     `SELECT id, name, category, material, style, size, description, price, url, image_url,
+            specifications->>'facet_text' AS facet_text,
             ts_rank(to_tsvector('english', COALESCE(search_text, '')), to_tsquery('english', $1)) AS rank
      FROM products
      WHERE ${where.join(" AND ")}
@@ -97,6 +107,15 @@ export async function hybridSearch(
   query: string,
   options: SearchOptions = {}
 ): Promise<SimilarProduct[]> {
+  const strict = await runHybridSearch(query, options);
+  if (strict.length > 0 || !options.keywords || options.keywords.length === 0) return strict;
+
+  // Keyword constraints are a ranking aid, not a promise that the catalogue literally says those words. If they
+  // wipe out every candidate, search the category again without them rather than tell the shopper we have nothing.
+  return runHybridSearch(query, { ...options, keywords: undefined });
+}
+
+async function runHybridSearch(query: string, options: SearchOptions): Promise<SimilarProduct[]> {
   const limit = options.limit ?? 5;
   const candidateLimit = Math.max(limit * 2, 10);
 

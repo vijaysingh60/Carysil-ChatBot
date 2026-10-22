@@ -13,6 +13,8 @@ export type SimilarProduct = {
   price: string | null;
   url: string | null;
   image_url: string | null;
+  /** Structured facts derived from Sanity (mounting, pull-out, finishes) — see lib/catalogFacets.ts. */
+  facet_text?: string | null;
   similarity: number;
 };
 
@@ -57,6 +59,39 @@ function parseBudget(text: string): { maxPrice?: number; minPrice?: number } {
     }
   }
   return {};
+}
+
+/**
+ * Pseudo-keywords the intent layer adds to describe a *kind* of preference ("budget", "size"…) rather than a word that
+ * appears in a product. Matching them literally against product text can never succeed, so they must not filter.
+ */
+const NON_FILTERING_KEYWORDS = new Set(["budget", "context", "size", "finish", "spout", "price"]);
+
+/**
+ * SQL for one keyword constraint. Hyphen-insensitive ("pull-out" also matches "Pull Out"), searches the full
+ * `search_text` rather than just name/description, and understands mounting: "deck" and "wall" are facts stored by the
+ * catalogue sync (deck-mount is the default, so no product text ever says "deck").
+ *
+ * `addParam` pushes a value onto the caller's parameter list and returns its `$n` placeholder.
+ */
+export function keywordClause(keyword: string, addParam: (value: string) => string): string | null {
+  const kw = keyword.trim().toLowerCase();
+  if (!kw || NON_FILTERING_KEYWORDS.has(kw)) return null;
+
+  const mounting = `specifications->'facets'->>'mounting'`;
+  if (kw === "deck") return `(${mounting} = 'deck')`;
+
+  const variants = new Set([`%${kw}%`]);
+  if (kw.includes("-")) {
+    variants.add(`%${kw.replace(/-/g, " ")}%`);
+    variants.add(`%${kw.replace(/-/g, "")}%`);
+  } else if (kw.includes(" ")) {
+    variants.add(`%${kw.replace(/ /g, "-")}%`);
+  }
+  const placeholder = addParam(`{${Array.from(variants).map((v) => `"${v.replace(/["\\]/g, "\\$&")}"`).join(",")}}`);
+  const text = `LOWER(COALESCE(name, '') || ' ' || COALESCE(description, '') || ' ' || COALESCE(search_text, ''))`;
+  const textMatch = `${text} LIKE ANY(${placeholder}::text[])`;
+  return kw === "wall" ? `(${mounting} = 'wall' OR ${textMatch})` : `(${textMatch})`;
 }
 
 function inferHybridFilters(query: string, base?: Partial<SearchFilters>): SearchFilters {
@@ -170,11 +205,11 @@ export async function searchSimilarProducts(
   if (filters.keywords && filters.keywords.length > 0) {
     const keywordClauses: string[] = [];
     for (const keyword of filters.keywords) {
-      sqlParams.push(`%${keyword}%`);
-      const p = `$${sqlParams.length}`;
-      keywordClauses.push(
-        `(LOWER(COALESCE(name, '')) LIKE LOWER(${p}) OR LOWER(COALESCE(description, '')) LIKE LOWER(${p}))`
-      );
+      const clause = keywordClause(keyword, (value) => {
+        sqlParams.push(value);
+        return `$${sqlParams.length}`;
+      });
+      if (clause) keywordClauses.push(clause);
     }
     if (keywordClauses.length > 0) {
       where.push(`(${keywordClauses.join(" AND ")})`);
@@ -197,6 +232,7 @@ export async function searchSimilarProducts(
       price,
       url,
       image_url,
+      specifications->>'facet_text' AS facet_text,
       1 - (embedding <=> $1::vector) AS similarity
     FROM products
     ${whereSql}
