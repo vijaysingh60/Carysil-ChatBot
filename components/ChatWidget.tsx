@@ -158,9 +158,14 @@ function useKeyboardInset(active: boolean): { inset: number; visibleHeight: numb
   return state;
 }
 
-export function ChatWidget() {
-  const [open, setOpen] = useState(false);
-  const [rendered, setRendered] = useState(false);
+/**
+ * `embedded`: the widget is the whole content of an iframe on another site (see app/embed/chat). The host page owns
+ * the launcher button and the iframe's size, position and rounded corners, so here there is no launcher, the panel
+ * starts open and fills the frame, and closing asks the host (postMessage) to hide the frame instead of unmounting.
+ */
+export function ChatWidget({ embedded = false }: { embedded?: boolean }) {
+  const [open, setOpen] = useState(embedded);
+  const [rendered, setRendered] = useState(embedded);
   const [closing, setClosing] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [input, setInput] = useState("");
@@ -174,7 +179,8 @@ export function ChatWidget() {
   const skipPersistRef = useRef(true);
 
   const canSend = input.trim().length > 0 && !loading;
-  const keyboard = useKeyboardInset(rendered);
+  // Embedded, the host page resizes the iframe to the visible area itself, so there is no keyboard to dodge here.
+  const keyboard = useKeyboardInset(rendered && !embedded);
 
   const scrollChatToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
     const node = listRef.current;
@@ -215,6 +221,10 @@ export function ChatWidget() {
   }
 
   function closeChat() {
+    if (embedded) {
+      window.parent.postMessage({ type: "carysil-chat:close" }, "*");
+      return;
+    }
     if (!open && !rendered) return;
     setClosing(true);
     setOpen(false);
@@ -258,7 +268,7 @@ export function ChatWidget() {
           history,
           sessionId: sessionId || undefined,
           visitorId: visitorId || undefined,
-          source: "chat_widget",
+          source: embedded ? "website_embed" : "chat_widget",
           deviceType: window.innerWidth < 768 ? "mobile" : "desktop",
         }),
       });
@@ -432,7 +442,7 @@ export function ChatWidget() {
   return (
     <>
       {/* Floating chat button */}
-      {!rendered && (
+      {!rendered && !embedded && (
         <button
           type="button"
           onClick={toggleOpen}
@@ -454,9 +464,13 @@ export function ChatWidget() {
       {/* Chat window */}
       {rendered && (
         <div
-          className={`fixed bottom-6 right-6 z-[9998] flex w-[430px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-gray-800/80 bg-[#14161A] shadow-2xl shadow-black/60 chat-panel ${
-            closing ? "animate-chat-pop-out pointer-events-none" : "animate-chat-pop-in"
-          }`}
+          className={
+            embedded
+              ? "fixed inset-0 z-[9998] flex flex-col overflow-hidden bg-[#14161A]"
+              : `fixed bottom-6 right-6 z-[9998] flex w-[430px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-gray-800/80 bg-[#14161A] shadow-2xl shadow-black/60 chat-panel ${
+                  closing ? "animate-chat-pop-out pointer-events-none" : "animate-chat-pop-in"
+                }`
+          }
           // Keyboard open: dock just above it and use the space that's actually visible.
           style={
             keyboard.inset > 0

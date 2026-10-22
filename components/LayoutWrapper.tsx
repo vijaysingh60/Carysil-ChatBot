@@ -9,12 +9,12 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const isEmbed = pathname?.startsWith("/embed");
   const isDashboard = pathname?.startsWith("/dashboard");
 
-  // /embed/chat renders nothing itself — the floating ChatWidget IS its content.
+  // /embed/chat renders nothing itself — the ChatWidget IS its content, filling the iframe it is loaded in.
   if (isEmbed) {
     return (
       <>
         {children}
-        <ChatWidget />
+        <ChatWidget embedded />
       </>
     );
   }
